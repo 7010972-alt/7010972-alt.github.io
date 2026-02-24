@@ -1,7 +1,7 @@
 # CS 30 work
 
 ## Demos
-- I'll link to demos here
+- [Moving Square](01-first-day)
 
 ## Assignments
 - add assignments here
