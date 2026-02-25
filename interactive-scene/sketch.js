@@ -1,11 +1,9 @@
-// Project Title
-// Your Name
-// Date
+// Interactive Scene
+// Bertin
+// Febuary 25, 2026
 //
 // Extra for Experts:
-// - describe what you did to take this project "above and beyond"
-
-//map sizes
+// I used local storage to save the users data onto their browser
 let mapSizeY;
 let mapSizeX;
 
@@ -17,7 +15,7 @@ let startAllRadius = 20;
 
 //stats
 let prestige = 0;
-let wins = 100;
+let wins = 10;
 let originGrowSize = 100;
 let originUPGAmount = 1;
 let growSize = 4;
@@ -42,8 +40,9 @@ let textSeperation = 25;
 let textSpaceBase = 25;
 
 //circle variables
+let prestigeSize = 2;
 let radiusVariety = 8;
-let goldRarity = 50;
+let goldRarity = 100;
 let goldGainMuilti = 5;
 let goldSpeedMuilti = 5;
 
@@ -99,7 +98,7 @@ function setup() {
   button5.position(buttonXSpace, buttonSpaceBase + buttonSeperation * 2);
   button5.mousePressed(radiusUPG);
 
-  let button6 = createButton("100 Win | Prestige");
+  let button6 = createButton("10 Win | Prestige");
   button6.position(buttonXSpace, buttonSpaceBase + buttonSeperation * 3);
   button6.mousePressed(prestigeUPG);
 
@@ -269,8 +268,10 @@ function moveBack(Number) {
 
 //gives each circle a range that is detectable
 function circleSizeSetter(Number) {
+  let sizeMuilti = 1;
   if (prestige === 1 && Number % goldRarity === 0) {
     fill("yellow");
+    sizeMuilti = prestigeSize;
   } else {
     fill("green");
   }
@@ -278,7 +279,7 @@ function circleSizeSetter(Number) {
   circle(
     circlesSetup[Number][1],
     circlesSetup[Number][2],
-    circlesSetup[Number][9]
+    circlesSetup[Number][9] * sizeMuilti
   );
 
   circlesSetup[Number][3] = circlesSetup[Number][1] - allRadius / 2;
@@ -340,7 +341,7 @@ function radiusUPG() {
 
 //prestiges
 function prestigeUPG() {
-  if (wins >= 100) {
+  if (wins >= 10) {
     prestige += 1;
     wins = 0;
     originGrowSize = startOriginGrowSize;
