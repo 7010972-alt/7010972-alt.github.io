@@ -43,7 +43,7 @@ let textSpaceBase = 25;
 let prestigeSize = 2;
 let radiusVariety = 8;
 let goldRarity = 100;
-let goldGainMuilti = 5;
+let goldGainMuilti = 50;
 let goldSpeedMuilti = 5;
 
 //rectangle setup
@@ -197,7 +197,7 @@ function move() {
 
 //randomly moves the circles in a direction
 function circleRandomMove(Number) {
-  if (prestige === 1 && Number % goldRarity === 0) {
+  if (prestige >= 1 && Number % goldRarity === 0) {
     circlesSetup[Number][1] += circlesSetup[Number][7] * goldSpeedMuilti;
     circlesSetup[Number][2] += circlesSetup[Number][8] * goldSpeedMuilti;
   } else {
@@ -224,15 +224,18 @@ function eat(Number) {
 //moves the position of the ball
 function moveCircle(Number) {
   let muilti = 1;
-  if (prestige === 1 && Number % goldRarity === 0) {
+  let shiftmuilt = 1;
+  if (prestige >= 1 && Number % goldRarity === 0) {
     rectSize += growSize * goldGainMuilti;
     muilti = goldGainMuilti;
-  } else {
+    shiftmuilt = goldGainMuilti;
+  } 
+  else {
     rectSize += growSize;
   }
 
-  rectX -= growSize / 2;
-  rectY -= growSize / 2;
+  rectX -= growSize * shiftmuilt / 2;
+  rectY -= growSize * shiftmuilt / 2;
   circlesSetup[Number][1] = random(0, mapSizeX);
   circlesSetup[Number][2] = random(0, mapSizeY);
   circlesSetup[Number][7] = random(minDrift, maxDrift);
@@ -269,7 +272,7 @@ function moveBack(Number) {
 //gives each circle a range that is detectable
 function circleSizeSetter(Number) {
   let sizeMuilti = 1;
-  if (prestige === 1 && Number % goldRarity === 0) {
+  if (prestige >= 1 && Number % goldRarity === 0) {
     fill("yellow");
     sizeMuilti = prestigeSize;
   } else {
