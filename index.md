@@ -3,6 +3,7 @@
 ## Demos
 - [Moving Square](first-day)
 - [scope](demo)
+- [image demo](images)
 
 ## Assignments
-- [interactive sceme](interactive-scene)
+- [square grower](interactive-scene)
