@@ -285,10 +285,10 @@ function circleSizeSetter(Number) {
     circlesSetup[Number][9] * sizeMuilti
   );
 
-  circlesSetup[Number][3] = circlesSetup[Number][1] - allRadius / 2;
-  circlesSetup[Number][4] = circlesSetup[Number][1] + allRadius / 2;
-  circlesSetup[Number][5] = circlesSetup[Number][2] - allRadius / 2;
-  circlesSetup[Number][6] = circlesSetup[Number][2] + allRadius / 2;
+  circlesSetup[Number][3] = circlesSetup[Number][1] - allRadius * sizeMuilti / 2;
+  circlesSetup[Number][4] = circlesSetup[Number][1] + allRadius * sizeMuilti / 2;
+  circlesSetup[Number][5] = circlesSetup[Number][2] - allRadius * sizeMuilti / 2;
+  circlesSetup[Number][6] = circlesSetup[Number][2] + allRadius * sizeMuilti / 2;
 }
 
 //gives rectangle detectable range
