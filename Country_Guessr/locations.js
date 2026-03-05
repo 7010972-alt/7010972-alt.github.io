@@ -2,8 +2,8 @@
 
 //1050
 window.america = [
-    "United States", 
-    [
+  "United States", 
+  [
     [
       31.757328278836816,
       -93.85334637602617
@@ -4104,13 +4104,13 @@ window.america = [
       63.182320741040236,
       -143.13149606400825
     ]
-]
+  ]
 ];
 
 //400
 window.canada = [
-    "Canada", 
-    [
+  "Canada", 
+  [
     [
       56.88024227456792,
       -101.06496470449576
@@ -5712,12 +5712,12 @@ window.canada = [
       -69.76790324300977
     ]
   ]
-]
+];
 
 //500
 window.mexico = [
-    "Mexico",
-    [
+  "Mexico",
+  [
     [
       24.74663904338073,
       -102.68875355808233
@@ -7719,15 +7719,15 @@ window.mexico = [
       -100.34397221736927
     ]
   ]
-]
+];
 
 
 //South America
 
 //100
 window.guatemala = [
-    "Guatemala",
-    [
+  "Guatemala",
+  [
     [
       14.824953135951766,
       -91.31143950911482
@@ -8129,12 +8129,12 @@ window.guatemala = [
       -91.28029587525126
     ]
   ]
-]
+];
 
 //100
 window.costarica = [
-    "Costa Rica",
-    [
+  "Costa Rica",
+  [
     [
       10.403882107406755,
       -85.31378650625568
@@ -8536,12 +8536,12 @@ window.costarica = [
       -85.22402727686963
     ]
   ]
-]
+];
 
 //100
 window.panama = [
-    "Panama",
-    [
+  "Panama",
+  [
     [
       8.384579081006567,
       -80.18318215487227
@@ -8943,12 +8943,12 @@ window.panama = [
       -80.44417120836488
     ]
   ]
-]
+];
 
 //200
 window.colombia = [
-    "Colombia",
-    [
+  "Colombia",
+  [
     [
       4.229203850098246,
       -74.74220295289382
@@ -9750,12 +9750,12 @@ window.colombia = [
       -72.81838360668009
     ]
   ]
-]
+];
 
 //200
 window.peru = [
-    "Peru",
-    [
+  "Peru",
+  [
     [
       -13.073824000498538,
       -75.13344218146662
@@ -10557,12 +10557,12 @@ window.peru = [
       -75.0634275668865
     ]
   ]
-]
+];
 
 //100
 window.ecuador = [
-    "ecuador",
-    [
+  "ecuador",
+  [
     [
       -2.0270925011174104,
       -80.66756170126817
@@ -10964,12 +10964,12 @@ window.ecuador = [
       -79.18010752722765
     ]
   ]
-]
+];
 
 //200
 window.bolivia = [
-    "Bolivia",
-    [
+  "Bolivia",
+  [
     [
       -17.891484540574137,
       -67.26266713702738
@@ -11771,12 +11771,12 @@ window.bolivia = [
       -66.1281677924788
     ]
   ]
-]
+];
 
 //300
 window.chile = [
-    "Chile",
-    [
+  "Chile",
+  [
     [
       -20.51302466476699,
       -69.66745502707039
@@ -12978,12 +12978,12 @@ window.chile = [
       -70.78663961108101
     ]
   ]
-]
+];
 
 //400
 window.argentina = [
-    "Argentina",
-    [
+  "Argentina",
+  [
     [
       -40.06061460713301,
       -65.9766821091811
@@ -14585,12 +14585,12 @@ window.argentina = [
       -58.82882247537259
     ]
   ]
-]
+];
 
 //500
 window.brazil = [
-    "Brazil",
-    [
+  "Brazil",
+  [
     [
       -17.96613689087875,
       -50.499124479289456
@@ -16592,14 +16592,14 @@ window.brazil = [
       -39.61758570261262
     ]
   ]
-]
+];
 
 //Oceania
 
 //550
 window.australia = [
-    "Australia",
-    [
+  "Australia",
+  [
     [
       -32.324389173887056,
       117.41342404446804
@@ -18801,12 +18801,12 @@ window.australia = [
       146.40399878321784
     ]
   ]
-]
+];
 
 //250
 window.newzealand = [
-    "New Zealand",
-    [
+  "New Zealand",
+  [
     [
       -37.91142911463977,
       176.78901316520225
@@ -20008,15 +20008,15 @@ window.newzealand = [
       171.7837276278949
     ]
   ]
-]
+];
 
 
 //Africa
 
 //150
 window.tunisia = [
-    "Tunisia",
-    [
+  "Tunisia",
+  [
     [
       33.72591148418209,
       10.74119910791974
@@ -20618,12 +20618,12 @@ window.tunisia = [
       9.837135832456019
     ]
   ]
-]
+];
 
 //200
 window.senegal = [
-    "Senegal",
-    [
+  "Senegal",
+  [
     [
       16.509288890709403,
       -14.638991900938077
@@ -21425,12 +21425,12 @@ window.senegal = [
       -17.04750000683571
     ]
   ]
-]
+];
 
 //200
 window.ghana = [
-    "Ghana",
-    [
+  "Ghana",
+  [
     [
       5.801941980900499,
       -0.5030758126695936
@@ -22232,12 +22232,12 @@ window.ghana = [
       -1.817483971654031
     ]
   ]
-]
+];
 
 //300
 window.nigeria = [
-    "Nigeria",
-    [
+  "Nigeria",
+  [
     [
       11.883638822960807,
       8.504172786458373
@@ -23439,12 +23439,12 @@ window.nigeria = [
       11.173743126967498
     ]
   ]
-]
+];
 
 //400
 window.kenya = [
-    "Kenya",
-    [
+  "Kenya",
+  [
     [
       -0.38220599064014593,
       37.93522477805054
@@ -25046,12 +25046,12 @@ window.kenya = [
       35.900172205140855
     ]
   ]
-]
+];
 
 //50
 window.uganda = [
-    "Uganda",
-    [
+  "Uganda",
+  [
     [
       0.18162357549565847,
       32.556818051944134
@@ -25253,12 +25253,12 @@ window.uganda = [
       32.66050591180873
     ]
   ]
-]
+];
 
 //100
 window.rwanda = [
-    "Rwanda",
-    [
+  "Rwanda",
+  [
     [
       -1.915368915468692,
       30.376929528574863
@@ -25660,12 +25660,12 @@ window.rwanda = [
       30.1989391010015
     ]
   ]
-]
+];
 
 //250
 window.namibia = [
-    "Namibia",
-    [
+  "Namibia",
+  [
     [
       -26.37649546077775,
       18.506453581204187
@@ -26667,12 +26667,12 @@ window.namibia = [
       15.045993363755825
     ]
   ]
-]
+];
 
 //200
 window.botswana = [
-    "Botswana",
-    [
+  "Botswana",
+  [
     [
       -21.78577635861633,
       27.348295943396217
@@ -27474,12 +27474,12 @@ window.botswana = [
       22.127427262538816
     ]
   ]
-]
+];
 
 //500
 window.southafrica = [
-    "South Africa",
-    [
+  "South Africa",
+  [
     [
       -23.79159090379881,
       29.812868263475817
@@ -29481,12 +29481,12 @@ window.southafrica = [
       26.92820675525138
     ]
   ]
-]
+];
 
 //100
 window.eswatini = [
-    "Eswatini",
-    [
+  "Eswatini",
+  [
     [
       -26.757218352622985,
       31.595882698860972
@@ -29888,12 +29888,12 @@ window.eswatini = [
       30.952585651566405
     ]
   ]
-]
+];
 
 //100
 window.lesotho = [
-    "Lesotho",
-    [
+  "Lesotho",
+  [
     [
       -29.111425404205754,
       28.475736497273694
@@ -30295,14 +30295,14 @@ window.lesotho = [
       28.497217203356055
     ]
   ]
-]
+];
 
 //Asia
 
 //500
 window.japan = [
-    "Japan",
-    [
+  "Japan",
+  [
     [
       36.70539231219385,
       137.86367383465134
@@ -32304,7 +32304,7 @@ window.japan = [
       140.42836576763787
     ]
   ]
-]
+];
 
 // //200
 // window.southkorea = [
@@ -32314,8 +32314,8 @@ window.japan = [
 
 //200
 window.taiwan = [
-    "Taiwan",
-    [
+  "Taiwan",
+  [
     [
       22.811985555764124,
       120.41637291799337
@@ -33117,12 +33117,12 @@ window.taiwan = [
       120.89991481436843
     ]
   ]
-]
+];
 
 //500
 window.philippines = [
-    "Philippines",
-    [
+  "Philippines",
+  [
     [
       7.741588232027395,
       125.99962397707188
@@ -35124,12 +35124,12 @@ window.philippines = [
       124.9279951917523
     ]
   ]
-]
+];
 
 //500
 window.indonesia = [
-    "Indonesia",
-    [
+  "Indonesia",
+  [
     [
       -4.78511111160136,
       122.69368857758815
@@ -37131,12 +37131,12 @@ window.indonesia = [
       115.34390728573676
     ]
   ]
-]
+];
 
 //300
 window.malaysia = [
-    "Malaysia",
-    [
+  "Malaysia",
+  [
     [
       2.8285182046207984,
       102.34704763662863
@@ -38338,12 +38338,12 @@ window.malaysia = [
       117.49419378393013
     ]
   ]
-]
+];
 
 //250
 window.vietnam = [
-    "Vietnam",
-    [
+  "Vietnam",
+  [
     [
       20.70642461207333,
       106.72655837922284
@@ -39345,12 +39345,12 @@ window.vietnam = [
       104.21355814063483
     ]
   ]
-]
+];
 
 //200
 window.cambodia = [
-    "Cambodia",
-    [
+  "Cambodia",
+  [
     [
       11.949304824512334,
       105.45279124536546
@@ -40152,12 +40152,12 @@ window.cambodia = [
       103.41046255093262
     ]
   ]
-]
+];
 
 //400
 window.thailand = [
-    "Thailand",
-    [
+  "Thailand",
+  [
     [
       12.788799550554852,
       101.12238628892271
@@ -41759,12 +41759,12 @@ window.thailand = [
       99.87078352859176
     ]
   ]
-]
+];
 
 //1000
 window.india = [
-    "India",
-    [
+  "India",
+  [
     [
       27.552279128712104,
       82.72956975513434
@@ -45766,12 +45766,12 @@ window.india = [
       74.3537533449881
     ]
   ]
-]
+];
 
 // 250
 window.bangladesh = [
-    "Bangladesh",
-    [
+  "Bangladesh",
+  [
     [
       22.787693363214185,
       90.31670785151253
@@ -46773,12 +46773,12 @@ window.bangladesh = [
       91.84849491453379
     ]
   ]
-]
+];
 
 //100
 window.nepal = [
-    "Nepal",
-    [
+  "Nepal",
+  [
     [
       27.519474389857738,
       83.01885820460721
@@ -47180,12 +47180,12 @@ window.nepal = [
       85.06184041273409
     ]
   ]
-]
+];
 
 //200
 window.bhutan = [
-    "Bhutan",
-    [
+  "Bhutan",
+  [
     [
       27.296996371836048,
       89.97341587877646
@@ -47987,12 +47987,12 @@ window.bhutan = [
       91.1815452498621
     ]
   ]
-]
+];
 
 //200
 window.srilanka = [
-    "Sri Lanka",
-    [
+  "Sri Lanka",
+  [
     [
       8.458721178696164,
       80.31177483226637
@@ -48794,12 +48794,12 @@ window.srilanka = [
       79.96916617713651
     ]
   ]
-]
+];
 
 //200
 window.oman = [
-    "Oman",
-    [
+  "Oman",
+  [
     [
       17.231019205173595,
       53.32547135410623
@@ -49601,12 +49601,12 @@ window.oman = [
       53.57904254880436
     ]
   ]
-]
+];
 
 //100
 window.unitedarabemirates = [
-    "United Arab Emirates",
-    [
+  "United Arab Emirates",
+  [
     [
       25.098984122981054,
       55.4088541626761
@@ -50008,12 +50008,12 @@ window.unitedarabemirates = [
       56.33910168015016
     ]
   ]
-]
+];
 
 //50
 window.qatar = [
-    "Qatar",
-    [
+  "Qatar",
+  [
     [
       25.121611867344054,
       51.38537718046208
@@ -50215,12 +50215,12 @@ window.qatar = [
       51.43195198707689
     ]
   ]
-]
+];
 
 //100
 window.jordan = [
-    "Jordan",
-    [
+  "Jordan",
+  [
     [
       30.607037885176222,
       35.806583106437465
@@ -50622,12 +50622,12 @@ window.jordan = [
       35.89617973989158
     ]
   ]
-]
+];
 
 //250
 window.israel = [
-    "Israel",
-    [
+  "Israel",
+  [
     [
       31.74376194882158,
       35.47056497681968
@@ -51629,11 +51629,11 @@ window.israel = [
       35.30899887276828
     ]
   ]
-]
+];
 
 //100
 window.lebanon = [
-    "Lebanon",[
+  "Lebanon",[
     [
       34.23514276756163,
       35.69438503292665
@@ -52035,12 +52035,12 @@ window.lebanon = [
       35.84264478814534
     ]
   ]
-]
+];
 
 //300
 window.kazakhstan = [
-    "Kazakhstan",
-    [
+  "Kazakhstan",
+  [
     [
       45.480922577606194,
       80.05347349340349
@@ -53242,12 +53242,12 @@ window.kazakhstan = [
       60.9169958549677
     ]
   ]
-]
+];
 
 //300
 window.mongolia = [
-    "Mongolia",
-    [
+  "Mongolia",
+  [
     [
       47.209140008508115,
       92.24388199296276
@@ -54449,12 +54449,12 @@ window.mongolia = [
       109.03674940566619
     ]
   ]
-]
+];
 
 //50
 window.hongkong = [
-    "Hong Kong",
-    [
+  "Hong Kong",
+  [
     [
       22.506723810105928,
       114.14575421700457
@@ -54656,69 +54656,69 @@ window.hongkong = [
       114.24250068717386
     ]
   ]
-]
+];
 
 window.allCountries = [
-    //north america
-    america,
-    canada,
-    mexico,
+  //north america
+  america,
+  canada,
+  mexico,
 
-    //south america
-    guatemala,
-    costarica,
-    panama,
-    colombia,
-    peru,
-    ecuador,
-    bolivia,
-    chile,
-    argentina,
-    brazil,
+  //south america
+  guatemala,
+  costarica,
+  panama,
+  colombia,
+  peru,
+  ecuador,
+  bolivia,
+  chile,
+  argentina,
+  brazil,
 
-    //oceania
-    australia,
-    newzealand,
+  //oceania
+  australia,
+  newzealand,
 
-    //Africa
-    tunisia,
-    senegal,
-    ghana,
-    nigeria,
-    kenya,
-    uganda,
-    rwanda,
-    namibia,
-    botswana,
-    southafrica,
-    eswatini,
-    lesotho,
+  //Africa
+  tunisia,
+  senegal,
+  ghana,
+  nigeria,
+  kenya,
+  uganda,
+  rwanda,
+  namibia,
+  botswana,
+  southafrica,
+  eswatini,
+  lesotho,
 
-    //Asia
-    japan,
-    taiwan,
-    //southkorea,
-    philippines,
-    indonesia,
-    malaysia,
-    vietnam,
-    cambodia,
-    thailand,
-    india,
-    bangladesh,
-    nepal,
-    bhutan,
-    srilanka,
-    oman,
-    unitedarabemirates,
-    qatar,
-    jordan,
-    israel,
-    lebanon,
-    kazakhstan,
-    mongolia,
-    hongkong
+  //Asia
+  japan,
+  taiwan,
+  //southkorea,
+  philippines,
+  indonesia,
+  malaysia,
+  vietnam,
+  cambodia,
+  thailand,
+  india,
+  bangladesh,
+  nepal,
+  bhutan,
+  srilanka,
+  oman,
+  unitedarabemirates,
+  qatar,
+  jordan,
+  israel,
+  lebanon,
+  kazakhstan,
+  mongolia,
+  hongkong
 
 
 
-]
+];

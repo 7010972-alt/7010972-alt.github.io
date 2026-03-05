@@ -9,4 +9,4 @@
 
 ## Assignments
 - [square grower](interactive-scene)
-- ["Arrays and Object Notation"](OpenGeep)
+- ["Country Guessr"](OpenGeep)
