@@ -19,6 +19,7 @@ let countries = [
   "Belgium",
   "Bhutan",
   "Bolivia",
+  "Bosnia and Herzegovina",
   "Botswana",
   "Brazil",
   "Bulgaria",
