@@ -5,7 +5,8 @@
 - [scope](demo)
 - [image demo](images)
 - [Ball Array](ball-array)
+- [gen art](gen_art)
 
 ## Assignments
 - [square grower](interactive-scene)
-- ["OpenGeep"](OpenGeep)
+- ["Arrays and Object Notation"](OpenGeep)

@@ -1,3 +1,7 @@
+//Arrays and Object Notation Assignment
+//Bertin Li
+//March 5/26
+
 //Making maps on https://map-degen.vercel.app/
 //Converting them to coords at https://education.openguessr.com/tools/map-converter
 
