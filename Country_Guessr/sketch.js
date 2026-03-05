@@ -127,7 +127,7 @@ let answerHeight = 70
 let answer;
 let answerText = "Last Answer: none"
 let textsize;
-let textSizeScreenDividor = 50
+let textSizeScreenDividor = 75
 
 //drop down country picker
 let mapOptions;
@@ -136,9 +136,8 @@ let opttextsizeDivisor = 70
 let optionsX = 20
 let optionsY = 15
 let optxwidth;
-let optyheight;
-let optxwidthDivisor = 12
-let optyheightDivisor = 45
+let optyheight = bannerHeight / 2
+let optxwidthDivisor = 17
 
 let switching = true
 
@@ -146,7 +145,7 @@ function setup() {
   noCanvas();
 
   //create top banner
-  textsize = windowWidth / textSizeScreenDividor
+  textsize = (windowWidth + windowHeight) / textSizeScreenDividor
   console.log(textsize)
 
   banner = createDiv(bannerText);
@@ -191,8 +190,7 @@ function setup() {
 
   //create drop menu
   //opttextsize = windowWidth / opttextsizeDivisor
-  optxwidth = windowWidth / optxwidthDivisor
-  optyheight = windowWidth / optyheightDivisor
+  optxwidth = (windowWidth + windowHeight) / optxwidthDivisor
   mapOptions = createSelect()
   mapOptions.position(optionsX, optionsY);
   mapOptions.style("z-index", "11")
