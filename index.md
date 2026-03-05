@@ -9,4 +9,4 @@
 
 ## Assignments
 - [square grower](interactive-scene)
-- ["Country Guessr"](OpenGeep)
+- ["Country Guessr"](Country_Guessr)
