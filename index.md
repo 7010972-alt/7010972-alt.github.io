@@ -8,4 +8,4 @@
 
 ## Assignments
 - [square grower](interactive-scene)
-- [arrays](OpenGeep)
+- ["OpenGeep"](OpenGeep)
