@@ -143,10 +143,10 @@ let optxwidthDivisor = 17
 
 //type country
 let mapType;
-let mTX;
-let mTY;
-let mSX;
-let mSY;
+let SelectColor = "rgb(109, 255, 61)"
+let unSelectColor = "rgb(255, 255, 255)"
+
+
 
 let switching = true
 
@@ -192,6 +192,7 @@ function setup() {
   //create type map
   mapType = createInput()
   mapType.style("z-index", "10")
+  
 
 
   //create drop menu
@@ -233,6 +234,7 @@ function setup() {
 function draw() {
   nextmap()
   fixsizes()
+  mapTypeColChange()  //why does this still break my code?
 }
 
 function windowResized() {
@@ -268,6 +270,15 @@ function adddropmenu() {
   }
 }
 
+function mapTypeColChange() {
+    if (mapOptions.elt.options.length === 2) {
+      mapType.style("background", SelectColor)
+    }
+    else {
+      mapType.style("background", unSelectColor)
+    }
+}
+
 function fixsizes() {
   optxwidth = (windowWidth + windowHeight) / optxwidthDivisor
   mapOptions.style("width", `${optxwidth}px`);
@@ -276,7 +287,6 @@ function fixsizes() {
   mapType.style("width", `${optxwidth}px`);
   mapType.style("height", `${optyheight - 6}px`);
   mapType.position(optionsX + optxwidth, optionsY)
-
 
   banner.position(0, 0);
   banner.size(windowWidth, bannerHeight);
@@ -287,6 +297,16 @@ function fixsizes() {
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor
   banner.style("font-size", `${textsize}px`);
   answer.style("font-size", `${textsize}px`);
+}
+
+//enter map if only 1 option remains
+function keyPressed() {
+  if (keyCode === ENTER) {
+    if (mapOptions.elt.options.length === 2) {
+      mapOptions.elt.selectedIndex = 1;
+      mapChange()
+    }
+  }
 }
 
 function nextmap() {
