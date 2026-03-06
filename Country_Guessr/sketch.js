@@ -123,41 +123,41 @@ let newlat;
 let newlng;
 
 //banner
-let bannerHeight = 70
+let bannerHeight = 70;
 let banner;
 let bannerText;
 
 //answer display
-let answerHeight = 70
+let answerHeight = 70;
 let answer;
-let answerText = "Last Answer: none"
+let answerText = "Last Answer: none";
 let textsize;
-let textSizeScreenDividor = 75
+let textSizeScreenDividor = 75;
 
 //drop down country picker
 let mapOptions;
 let opttextsize;
-let opttextsizeDivisor = 70
-let optionsX = 20
-let optionsY = 15
+let opttextsizeDivisor = 70;
+let optionsX = 20;
+let optionsY = 15;
 let optxwidth;
-let optyheight = bannerHeight / 2
-let optxwidthDivisor = 17
+let optyheight = bannerHeight / 2;
+let optxwidthDivisor = 17;
 
 //type country
 let mapType;
-let SelectColor = "rgb(109, 255, 61)"
-let unSelectColor = "rgb(255, 255, 255)"
+let SelectColor = "rgb(109, 255, 61)";
+let unSelectColor = "rgb(255, 255, 255)";
 
 
 
-let switching = true
+let switching = true;
 
 function setup() {
   noCanvas();
 
   //create top banner
-  textsize = (windowWidth + windowHeight) / textSizeScreenDividor
+  textsize = (windowWidth + windowHeight) / textSizeScreenDividor;
 
   //load info
   if (localStorage.getItem("Streak") !== null) {
@@ -167,7 +167,7 @@ function setup() {
     points = Number(localStorage.getItem("Points"));
   }
 
-  bannerText = ("Win Streak: " + winStreak + " | Points: " + points)
+  bannerText = "Win Streak: " + winStreak + " | Points: " + points;
 
   banner = createDiv(bannerText);
   banner.style("background", "rgb(154, 255, 120)");
@@ -203,29 +203,29 @@ function setup() {
   answer.style("box-sizing", "border-box");
 
   //create type map
-  mapType = createInput()
-  mapType.style("z-index", "10")
+  mapType = createInput();
+  mapType.style("z-index", "10");
   
 
 
   //create drop menu
   //opttextsize = windowWidth / opttextsizeDivisor
-  mapOptions = createSelect()
+  mapOptions = createSelect();
   mapOptions.position(optionsX, optionsY);
-  mapOptions.style("z-index", "11")
+  mapOptions.style("z-index", "11");
   mapOptions.style("font-size", "20px");
 
   //give countries of each map the country they are in
   for (country of countries) {
-    mapOptions.option(country, country)
+    mapOptions.option(country, country);
   }
 
-  setupMap()
+  setupMap();
 
   //pick random location
-  randomlocation = random(currentLocations)
-  newlat = randomlocation.lat
-  newlng = randomlocation.lng
+  randomlocation = random(currentLocations);
+  newlat = randomlocation.lat;
+  newlng = randomlocation.lng;
 
   //add the part that is going to have the street view on it
   street = createElement("iframe");
@@ -235,19 +235,19 @@ function setup() {
   street.size(windowWidth, windowHeight);
 
   //change map and add winstreak when player picks
-  mapOptions.changed(mapChange)
+  mapOptions.changed(mapChange);
 
   //check when player types
   mapType.input(() => {
-      adddropmenu()
+    adddropmenu();
   });
 
 }
 
 function draw() {
-  nextmap()
-  fixsizes()
-  mapTypeColChange()  //why does this still break my code?
+  nextmap();
+  fixsizes();
+  mapTypeColChange();  //why does this still break my code?
 }
 
 function windowResized() {
@@ -258,51 +258,51 @@ function addmap(map, country) {
   for (let location of map) {
     currentLocations.push(
       {
-      lat: location[0],
-      lng: location[1],
-      cnt: country,
-      addpts: -1 * (map.length / pointDividor) + basicPoints
+        lat: location[0],
+        lng: location[1],
+        cnt: country,
+        addpts: -1 * (map.length / pointDividor) + basicPoints
       }
-    )
+    );
   }
 }
 
 function adddropmenu() {
   mapOptions.html("");
-  mapOptions.option("None")
+  mapOptions.option("None");
   //nothing is typed
   if (mapType.value() === "") {
     for (country of countries) {
-      mapOptions.option(country, country)
+      mapOptions.option(country, country);
     }
   }
   //something is typed
   else {
     for (country of countries) {
       if (country.toLowerCase().includes(mapType.value().toLowerCase())) {
-        mapOptions.option(country, country)
+        mapOptions.option(country, country);
       }
     }
   }
 }
 
 function mapTypeColChange() {
-    if (mapOptions.elt.options.length === 2) {
-      mapType.style("background", SelectColor)
-    }
-    else {
-      mapType.style("background", unSelectColor)
-    }
+  if (mapOptions.elt.options.length === 2) {
+    mapType.style("background", SelectColor);
+  }
+  else {
+    mapType.style("background", unSelectColor);
+  }
 }
 
 function fixsizes() {
-  optxwidth = (windowWidth + windowHeight) / optxwidthDivisor
+  optxwidth = (windowWidth + windowHeight) / optxwidthDivisor;
   mapOptions.style("width", `${optxwidth}px`);
   mapOptions.style("height", `${optyheight}px`);
 
   mapType.style("width", `${optxwidth}px`);
   mapType.style("height", `${optyheight - 6}px`);
-  mapType.position(optionsX + optxwidth, optionsY)
+  mapType.position(optionsX + optxwidth, optionsY);
 
   banner.position(0, 0);
   banner.size(windowWidth, bannerHeight);
@@ -310,7 +310,7 @@ function fixsizes() {
   answer.position(windowWidth * 0.75, 0);
   answer.size(windowWidth / 4, answerHeight);
 
-  textsize = (windowWidth + windowHeight) / textSizeScreenDividor
+  textsize = (windowWidth + windowHeight) / textSizeScreenDividor;
   banner.style("font-size", `${textsize}px`);
   answer.style("font-size", `${textsize}px`);
 }
@@ -320,16 +320,16 @@ function keyPressed() {
   if (keyCode === ENTER) {
     if (mapOptions.elt.options.length === 2) {
       mapOptions.elt.selectedIndex = 1;
-      mapChange()
+      mapChange();
     }
   }
 }
 
 function nextmap() {
   if (switching) {
-    randomlocation = random(currentLocations)
-    newlat = randomlocation.lat
-    newlng = randomlocation.lng
+    randomlocation = random(currentLocations);
+    newlat = randomlocation.lat;
+    newlng = randomlocation.lng;
 
     street.attribute(
       "src",
@@ -340,10 +340,10 @@ function nextmap() {
 }
 
 function setupMap() {
-    currentLocations = [];
-    for (let country of allCountries) {
-      addmap(country[1], country[0])
-    }
+  currentLocations = [];
+  for (let country of allCountries) {
+    addmap(country[1], country[0]);
+  }
 }
 
 function mapChange() {
@@ -351,21 +351,21 @@ function mapChange() {
   if (mapOptions.value() !== "None") {
     //got right
     if (randomlocation.cnt === mapOptions.value()) {
-      winStreak += 1
-      points += randomlocation.addpts
+      winStreak += 1;
+      points += randomlocation.addpts;
     }
     //got wrong
     else {
-      winStreak = 0
+      winStreak = 0;
     }
-    banner.html("Win Streak: " + winStreak + " | Points: " + points)
-    lastAnswer = structuredClone(randomlocation.cnt)
-    answer.html("Last Answer: " + lastAnswer)
+    banner.html("Win Streak: " + winStreak + " | Points: " + points);
+    lastAnswer = structuredClone(randomlocation.cnt);
+    answer.html("Last Answer: " + lastAnswer);
     mapOptions.selected("None");
     mapType.value("");
-    adddropmenu()
-    switching = true
-    saveProgress()
+    adddropmenu();
+    switching = true;
+    saveProgress();
   }
 }
 
