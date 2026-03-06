@@ -73,6 +73,7 @@ let countries = [
   "Norway",
   "Oman",
   "Panama",
+  "Paraguay",
   "Peru",
   "Philippines",
   "Poland",
@@ -140,6 +141,13 @@ let optxwidth;
 let optyheight = bannerHeight / 2
 let optxwidthDivisor = 17
 
+//type country
+let mapType;
+let mTX;
+let mTY;
+let mSX;
+let mSY;
+
 let switching = true
 
 function setup() {
@@ -147,11 +155,8 @@ function setup() {
 
   //create top banner
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor
-  console.log(textsize)
 
   banner = createDiv(bannerText);
-  banner.position(0, 0);
-  banner.size(windowWidth, bannerHeight);
   banner.style("background", "rgb(154, 255, 120)");
   banner.style("color", "white");
   banner.style("z-index", "10");
@@ -161,7 +166,6 @@ function setup() {
   banner.style("justify-content", "center");
   banner.style("align-items", "center");
 
-  banner.style("font-size", `${textsize}px`);
   banner.style("color", "rgb(0, 0, 0)");
   banner.style("font-weight", "bold");
 
@@ -170,8 +174,6 @@ function setup() {
 
   //create answer display
   answer = createDiv(answerText);
-  answer.position(windowWidth * 0.75, 0);
-  answer.size(windowWidth / 4, answerHeight);
   answer.style("background", "rgb(154, 255, 120)");
   answer.style("color", "white");
   answer.style("z-index", "10");
@@ -181,22 +183,22 @@ function setup() {
   answer.style("justify-content", "center");
   answer.style("align-items", "center");
 
-  answer.style("font-size", `${textsize}px`);
   answer.style("color", "rgb(0, 0, 0)");
   answer.style("font-weight", "bold");
 
   answer.style("border-bottom", "4px solid black");
   answer.style("box-sizing", "border-box");
 
+  //create type map
+  mapType = createInput()
+  mapType.style("z-index", "10")
+
 
   //create drop menu
   //opttextsize = windowWidth / opttextsizeDivisor
-  optxwidth = (windowWidth + windowHeight) / optxwidthDivisor
   mapOptions = createSelect()
   mapOptions.position(optionsX, optionsY);
   mapOptions.style("z-index", "11")
-  mapOptions.style("width", `${optxwidth}px`);
-  mapOptions.style("height", `${optyheight}px`);
   mapOptions.style("font-size", "20px");
 
   //give countries of each map the country they are in
@@ -220,10 +222,17 @@ function setup() {
 
   //change map and add winstreak when player picks
   mapOptions.changed(mapChange)
+
+  //check when player types
+  mapType.input(() => {
+      adddropmenu()
+  }
+);
 }
 
 function draw() {
   nextmap()
+  fixsizes()
 }
 
 function windowResized() {
@@ -240,6 +249,44 @@ function addmap(map, country) {
       }
     )
   }
+}
+
+function adddropmenu() {
+  mapOptions.html("");
+  mapOptions.option("None")
+  if (mapType.value() === "") {
+    for (country of countries) {
+      mapOptions.option(country, country)
+    }
+  }
+  else {
+    for (country of countries) {
+      if (country.toLowerCase().includes(mapType.value().toLowerCase())) {
+        mapOptions.option(country, country)
+      }
+    }
+  }
+}
+
+function fixsizes() {
+  optxwidth = (windowWidth + windowHeight) / optxwidthDivisor
+  mapOptions.style("width", `${optxwidth}px`);
+  mapOptions.style("height", `${optyheight}px`);
+
+  mapType.style("width", `${optxwidth}px`);
+  mapType.style("height", `${optyheight - 6}px`);
+  mapType.position(optionsX + optxwidth, optionsY)
+
+
+  banner.position(0, 0);
+  banner.size(windowWidth, bannerHeight);
+
+  answer.position(windowWidth * 0.75, 0);
+  answer.size(windowWidth / 4, answerHeight);
+
+  textsize = (windowWidth + windowHeight) / textSizeScreenDividor
+  banner.style("font-size", `${textsize}px`);
+  answer.style("font-size", `${textsize}px`);
 }
 
 function nextmap() {
@@ -275,19 +322,8 @@ function mapChange() {
     lastAnswer = structuredClone(randomlocation.cnt)
     answer.html("Last Answer: " + lastAnswer)
     mapOptions.selected("None");
+    mapType.value("");
+    adddropmenu()
     switching = true
   }
 }
-
-// function keyPressed() {
-//   if (keyCode === 32) {
-//     if (randomlocation.cnt === mapOptions.value()) {
-//       winStreak += 1
-//     }
-//     else {
-//       winStreak = 0
-//     }
-//     banner.html("Win Streak: " + winStreak)
-//     switching = true
-//   }
-// }
