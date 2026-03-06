@@ -110,7 +110,10 @@ let countries = [
 ];
 
 //game variables
-winStreak = 0;
+let winStreak = 0;
+let points = 0;
+let pointDividor = 50;
+let basicPoints = 25;
 
 //map variables
 let lastAnswer;
@@ -122,7 +125,7 @@ let newlng;
 //banner
 let bannerHeight = 70
 let banner;
-let bannerText = "Win Streak: 0"
+let bannerText;
 
 //answer display
 let answerHeight = 70
@@ -155,6 +158,16 @@ function setup() {
 
   //create top banner
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor
+
+  //load info
+  if (localStorage.getItem("Streak") !== null) {
+    winStreak = Number(localStorage.getItem("Streak"));
+  }
+  if (localStorage.getItem("Points") !== null) {
+    points = Number(localStorage.getItem("Points"));
+  }
+
+  bannerText = ("Win Streak: " + winStreak + " | Points: " + points)
 
   banner = createDiv(bannerText);
   banner.style("background", "rgb(154, 255, 120)");
@@ -227,8 +240,8 @@ function setup() {
   //check when player types
   mapType.input(() => {
       adddropmenu()
-  }
-);
+  });
+
 }
 
 function draw() {
@@ -247,7 +260,8 @@ function addmap(map, country) {
       {
       lat: location[0],
       lng: location[1],
-      cnt: country
+      cnt: country,
+      addpts: -1 * (map.length / pointDividor) + basicPoints
       }
     )
   }
@@ -256,11 +270,13 @@ function addmap(map, country) {
 function adddropmenu() {
   mapOptions.html("");
   mapOptions.option("None")
+  //nothing is typed
   if (mapType.value() === "") {
     for (country of countries) {
       mapOptions.option(country, country)
     }
   }
+  //something is typed
   else {
     for (country of countries) {
       if (country.toLowerCase().includes(mapType.value().toLowerCase())) {
@@ -331,19 +347,30 @@ function setupMap() {
 }
 
 function mapChange() {
+  //if country was picked
   if (mapOptions.value() !== "None") {
+    //got right
     if (randomlocation.cnt === mapOptions.value()) {
       winStreak += 1
+      points += randomlocation.addpts
     }
+    //got wrong
     else {
       winStreak = 0
     }
-    banner.html("Win Streak: " + winStreak)
+    banner.html("Win Streak: " + winStreak + " | Points: " + points)
     lastAnswer = structuredClone(randomlocation.cnt)
     answer.html("Last Answer: " + lastAnswer)
     mapOptions.selected("None");
     mapType.value("");
     adddropmenu()
     switching = true
+    saveProgress()
   }
+}
+
+function saveProgress() {
+  localStorage.setItem("Points", points);
+  localStorage.setItem("Streak", winStreak);
+
 }
