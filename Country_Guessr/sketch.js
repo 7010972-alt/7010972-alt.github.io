@@ -6,108 +6,109 @@
 //Converting them to coords at https://education.openguessr.com/tools/map-converter
 
 let street;
+let map;
 
-// all countries that have street view
-let countries = [
-  "None",
-  "Albania",
-  "Andorra",
-  "Argentina",
-  "Australia",
-  "Austria",
-  "Bangladesh",
-  "Belgium",
-  "Bhutan",
-  "Bolivia",
-  "Bosnia and Herzegovina",
-  "Botswana",
-  "Brazil",
-  "Bulgaria",
-  "Cambodia",
-  "Canada",
-  "Chile",
-  "Colombia",
-  "Costa Rica",
-  "Croatia",
-  "Czechia",
-  "Denmark",
-  "Dominican Republic",
-  "Ecuador",
-  "Estonia",
-  "Eswatini",
-  "Finland",
-  "France",
-  "Germany",
-  "Ghana",
-  "Greece",
-  "Guatemala",
-  "Hong Kong",
-  "Hungary",
-  "Iceland",
-  "India",
-  "Indonesia",
-  "Ireland",
-  "Israel",
-  "Italy",
-  "Japan",
-  "Jordan",
-  "Kazakhstan",
-  "Kenya",
-  "Latvia",
-  "Lebanon",
-  "Lesotho",
-  "Lithuania",
-  "Luxembourg",
-  "Malaysia",
-  "Malta",
-  "Mexico",
-  "Monaco",
-  "Mongolia",
-  "Montenegro",
-  "Namibia",
-  "Netherlands",
-  "Nepal",
-  "New Zealand",
-  "Nigeria",
-  "North Macedonia",
-  "Norway",
-  "Oman",
-  "Panama",
-  "Paraguay",
-  "Peru",
-  "Philippines",
-  "Poland",
-  "Portugal",
-  "Puerto Rico",
-  "Qatar",
-  "Romania",
-  "Russia",
-  "Rwanda",
-  "San Marino",
-  "Sao Tome and Principe",
-  "Senegal",
-  "Serbia",
-  "Singapore",
-  "Slovakia",
-  "Slovenia",
-  "South Africa",
-  "South Korea",
-  "Spain",
-  "Sri Lanka",
-  "Sweden",
-  "Switzerland",
-  "Taiwan",
-  "Thailand",
-  "Tunisia",
-  "Turkey",
-  "Uganda",
-  "Ukraine",
-  "United Arab Emirates",
-  "United Kingdom",
-  "United States",
-  "Uruguay",
-  "Vietnam",
-];
+// // all countries that have street view
+// let countries = [
+//   "None",
+//   "Albania",
+//   "Andorra",
+//   "Argentina",
+//   "Australia",
+//   "Austria",
+//   "Bangladesh",
+//   "Belgium",
+//   "Bhutan",
+//   "Bolivia",
+//   "Bosnia and Herzegovina",
+//   "Botswana",
+//   "Brazil",
+//   "Bulgaria",
+//   "Cambodia",
+//   "Canada",
+//   "Chile",
+//   "Colombia",
+//   "Costa Rica",
+//   "Croatia",
+//   "Czechia",
+//   "Denmark",
+//   "Dominican Republic",
+//   "Ecuador",
+//   "Estonia",
+//   "Eswatini",
+//   "Finland",
+//   "France",
+//   "Germany",
+//   "Ghana",
+//   "Greece",
+//   "Guatemala",
+//   "Hong Kong",
+//   "Hungary",
+//   "Iceland",
+//   "India",
+//   "Indonesia",
+//   "Ireland",
+//   "Israel",
+//   "Italy",
+//   "Japan",
+//   "Jordan",
+//   "Kazakhstan",
+//   "Kenya",
+//   "Latvia",
+//   "Lebanon",
+//   "Lesotho",
+//   "Lithuania",
+//   "Luxembourg",
+//   "Malaysia",
+//   "Malta",
+//   "Mexico",
+//   "Monaco",
+//   "Mongolia",
+//   "Montenegro",
+//   "Namibia",
+//   "Netherlands",
+//   "Nepal",
+//   "New Zealand",
+//   "Nigeria",
+//   "North Macedonia",
+//   "Norway",
+//   "Oman",
+//   "Panama",
+//   "Paraguay",
+//   "Peru",
+//   "Philippines",
+//   "Poland",
+//   "Portugal",
+//   "Puerto Rico",
+//   "Qatar",
+//   "Romania",
+//   "Russia",
+//   "Rwanda",
+//   "San Marino",
+//   "Sao Tome and Principe",
+//   "Senegal",
+//   "Serbia",
+//   "Singapore",
+//   "Slovakia",
+//   "Slovenia",
+//   "South Africa",
+//   "South Korea",
+//   "Spain",
+//   "Sri Lanka",
+//   "Sweden",
+//   "Switzerland",
+//   "Taiwan",
+//   "Thailand",
+//   "Tunisia",
+//   "Turkey",
+//   "Uganda",
+//   "Ukraine",
+//   "United Arab Emirates",
+//   "United Kingdom",
+//   "United States",
+//   "Uruguay",
+//   "Vietnam",
+// ];
 
 //game variables
 let winStreak = 0;
@@ -140,15 +141,38 @@ let optxwidth;
 let optyheight = bannerHeight / 2
 let optxwidthDivisor = 25
 
-//type country
-let mapType;
-let SelectColor = "rgb(109, 255, 61)"
-let unSelectColor = "rgb(255, 255, 255)"
+// //type country
+// let mapType;
+// let SelectColor = "rgb(109, 255, 61)"
+// let unSelectColor = "rgb(255, 255, 255)"
 
 let switching = true
 
 function setup() {
   noCanvas();
+
+  //leaflet map
+  map = L.map("map").setView([13.2579464, -14.3220717], 3);
+
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    minZoom: 1,
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(map);
+
+  //marker placement
+  var marker = L.marker([0, 0]).addTo(map);
+  var popup = L.popup();
+
+  function onMapClick(e) {
+    let lat = e.latlng.lat;
+    let lng = e.latlng.lng;
+
+    marker.setLatLng([lat, lng]);
+  }
+
+  map.on('click', onMapClick);
+
 
   //create top banner
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor
@@ -179,21 +203,21 @@ function setup() {
   banner.style("border-bottom", "4px solid black");
   banner.style("box-sizing", "border-box");
 
-  //create type map
-  mapType = createInput()
-  mapType.style("z-index", "10")
+  // //create type map
+  // mapType = createInput()
+  // mapType.style("z-index", "10")
 
-  //create drop menu
-  //opttextsize = windowWidth / opttextsizeDivisor
-  mapOptions = createSelect()
-  mapOptions.position(optionsX, optionsY);
-  mapOptions.style("z-index", "11")
-  mapOptions.style("font-size", "20px");
+  // //create drop menu
+  // //opttextsize = windowWidth / opttextsizeDivisor
+  // mapOptions = createSelect()
+  // mapOptions.position(optionsX, optionsY);
+  // mapOptions.style("z-index", "11")
+  // mapOptions.style("font-size", "20px");
 
-  //give countries of each map the country they are in
-  for (country of countries) {
-    mapOptions.option(country, country)
-  }
+  // //give countries of each map the country they are in
+  // for (country of countries) {
+  //   mapOptions.option(country, country)
+  // }
 
   setupMap()
 
@@ -274,13 +298,13 @@ function mapTypeColChange() {
 }
 
 function fixsizes() {
-  optxwidth = (windowWidth + windowHeight) / optxwidthDivisor
-  mapOptions.style("width", `${optxwidth}px`);
-  mapOptions.style("height", `${optyheight}px`);
+  // optxwidth = (windowWidth + windowHeight) / optxwidthDivisor
+  // mapOptions.style("width", `${optxwidth}px`);
+  // mapOptions.style("height", `${optyheight}px`);
 
-  mapType.style("width", `${optxwidth}px`);
-  mapType.style("height", `${optyheight - 6}px`);
-  mapType.position(optionsX + optxwidth, optionsY)
+  // mapType.style("width", `${optxwidth}px`);
+  // mapType.style("height", `${optyheight - 6}px`);
+  // mapType.position(optionsX + optxwidth, optionsY)
 
   banner.position(0, 0);
   banner.size(windowWidth, bannerHeight);
@@ -289,15 +313,15 @@ function fixsizes() {
   banner.style("font-size", `${textsize}px`);
 }
 
-//enter map if only 1 option remains
-function keyPressed() {
-  if (keyCode === ENTER) {
-    if (mapOptions.elt.options.length === 2) {
-      mapOptions.elt.selectedIndex = 1;
-      mapChange()
-    }
-  }
-}
+// //enter map if only 1 option remains
+// function keyPressed() {
+//   if (keyCode === ENTER) {
+//     if (mapOptions.elt.options.length === 2) {
+//       mapOptions.elt.selectedIndex = 1;
+//       mapChange()
+//     }
+//   }
+// }
 
 function nextmap() {
   if (switching) {
@@ -320,27 +344,27 @@ function setupMap() {
     }
 }
 
-function mapChange() {
-  //if country was picked
-  if (mapOptions.value() !== "None") {
-    //got right
-    if (randomlocation.cnt === mapOptions.value()) {
-      winStreak += 1
-      points += randomlocation.addpts
-    }
-    //got wrong
-    else {
-      winStreak = 0
-    }
-    lastAnswer = structuredClone(randomlocation.cnt)
-    banner.html("Win Streak: " + winStreak + " | Points: " + points + " | Answer: " + lastAnswer)
-    mapOptions.selected("None");
-    mapType.value("");
-    adddropmenu()
-    switching = true
-    saveProgress()
-  }
-}
+// function mapChange() {
+//   //if country was picked
+//   if (mapOptions.value() !== "None") {
+//     //got right
+//     if (randomlocation.cnt === mapOptions.value()) {
+//       winStreak += 1
+//       points += randomlocation.addpts
+//     }
+//     //got wrong
+//     else {
+//       winStreak = 0
+//     }
+//     lastAnswer = structuredClone(randomlocation.cnt)
+//     banner.html("Win Streak: " + winStreak + " | Points: " + points + " | Answer: " + lastAnswer)
+//     mapOptions.selected("None");
+//     mapType.value("");
+//     adddropmenu()
+//     switching = true
+//     saveProgress()
+//   }
+// }
 
 function saveProgress() {
   localStorage.setItem("Points", points);
