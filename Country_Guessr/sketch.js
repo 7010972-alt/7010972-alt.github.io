@@ -117,6 +117,8 @@ let pointDividor = 50;
 let basicPoints = 25;
 
 //map variables
+let endScreen = false
+let clickedPoint;
 let lastAnswer;
 let randomlocation;
 let currentLocations = [];
@@ -141,11 +143,6 @@ let optxwidth;
 let optyheight = bannerHeight / 2
 let optxwidthDivisor = 25
 
-//type country
-let mapType;
-let SelectColor = "rgb(109, 255, 61)"
-let unSelectColor = "rgb(255, 255, 255)"
-
 let switching = true
 
 function setup() {
@@ -164,15 +161,22 @@ function setup() {
   var marker = L.marker([0, 0]).addTo(map);
   var popup = L.popup();
 
+  //when the map is clicked
   function onMapClick(e) {
-    let lat = e.latlng.lat;
-    let lng = e.latlng.lng;
+    if (endScreen === false) {
+      let lat = e.latlng.lat;
+      let lng = e.latlng.lng;
 
-    marker.setLatLng([lat, lng]);
+      marker.setLatLng([lat, lng]);
+      
+      clickedPoint = {
+        lat: lat,
+        lng: lng,
+      }
+    }
   }
 
   map.on('click', onMapClick);
-
 
   //create top banner
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor
@@ -203,22 +207,6 @@ function setup() {
   banner.style("border-bottom", "4px solid black");
   banner.style("box-sizing", "border-box");
 
-  //create type map
-  mapType = createInput()
-  mapType.style("z-index", "10")
-
-  //create drop menu
-  //opttextsize = windowWidth / opttextsizeDivisor
-  mapOptions = createSelect()
-  mapOptions.position(optionsX, optionsY);
-  mapOptions.style("z-index", "11")
-  mapOptions.style("font-size", "20px");
-
-  //give countries of each map the country they are in
-  for (country of countries) {
-    mapOptions.option(country, country)
-  }
-
   setupMap()
 
   //pick random location
@@ -236,20 +224,11 @@ function setup() {
   myButton = createButton("Play");
   myButton.style("z-index", "12")
 
-  //change map and add winstreak when player picks
-  mapOptions.changed(mapChange)
-
-  //check when player types
-  mapType.input(() => {
-      adddropmenu()
-  });
-
 }
 
 function draw() {
   nextmap()
   fixsizes()
-  mapTypeColChange()  //why does this still break my code?
 }
 
 function windowResized() {
@@ -263,48 +242,13 @@ function addmap(map, country) {
       lat: location[0],
       lng: location[1],
       cnt: country,
-      addpts: -1 * (map.length / pointDividor) + basicPoints
       }
     )
   }
 }
 
-function adddropmenu() {
-  mapOptions.html("");
-  mapOptions.option("None")
-  //nothing is typed
-  if (mapType.value() === "") {
-    for (country of countries) {
-      mapOptions.option(country, country)
-    }
-  }
-  //something is typed
-  else {
-    for (country of countries) {
-      if (country.toLowerCase().includes(mapType.value().toLowerCase())) {
-        mapOptions.option(country, country)
-      }
-    }
-  }
-}
-
-function mapTypeColChange() {
-    if (mapOptions.elt.options.length === 2) {
-      mapType.style("background", SelectColor)
-    }
-    else {
-      mapType.style("background", unSelectColor)
-    }
-}
-
 function fixsizes() {
   optxwidth = (windowWidth + windowHeight) / optxwidthDivisor
-  mapOptions.style("width", `${optxwidth}px`);
-  mapOptions.style("height", `${optyheight}px`);
-
-  mapType.style("width", `${optxwidth}px`);
-  mapType.style("height", `${optyheight - 6}px`);
-  mapType.position(optionsX + optxwidth, optionsY)
 
   banner.position(0, 0);
   banner.size(windowWidth, bannerHeight);
@@ -313,12 +257,23 @@ function fixsizes() {
   banner.style("font-size", `${textsize}px`);
 }
 
-//enter map if only 1 option remains
 function keyPressed() {
-  if (keyCode === ENTER) {
-    if (mapOptions.elt.options.length === 2) {
-      mapOptions.elt.selectedIndex = 1;
+  if (key === " ") {
+    if (endScreen === false) {
+      //find meters
+      
+      let point1 = L.latLng(randomlocation.lat, randomlocation.lng);
+      let point2 = L.latLng(clickedPoint.lat, clickedPoint.lng);
+
+      let totalDistance = point1.distanceTo(point2);
+
+      console.log(totalDistance)
+
+      afterGuess()
+    }
+    else if (endScreen === true) {
       mapChange()
+      endScreen = false
     }
   }
 }
@@ -344,30 +299,17 @@ function setupMap() {
     }
 }
 
+function afterGuess() {
+  endScreen = true;
+  var answermarker = L.marker([randomlocation.lat, randomlocation.lng]).addTo(map);
+}
+
 function mapChange() {
-  //if country was picked
-  if (mapOptions.value() !== "None") {
-    //got right
-    if (randomlocation.cnt === mapOptions.value()) {
-      winStreak += 1
-      points += randomlocation.addpts
-    }
-    //got wrong
-    else {
-      winStreak = 0
-    }
-    lastAnswer = structuredClone(randomlocation.cnt)
-    banner.html("Win Streak: " + winStreak + " | Points: " + points + " | Answer: " + lastAnswer)
-    mapOptions.selected("None");
-    mapType.value("");
-    adddropmenu()
-    switching = true
-    saveProgress()
-  }
+  switching = true
+  saveProgress()
+  //marker.setLatLng([0, 0]);
 }
 
 function saveProgress() {
-  localStorage.setItem("Points", points);
   localStorage.setItem("Streak", winStreak);
-
 }
