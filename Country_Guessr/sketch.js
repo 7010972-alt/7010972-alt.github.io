@@ -127,10 +127,6 @@ let bannerHeight = 70
 let banner;
 let bannerText;
 
-//answer display
-let answerHeight = 70
-let answer;
-let answerText = "Last Answer: none"
 let textsize;
 let textSizeScreenDividor = 75
 
@@ -149,8 +145,6 @@ let mapType;
 let SelectColor = "rgb(109, 255, 61)"
 let unSelectColor = "rgb(255, 255, 255)"
 
-
-
 let switching = true
 
 function setup() {
@@ -167,16 +161,16 @@ function setup() {
     points = Number(localStorage.getItem("Points"));
   }
 
-  bannerText = ("Win Streak: " + winStreak + " | Points: " + points)
+  bannerText = ("Win Streak: " + winStreak + " | Points: " + points + " | Answer: " + "none")
 
   banner = createDiv(bannerText);
   banner.style("background", "rgb(154, 255, 120)");
   banner.style("color", "white");
   banner.style("z-index", "10");
 
-  //center the words in the banner horizontally and vertically
   banner.style("display", "flex");
-  banner.style("justify-content", "center");
+  banner.style("padding-right", "2vw")
+  banner.style("justify-content", "flex-end");
   banner.style("align-items", "center");
 
   banner.style("color", "rgb(0, 0, 0)");
@@ -185,28 +179,9 @@ function setup() {
   banner.style("border-bottom", "4px solid black");
   banner.style("box-sizing", "border-box");
 
-  //create answer display
-  answer = createDiv(answerText);
-  answer.style("background", "rgb(154, 255, 120)");
-  answer.style("color", "white");
-  answer.style("z-index", "10");
-
-  //center the words in the display horizontally and vertically
-  answer.style("display", "flex");
-  answer.style("justify-content", "center");
-  answer.style("align-items", "center");
-
-  answer.style("color", "rgb(0, 0, 0)");
-  answer.style("font-weight", "bold");
-
-  answer.style("border-bottom", "4px solid black");
-  answer.style("box-sizing", "border-box");
-
   //create type map
   mapType = createInput()
   mapType.style("z-index", "10")
-  
-
 
   //create drop menu
   //opttextsize = windowWidth / opttextsizeDivisor
@@ -307,12 +282,8 @@ function fixsizes() {
   banner.position(0, 0);
   banner.size(windowWidth, bannerHeight);
 
-  answer.position(windowWidth * 0.75, 0);
-  answer.size(windowWidth / 4, answerHeight);
-
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor
   banner.style("font-size", `${textsize}px`);
-  answer.style("font-size", `${textsize}px`);
 }
 
 //enter map if only 1 option remains
@@ -358,9 +329,8 @@ function mapChange() {
     else {
       winStreak = 0
     }
-    banner.html("Win Streak: " + winStreak + " | Points: " + points)
     lastAnswer = structuredClone(randomlocation.cnt)
-    answer.html("Last Answer: " + lastAnswer)
+    banner.html("Win Streak: " + winStreak + " | Points: " + points + " | Answer: " + lastAnswer)
     mapOptions.selected("None");
     mapType.value("");
     adddropmenu()
