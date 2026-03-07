@@ -138,7 +138,7 @@ let optionsX = 20
 let optionsY = 15
 let optxwidth;
 let optyheight = bannerHeight / 2
-let optxwidthDivisor = 17
+let optxwidthDivisor = 25
 
 //type country
 let mapType;
@@ -208,6 +208,9 @@ function setup() {
   street.style("border", "0");
   street.position(0, 0);
   street.size(windowWidth, windowHeight);
+
+  myButton = createButton("Play");
+  myButton.style("z-index", "12")
 
   //change map and add winstreak when player picks
   mapOptions.changed(mapChange)
