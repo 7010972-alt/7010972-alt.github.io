@@ -4,6 +4,8 @@
 
 //Making maps on https://map-degen.vercel.app/
 //Converting them to coords at https://education.openguessr.com/tools/map-converter
+//I used leaflet maps which somehow had everything I needed like getting corrdinates from where I clicked, and adding markers and many more
+//the Leaflet website was incredibly easy to follow aswell https://leafletjs.com/examples.html
 
 let street;
 let map;
@@ -55,6 +57,7 @@ let countries = [
   "Jordan",
   "Kazakhstan",
   "Kenya",
+  "Kyrgyzstan",
   "Latvia",
   "Lebanon",
   "Lesotho",
