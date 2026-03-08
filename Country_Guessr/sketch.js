@@ -7,6 +7,7 @@
 
 let street;
 let map;
+let mapID;
 
 // all countries that have street view
 let countries = [
@@ -167,6 +168,8 @@ function setup() {
     attribution: "&copy; OpenStreetMap contributors"
   }).addTo(map);
 
+  mapID  = select("#map");
+
   //marker placement
   marker = L.marker([0, 0]).addTo(map);
   var popup = L.popup();
@@ -237,22 +240,20 @@ function setup() {
   street.size(windowWidth, windowHeight);
 
   //button to confirm
-  confirmButton = createButton("Confirm");
+  confirmButton = createButton("Confirm (Space)");
   confirmButton.size(60, 50);
   confirmButton.style("position", "absolute");
   confirmButton.style("z-index", "12");
 
   confirmButton.mousePressed(confirmed);
-  confirmButton.touchStarted(confirmed);
 
   //button to hide map
-  hideMapButton = createButton("Confirm");
+  hideMapButton = createButton("Toggle Map");
   hideMapButton.size(60, 50);
   hideMapButton.style("position", "absolute");
   hideMapButton.style("z-index", "12");
 
   hideMapButton.mousePressed(hideMap);
-  hideMapButton.touchStarted(hideMap);
 }
 
 function draw() {
@@ -287,7 +288,6 @@ function fixsizes() {
 
   confirmButton.position(windowWidth - 67, windowHeight - 250);
   hideMapButton.position(windowWidth - 67, windowHeight - 310);
-
 }
 
 //space bar
@@ -320,11 +320,11 @@ function confirmed() {
 
 function hideMap() {
   if (mapShowing === true) {
-    select("#map").hide();
+    mapID.hide();
     mapShowing = false;
   }
   else {
-    select("#map").show();
+    mapID.show();
     mapShowing = true;
   }
 }
