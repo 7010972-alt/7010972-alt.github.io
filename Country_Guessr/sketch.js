@@ -115,6 +115,13 @@ let countries = [
 var answermarker;
 var marker;
 
+var answerIcon = L.icon({
+    iconUrl: 'green_marker.png',
+
+    iconSize:     [30, 40], // size of the icon
+    iconAnchor: [15, 39], // point of the icon which will correspond to marker's location
+});
+
 //game variables
 let mapShowing = true;
 let winStreak = 0;
@@ -365,7 +372,7 @@ function afterGuess() {
   }
   banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points)
 
-  answermarker = L.marker([randomlocation.lat, randomlocation.lng]).addTo(map);
+  answermarker = L.marker([randomlocation.lat, randomlocation.lng], {icon: answerIcon}).addTo(map);
   adjustAfterGuess()
 }
 
