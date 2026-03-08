@@ -129,6 +129,14 @@ let worldMapSize = 14916862;
 let points;
 
 //map variables
+let mapOriginalHeight = 300
+let mapOriginalWidth = 400
+let newHeight = 450
+let newWidth = 600
+let mapBottom = 20
+let mapRight = 75
+let enlarged = false
+
 let totalDistance;
 let endScreen = false
 let clickedPoint;
@@ -261,6 +269,9 @@ function setup() {
   hideMapButton.style("z-index", "12");
 
   hideMapButton.mousePressed(hideMap);
+  
+  changeMapSize()
+
 }
 
 function draw() {
@@ -312,8 +323,6 @@ function confirmed() {
     let point2 = L.latLng(clickedPoint.lat, clickedPoint.lng);
 
     totalDistance = point1.distanceTo(point2);
-
-    console.log(totalDistance)
 
     afterGuess()
   }
@@ -386,6 +395,29 @@ function adjustAfterGuess() {
 
   //leaflit feautre to make the map fit 2 coordinates 
   map.fitBounds(bounds, { padding: [40, 40] });
+}
+
+function changeMapSize() {
+  //make sure they are not on phone
+  if (windowWidth + windowHeight > 2000 && !enlarged) {
+    mapID.mouseOver(() => {
+      mapID.size(newWidth, newHeight);
+      map.invalidateSize();
+      enlarged = true;
+    });
+
+    mapID.mouseOut(() => {
+      if (windowWidth + windowHeight > 2000 && enlarged) {
+        mapID.size(mapOriginalWidth, mapOriginalHeight);
+        // mapID.position(
+        //   windowWidth - mapRight - mapOriginalWidth,
+        //   windowHeight - mapBottom - mapOriginalHeight
+        // );
+        map.invalidateSize();
+        enlarged = false;
+      }
+    });
+  }
 }
 
 function mapChange() {
