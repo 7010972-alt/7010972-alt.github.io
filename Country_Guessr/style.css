@@ -11,7 +11,7 @@ canvas {
   position: absolute;
   bottom: 20px;
   right: 75px;
-  width: 500px;
+  width: 400px;
   height: 300px;
   z-index: 5;
 }
