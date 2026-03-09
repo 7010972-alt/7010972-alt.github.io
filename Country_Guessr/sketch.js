@@ -130,22 +130,24 @@ let mapShowing = true;
 let winStreak = 0;
 let worldMapSize = 14916862;
 let points;
-let bestSet = 0
+let bestSet = 0;
 
 //map variables
-let correctDis = 1000000
+let superDis = 250000;
+let correctDis = 1000000;
+let wrongDis = 6000000;
 var answerLine;
-let answerPadding = 50
-let mapOriginalHeight = 300
-let mapOriginalWidth = 400
-let newHeight = 450
-let newWidth = 600
-let mapBottom = 20
-let mapRight = 75
-let enlarged = false
+let answerPadding = 50;
+let mapOriginalHeight = 300;
+let mapOriginalWidth = 400;
+let newHeight = 450;
+let newWidth = 600;
+let mapBottom = 20;
+let mapRight = 75;
+let enlarged = false;
 
 let totalDistance;
-let endScreen = false
+let endScreen = false;
 let clickedPoint;
 let lastAnswer;
 let randomlocation;
@@ -168,8 +170,8 @@ let opttextsizeDivisor = 70;
 let optionsX = 20;
 let optionsY = 15;
 let optxwidth;
-let optyheight = bannerHeight / 2
-let optxwidthDivisor = 25
+let optyheight = bannerHeight / 2;
+let optxwidthDivisor = 25;
 
 let switching = true;
 
@@ -188,8 +190,16 @@ let totalSetPoints = 0;
 let setMarkers = [];
 let setLineColors = [];
 
+let timeRestriction = 30;
+let timeLeft;
+let nextInterval;
+let time = 0;
+
 function setup() {
   noCanvas();
+
+  console.log("Changed");
+
   //leaflet map
   map = L.map("map").setView([0, 0], 1);
 
@@ -216,14 +226,14 @@ function setup() {
       clickedPoint = {
         lat: lat,
         lng: lng,
-      }
+      };
     }
   }
 
   clickedPoint = {
     lat: 0,
     lng: 0,
-  }
+  };
 
   map.on('click', onMapClick);
 
@@ -236,7 +246,7 @@ function setup() {
   }
 
   //default text
-  bannerText = ("Best Set: " + bestSet.toLocaleString())
+  bannerText = ("Best Set: " + bestSet.toLocaleString());
 
   banner = createDiv(bannerText);
   banner.style("background", "rgb(154, 255, 120)");
@@ -244,7 +254,7 @@ function setup() {
   banner.style("z-index", "20");
 
   banner.style("display", "flex");
-  banner.style("padding-right", "2vw")
+  banner.style("padding-right", "2vw");
   banner.style("justify-content", "flex-end");
   banner.style("align-items", "center");
 
@@ -254,7 +264,7 @@ function setup() {
   banner.style("border-bottom", "4px solid black");
   banner.style("box-sizing", "border-box");
 
-  setupMap()
+  setupMap();
 
   //pick random location
   randomlocation = random(currentLocations);
@@ -292,13 +302,15 @@ function setup() {
 
   startSetButton.mousePressed(startSet);
   
-  changeMapSize()
+  changeMapSize();
 
 }
 
 function draw() {
-  nextmap()
-  fixsizes()
+  nextmap();
+  fixsizes();
+  bannerTextChange();
+  timeDrain();
 }
 
 function windowResized() {
@@ -318,12 +330,12 @@ function addmap(map, country) {
 }
 
 function fixsizes() {
-  optxwidth = (windowWidth + windowHeight) / optxwidthDivisor
+  optxwidth = (windowWidth + windowHeight) / optxwidthDivisor;
 
   banner.position(0, 0);
   banner.size(windowWidth, bannerHeight);
 
-  textsize = (windowWidth + windowHeight) / textSizeScreenDividor
+  textsize = (windowWidth + windowHeight) / textSizeScreenDividor;
   banner.style("font-size", `${textsize}px`);
 
   confirmButton.position(windowWidth - 67, windowHeight - 250);
@@ -331,20 +343,44 @@ function fixsizes() {
   startSetButton.position(windowWidth - 67, windowHeight - 120);
 }
 
+function bannerTextChange() {
+  if (!endScreen) {
+    if (setActive) {
+      banner.html("Round: " + curretnRoundNumber + "/" + maxRounds + " | Time Left: " + timeLeft);
+    }
+    else {
+      banner.html("Best Set: " + bestSet.toLocaleString());
+    }
+  }
+}
+
+function timeDrain() {
+  if (!endScreen) {
+    if (setActive && timeLeft >= 0 && millis() - time > 1000) {
+      time = millis();
+      timeLeft -= 1;
+      console.log(timeLeft)
+    }
+
+    //ran out of time
+    if (timeLeft <= -1) {
+      confirmed();
+    }
+  }
+}
+
 function startSet() {
   if (!setActive) {
-    setActive = true
-    curretnRoundNumber = 1
-    banner.html("Round: " + curretnRoundNumber + "/" + maxRounds)
-
-    mapChange()
+    setActive = true;
+    curretnRoundNumber = 1;
+    mapChange();
   }
 }
 
 //space bar
 function keyPressed() {
   if (key === " ") {
-    confirmed()
+    confirmed();
   }
 }
 
@@ -362,9 +398,9 @@ function hideMap() {
 
 function nextmap() {
   if (switching) {
-    randomlocation = random(currentLocations)
-    newlat = randomlocation.lat
-    newlng = randomlocation.lng
+    randomlocation = random(currentLocations);
+    newlat = randomlocation.lat;
+    newlng = randomlocation.lng;
     
     street.attribute(
       "src",
@@ -377,9 +413,9 @@ function nextmap() {
 function setupMap() {
   currentLocations = [];
   for (let country of allCountries) {
-    addmap(country[1], country[0])
-    }
+    addmap(country[1], country[0]);
   }
+}
   
 function confirmed() {
   if (endScreen === false) {
@@ -390,22 +426,22 @@ function confirmed() {
 
     totalDistance = point1.distanceTo(point2);
 
-    afterGuess()
+    afterGuess();
   }
   else if (endScreen === true) {
-    endScreen = false
-    answermarker.remove()
-    answerLine.remove()
-    mapChange()
+    endScreen = false;
+    answermarker.remove();
+    answerLine.remove();
+    mapChange();
     map.setView([0, 0], 1);
 
     //change map size back to original
-    enlarged = false
-    mapID.style("bottom", "20px")
-    mapID.style("right", "75px")
-    mapID.size(mapOriginalWidth, mapOriginalHeight)
-    map.invalidateSize()
-    map.setView([0, 0], 1)
+    enlarged = false;
+    mapID.style("bottom", "20px");
+    mapID.style("right", "75px");
+    mapID.size(mapOriginalWidth, mapOriginalHeight);
+    map.invalidateSize();
+    map.setView([0, 0], 1);
 
     for (let item of setMarkers) {
       item.remove();
@@ -422,31 +458,38 @@ function afterGuess() {
   points = Math.round(5000 * Math.exp(-10 * totalDistance / worldMapSize));
 
   //set distance text
-  let measurement = "m"
-  let displayAmount = totalDistance
+  let measurement = "m";
+  let displayAmount = totalDistance;
   if (totalDistance > 1000) {
-    measurement = "km"
-    displayAmount = displayAmount / 1000
+    measurement = "km";
+    displayAmount = displayAmount / 1000;
   }
 
   //text after guess
-  banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points)
+  banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points);
 
   //if this is during a set
   if (setActive) {
     //add points
-    totalSetPoints += points
+    totalSetPoints += points;
     if (curretnRoundNumber < maxRounds) {
-      curretnRoundNumber += 1
-      setLocations.push([randomlocation.lat, randomlocation.lng])
-      setClickedPoints.push([clickedPoint.lat, clickedPoint.lng])
+      curretnRoundNumber += 1;
+      setLocations.push([randomlocation.lat, randomlocation.lng]);
+      setClickedPoints.push([clickedPoint.lat, clickedPoint.lng]);
 
       //save line colors
-      let lineCol = "black"
-      if (totalDistance <= correctDis) {
-        lineCol = "green"
+      let lineCol = "black";
+      if (totalDistance <= superDis) {
+        lineCol = "purple";
       }
-      setLineColors.push(lineCol)
+      else if (totalDistance <= correctDis) {
+        lineCol = "green";
+      }
+      else if (totalDistance >= wrongDis) {
+        lineCol = "red";
+      }
+
+      setLineColors.push(lineCol);
     }
     //end set and reset all variables
     else {
@@ -459,44 +502,51 @@ function afterGuess() {
           opacity: 0.7
         }).addTo(map);
 
-        setMarkers.push(setAnswerMarker)
-        setMarkers.push(setClickedMarker)
-        setMarkers.push(setAnswerLine)
+        setMarkers.push(setAnswerMarker);
+        setMarkers.push(setClickedMarker);
+        setMarkers.push(setAnswerLine);
       }
       
       if (bestSet < totalSetPoints) {
-        bestSet = totalSetPoints
+        bestSet = totalSetPoints;
       }
 
-      banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points + " | Round Overall: " + totalSetPoints)
-      setActive = false
-      curretnRoundNumber = 1
-      totalSetPoints = 0
-      setLocations = []
-      setClickedPoints = []
-      setLineColors = []
+      banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points + " | Round Overall: " + totalSetPoints);
+      setActive = false;
+      curretnRoundNumber = 1;
+      totalSetPoints = 0;
+      setLocations = [];
+      setClickedPoints = [];
+      setLineColors = [];
     }
   }
 
   //fill screen with map
-  mapID.style("bottom", "0px")
-  mapID.style("right", "0px")
-  mapID.size(windowWidth, windowHeight - bannerHeight)
-  map.invalidateSize()
+  mapID.style("bottom", "0px");
+  mapID.style("right", "0px");
+  mapID.size(windowWidth, windowHeight - bannerHeight);
+  map.invalidateSize();
 
   answermarker = L.marker([randomlocation.lat, randomlocation.lng], {icon: answerIcon}).addTo(map);
 
-  let lineCol = "black"
-  if (totalDistance <= correctDis) {
-    lineCol = "green"
+  let lineCol = "black";
+  if (totalDistance <= superDis) {
+    lineCol = "purple";
   }
+  else if (totalDistance <= correctDis) {
+    lineCol = "green";
+  }
+  else if (totalDistance >= wrongDis) {
+    lineCol = "red";
+  }
+
   //show a line from the clicked point to the answer
   answerLine = L.polyline([[randomlocation.lat, randomlocation.lng],[clickedPoint.lat, clickedPoint.lng]], {
     color: lineCol,
     opacity: 0.7
   }).addTo(map);
 
-  adjustAfterGuess()
+  adjustAfterGuess();
 }
 
 function adjustAfterGuess() {
@@ -535,20 +585,15 @@ function changeMapSize() {
 }
 
 function mapChange() {
-  switching = true
-  saveProgress()
+  switching = true;
+  saveProgress();
   marker.setLatLng([0, 0]);
   clickedPoint = {
     lat: 0,
     lng: 0,
-  }
-
-  //text after change
+  };
   if (setActive) {
-    banner.html("Round: " + curretnRoundNumber + "/" + maxRounds)
-  }
-  else {
-    banner.html("Best Set: " + bestSet.toLocaleString())
+    timeLeft = timeRestriction;
   }
 }
 
