@@ -133,6 +133,7 @@ let points;
 let bestSet = 0
 
 //map variables
+let correctDis = 1000000
 var answerLine;
 let answerPadding = 50
 let mapOriginalHeight = 300
@@ -185,6 +186,7 @@ let curretnRoundNumber = 0;
 let maxRounds = 5;
 let totalSetPoints = 0;
 let setMarkers = [];
+let setLineColors = [];
 
 function setup() {
   noCanvas();
@@ -438,6 +440,13 @@ function afterGuess() {
       curretnRoundNumber += 1
       setLocations.push([randomlocation.lat, randomlocation.lng])
       setClickedPoints.push([clickedPoint.lat, clickedPoint.lng])
+
+      //save line colors
+      let lineCol = "black"
+      if (totalDistance <= correctDis) {
+        lineCol = "green"
+      }
+      setLineColors.push(lineCol)
     }
     //end set and reset all variables
     else {
@@ -446,7 +455,7 @@ function afterGuess() {
         var setAnswerMarker = L.marker([setLocations[i][0], setLocations[i][1]], {icon: answerIcon}).addTo(map);
         var setClickedMarker = L.marker([setClickedPoints[i][0], setClickedPoints[i][1]]).addTo(map);
         var setAnswerLine = L.polyline([[setLocations[i][0], setLocations[i][1]],[setClickedPoints[i][0], setClickedPoints[i][1]]], {
-          color: "black",
+          color: setLineColors[i],
           opacity: 0.7
         }).addTo(map);
 
@@ -465,6 +474,7 @@ function afterGuess() {
       totalSetPoints = 0
       setLocations = []
       setClickedPoints = []
+      setLineColors = []
     }
   }
 
@@ -476,9 +486,13 @@ function afterGuess() {
 
   answermarker = L.marker([randomlocation.lat, randomlocation.lng], {icon: answerIcon}).addTo(map);
 
+  let lineCol = "black"
+  if (totalDistance <= correctDis) {
+    lineCol = "green"
+  }
   //show a line from the clicked point to the answer
   answerLine = L.polyline([[randomlocation.lat, randomlocation.lng],[clickedPoint.lat, clickedPoint.lng]], {
-    color: "black",
+    color: lineCol,
     opacity: 0.7
   }).addTo(map);
 
