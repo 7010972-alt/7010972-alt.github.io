@@ -6,3 +6,12 @@ html, body {
 canvas {
   display: block;
 }
+
+#map {
+  position: absolute;
+  bottom: 20px;
+  right: 75px;
+  width: 400px;
+  height: 300px;
+  z-index: 13;
+}
