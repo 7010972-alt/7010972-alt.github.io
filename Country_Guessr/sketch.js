@@ -121,7 +121,7 @@ var marker;
 var answerIcon = L.icon({
     iconUrl: 'green_marker.png',
 
-    iconSize:     [30, 40], // size of the icon
+    iconSize: [30, 40], // size of the icon
     iconAnchor: [15, 39], // point of the icon which will correspond to marker's location
 });
 
@@ -130,8 +130,11 @@ let mapShowing = true;
 let winStreak = 0;
 let worldMapSize = 14916862;
 let points;
+let bestSet = 0
 
 //map variables
+var answerLine;
+let answerPadding = 50
 let mapOriginalHeight = 300
 let mapOriginalWidth = 400
 let newHeight = 450
@@ -172,10 +175,19 @@ let switching = true
 //buttons
 let confirmButton;
 let hideMapButton;
+let startSetButton;
+
+//set variables
+let setLocations = [];
+let setClickedPoints = [];
+let setActive = false;
+let curretnRoundNumber = 0;
+let maxRounds = 5;
+let totalSetPoints = 0;
+let setMarkers = [];
 
 function setup() {
   noCanvas();
-
   //leaflet map
   map = L.map("map").setView([0, 0], 1);
 
@@ -190,7 +202,6 @@ function setup() {
 
   //marker placement
   marker = L.marker([0, 0]).addTo(map);
-  var popup = L.popup();
 
   //when the map is clicked
   function onMapClick(e) {
@@ -218,19 +229,17 @@ function setup() {
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor
 
   //load info
-  if (localStorage.getItem("Streak") !== null) {
-    winStreak = Number(localStorage.getItem("Streak"));
+  if (localStorage.getItem("BestSet") !== null) {
+    bestSet = Number(localStorage.getItem("BestSet"));
   }
-  // if (localStorage.getItem("Points") !== null) {
-  //   points = Number(localStorage.getItem("Points"));
-  // }
 
-  bannerText = ("Distance: " + "..." + " | Points: " + "...")
+  //default text
+  bannerText = ("Best Set: " + bestSet.toLocaleString())
 
   banner = createDiv(bannerText);
   banner.style("background", "rgb(154, 255, 120)");
   banner.style("color", "white");
-  banner.style("z-index", "10");
+  banner.style("z-index", "20");
 
   banner.style("display", "flex");
   banner.style("padding-right", "2vw")
@@ -261,7 +270,7 @@ function setup() {
   confirmButton = createButton("Confirm (Space)");
   confirmButton.size(60, 50);
   confirmButton.style("position", "absolute");
-  confirmButton.style("z-index", "12");
+  confirmButton.style("z-index", "14");
 
   confirmButton.mousePressed(confirmed);
 
@@ -272,6 +281,14 @@ function setup() {
   hideMapButton.style("z-index", "12");
 
   hideMapButton.mousePressed(hideMap);
+
+  //button to start a set
+  startSetButton = createButton("Start Set");
+  startSetButton.size(60, 50);
+  startSetButton.style("position", "absolute");
+  startSetButton.style("z-index", "12");
+
+  startSetButton.mousePressed(startSet);
   
   changeMapSize()
 
@@ -309,6 +326,17 @@ function fixsizes() {
 
   confirmButton.position(windowWidth - 67, windowHeight - 250);
   hideMapButton.position(windowWidth - 67, windowHeight - 310);
+  startSetButton.position(windowWidth - 67, windowHeight - 120);
+}
+
+function startSet() {
+  if (!setActive) {
+    setActive = true
+    curretnRoundNumber = 1
+    banner.html("Round: " + curretnRoundNumber + "/" + maxRounds)
+
+    mapChange()
+  }
 }
 
 //space bar
@@ -318,24 +346,6 @@ function keyPressed() {
   }
 }
 
-function confirmed() {
-  if (endScreen === false) {
-    //find meters
-    
-    let point1 = L.latLng(randomlocation.lat, randomlocation.lng);
-    let point2 = L.latLng(clickedPoint.lat, clickedPoint.lng);
-
-    totalDistance = point1.distanceTo(point2);
-
-    afterGuess()
-  }
-  else if (endScreen === true) {
-    answermarker.remove()
-    mapChange()
-    endScreen = false
-    map.setView([0, 0], 1);
-  }
-}
 
 function hideMap() {
   if (mapShowing === true) {
@@ -353,7 +363,7 @@ function nextmap() {
     randomlocation = random(currentLocations)
     newlat = randomlocation.lat
     newlng = randomlocation.lng
-
+    
     street.attribute(
       "src",
       `https://www.google.com/maps?q=&layer=c&cbll=${newlat},${newlng}&cbp=11,0,0,0,0&output=svembed`
@@ -363,12 +373,46 @@ function nextmap() {
 }
 
 function setupMap() {
-    currentLocations = [];
-    for (let country of allCountries) {
-      addmap(country[1], country[0])
+  currentLocations = [];
+  for (let country of allCountries) {
+    addmap(country[1], country[0])
     }
+  }
+  
+function confirmed() {
+  if (endScreen === false) {
+    //find meters
+    
+    let point1 = L.latLng(randomlocation.lat, randomlocation.lng);
+    let point2 = L.latLng(clickedPoint.lat, clickedPoint.lng);
+
+    totalDistance = point1.distanceTo(point2);
+
+    afterGuess()
+  }
+  else if (endScreen === true) {
+    endScreen = false
+    answermarker.remove()
+    answerLine.remove()
+    mapChange()
+    map.setView([0, 0], 1);
+
+    //change map size back to original
+    enlarged = false
+    mapID.style("bottom", "20px")
+    mapID.style("right", "75px")
+    mapID.size(mapOriginalWidth, mapOriginalHeight)
+    map.invalidateSize()
+    map.setView([0, 0], 1)
+
+    for (let item of setMarkers) {
+      item.remove();
+    }
+  }
 }
 
+
+//runs after the player has guessed
 function afterGuess() {
   endScreen = true;
 
@@ -382,9 +426,62 @@ function afterGuess() {
     measurement = "km"
     displayAmount = displayAmount / 1000
   }
+
+  //text after guess
   banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points)
 
+  //if this is during a set
+  if (setActive) {
+    //add points
+    totalSetPoints += points
+    if (curretnRoundNumber < maxRounds) {
+      curretnRoundNumber += 1
+      setLocations.push([randomlocation.lat, randomlocation.lng])
+      setClickedPoints.push([clickedPoint.lat, clickedPoint.lng])
+    }
+    //end set and reset all variables
+    else {
+      //show the previous guesses, the idea is that the final guess will be shown normally so all 5 guesses will be shown
+      for (i = 0; i < maxRounds - 1; i++) {
+        var setAnswerMarker = L.marker([setLocations[i][0], setLocations[i][1]], {icon: answerIcon}).addTo(map);
+        var setClickedMarker = L.marker([setClickedPoints[i][0], setClickedPoints[i][1]]).addTo(map);
+        var setAnswerLine = L.polyline([[setLocations[i][0], setLocations[i][1]],[setClickedPoints[i][0], setClickedPoints[i][1]]], {
+          color: "black",
+          opacity: 0.7
+        }).addTo(map);
+
+        setMarkers.push(setAnswerMarker)
+        setMarkers.push(setClickedMarker)
+        setMarkers.push(setAnswerLine)
+      }
+      
+      if (bestSet < totalSetPoints) {
+        bestSet = totalSetPoints
+      }
+
+      banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points + " | Round Overall: " + totalSetPoints)
+      setActive = false
+      curretnRoundNumber = 1
+      totalSetPoints = 0
+      setLocations = []
+      setClickedPoints = []
+    }
+  }
+
+  //fill screen with map
+  mapID.style("bottom", "0px")
+  mapID.style("right", "0px")
+  mapID.size(windowWidth, windowHeight - bannerHeight)
+  map.invalidateSize()
+
   answermarker = L.marker([randomlocation.lat, randomlocation.lng], {icon: answerIcon}).addTo(map);
+
+  //show a line from the clicked point to the answer
+  answerLine = L.polyline([[randomlocation.lat, randomlocation.lng],[clickedPoint.lat, clickedPoint.lng]], {
+    color: "black",
+    opacity: 0.7
+  }).addTo(map);
+
   adjustAfterGuess()
 }
 
@@ -397,30 +494,30 @@ function adjustAfterGuess() {
   
 
   //leaflit feautre to make the map fit 2 coordinates 
-  map.fitBounds(bounds, { padding: [40, 40] });
+  map.fitBounds(bounds, { padding: [answerPadding, answerPadding] });
 }
 
 function changeMapSize() {
   //make sure they are not on phone
-  if (windowWidth + windowHeight > 2000 && !enlarged) {
-    mapID.mouseOver(() => {
+  mapID.mouseOver(() => {
+    if (windowWidth + windowHeight > 2000 && !enlarged && !endScreen) {
       mapID.size(newWidth, newHeight);
       map.invalidateSize();
       enlarged = true;
-    });
+    }
+  });
 
-    mapID.mouseOut(() => {
-      if (windowWidth + windowHeight > 2000 && enlarged) {
-        mapID.size(mapOriginalWidth, mapOriginalHeight);
-        // mapID.position(
-        //   windowWidth - mapRight - mapOriginalWidth,
-        //   windowHeight - mapBottom - mapOriginalHeight
-        // );
-        map.invalidateSize();
-        enlarged = false;
-      }
-    });
-  }
+  mapID.mouseOut(() => {
+    if (windowWidth + windowHeight > 2000 && enlarged && !endScreen) {
+      mapID.size(mapOriginalWidth, mapOriginalHeight);
+      // mapID.position(
+      //   windowWidth - mapRight - mapOriginalWidth,
+      //   windowHeight - mapBottom - mapOriginalHeight
+      // );
+      map.invalidateSize();
+      enlarged = false;
+    }
+  });
 }
 
 function mapChange() {
@@ -431,9 +528,16 @@ function mapChange() {
     lat: 0,
     lng: 0,
   }
-  banner.html("Distance: " + "..." + " | Points: " + "...")
+
+  //text after change
+  if (setActive) {
+    banner.html("Round: " + curretnRoundNumber + "/" + maxRounds)
+  }
+  else {
+    banner.html("Best Set: " + bestSet.toLocaleString())
+  }
 }
 
 function saveProgress() {
-  //localStorage.setItem("Streak", winStreak);
+  localStorage.setItem("BestSet", bestSet);
 }
