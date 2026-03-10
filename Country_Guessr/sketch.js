@@ -7,8 +7,6 @@
 //I used leaflet maps which somehow had everything I needed like getting corrdinates from where I clicked, and adding markers and many more
 //the Leaflet website was incredibly easy to follow aswell https://leafletjs.com/examples.html
 
-let socket;
-
 let street;
 let map;
 let mapID;
@@ -186,11 +184,6 @@ let hideMapButton;
 let startSetButton;
 let setTypeDropDown;
 
-let hostButton;
-let joinDropDown;
-let joinButton;
-let HostNameBox;
-
 //set variables
 let blitzTime = 10
 
@@ -208,21 +201,10 @@ let timeLeft;
 let nextInterval;
 let time = 0;
 
-//muiltiplayer variables
-let host = false;
-let inroom = false;
-let currentRoom = ""
-let existingRooms = [];
-
 function setup() {
   noCanvas();
 
-  socket = io();
-
-  socket.on("connect", () => {
-    console.log("connected:", socket.id);
-  });
-
+  console.log("Changed");
 
   //leaflet map
   map = L.map("map").setView([0, 0], 1);
@@ -340,39 +322,10 @@ function setup() {
   setTypeDropDown.option("Blitz", "blitz");
   setTypeDropDown.option("NMPZ", "NMPZ");
 
-
-  //button to host a room
-  hostButton = createButton("Host");
-  hostButton.size(80, 30);
-  hostButton.style("position", "absolute");
-  hostButton.style("z-index", "21");
-
-  hostButton.mousePressed(hostRoom);
-
-  //button to join selected room
-  joinButton = createButton("Join");
-  joinButton.size(80, 30);
-  joinButton.style("position", "absolute");
-  joinButton.style("z-index", "21");
-
-  joinButton.mousePressed(joinRoom);
-
-  //dropdown menu to select a room
-  joinDropDown = createSelect();
-  joinDropDown.size(80, 20);
-  joinDropDown.style("z-index", "21");
-  joinDropDown.option("none")
-
-  //dropdown menu to select a room
-  HostNameBox = createInput();
-  HostNameBox.size(72, 14);
-  HostNameBox.style("z-index", "21");
-
   //setTypeDropDown.changed();
   
   changeMapSize();
-  listen()
-  addExistingRooms()
+
 }
 
 function draw() {
@@ -380,7 +333,7 @@ function draw() {
   fixsizes();
   bannerTextChange();
   timeDrain();
-  lockButtons();
+  lockDropDown();
   NMPZ();
 }
 
@@ -400,25 +353,12 @@ function addmap(map, country) {
   }
 }
 
-function lockButtons() {
+function lockDropDown() {
   if (setActive) {
     setTypeDropDown.attribute("disabled", "");
   }
   else {
     setTypeDropDown.removeAttribute("disabled");
-  }
-
-  if (inroom) {
-    joinButton.attribute("disabled", "");
-    hostButton.attribute("disabled", "");
-    HostNameBox.attribute("disabled", "");
-    joinDropDown.attribute("disabled", "");
-  }
-  else {
-    joinButton.removeAttribute("disabled");
-    hostButton.removeAttribute("disabled");
-    HostNameBox.removeAttribute("disabled");
-    joinDropDown.removeAttribute("disabled");
   }
 }
 
@@ -435,10 +375,6 @@ function fixsizes() {
   hideMapButton.position(windowWidth - 67, windowHeight - 310);
   startSetButton.position(10, 10);
   setTypeDropDown.position(10, 40);
-  hostButton.position(90, 10);
-  joinDropDown.position(170, 40);
-  joinButton.position(170,10);
-  HostNameBox.position(90, 40);
 
 }
 
@@ -496,7 +432,6 @@ function hideMap() {
   if (mapShowing === true) {
     mapID.hide();
     mapShowing = false;
-
   }
   else {
     mapID.show();
@@ -734,50 +669,5 @@ function saveProgress() {
   localStorage.setItem("BestSet", bestSet);
   localStorage.setItem("BestBlitz", bestBlitz);
   localStorage.setItem("BestNMPZ", bestNMPZ);
-}
 
-
-//muiltiplayer functions
-
-function listen() {
-  socket.on("rooms", (room) => {
-    joinDropDown.option(room.roomName, room.roomName)
-  });
-}
-
-function addExistingRooms() {
-  socket.on("allrooms", (serverRooms) => {
-    existingRooms = []
-    for (let room of serverRooms) {
-      existingRooms.push(room)
-    }
-
-    joinDropDown.html("");
-    joinDropDown.option("none")
-    for (let room of existingRooms) {
-      joinDropDown.option(room.roomName, room.roomName)
-    }
-
-    if (!existingRooms.includes(currentRoom)) {
-      currentRoom = ""
-      inroom = false
-    }
-  });
-}
-
-function hostRoom() {
-  if (HostNameBox.value() !== "") {
-    socket.emit("rooms", {
-      roomName: HostNameBox.value(),
-      roomHost: socket.id,
-    })
-    inroom = true
-    host = true
-    currentRoom = HostNameBox.value()
-  }
-}
-
-function joinRoom() {
-  currentRoom = joinDropDown.value()
-  inroom = true
 }
