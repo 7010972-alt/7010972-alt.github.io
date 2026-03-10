@@ -130,7 +130,10 @@ let mapShowing = true;
 let winStreak = 0;
 let worldMapSize = 14916862;
 let points;
+
 let bestSet = 0;
+let bestBlitz = 0;
+let bestNMPZ = 0;
 
 //map variables
 let superDis = 250000;
@@ -179,8 +182,11 @@ let switching = true;
 let confirmButton;
 let hideMapButton;
 let startSetButton;
+let setTypeDropDown;
 
 //set variables
+let blitzTime = 10
+
 let setLocations = [];
 let setClickedPoints = [];
 let setActive = false;
@@ -244,6 +250,12 @@ function setup() {
   if (localStorage.getItem("BestSet") !== null) {
     bestSet = Number(localStorage.getItem("BestSet"));
   }
+  if (localStorage.getItem("BestBlitz") !== null) {
+    bestBlitz = Number(localStorage.getItem("BestBlitz"));
+  }
+  if (localStorage.getItem("BestNMPZ") !== null) {
+    bestNMPZ = Number(localStorage.getItem("BestNMPZ"));
+  }
 
   //default text
   bannerText = ("Best Set: " + bestSet.toLocaleString());
@@ -296,11 +308,21 @@ function setup() {
 
   //button to start a set
   startSetButton = createButton("Start Set");
-  startSetButton.size(60, 50);
+  startSetButton.size(80, 30);
   startSetButton.style("position", "absolute");
-  startSetButton.style("z-index", "12");
+  startSetButton.style("z-index", "21");
 
   startSetButton.mousePressed(startSet);
+
+  //dropdown menu to select set type
+  setTypeDropDown = createSelect();
+  setTypeDropDown.size(80, 20);
+  setTypeDropDown.style("z-index", "21");
+  setTypeDropDown.option("Normal", "normal");
+  setTypeDropDown.option("Blitz", "blitz");
+  setTypeDropDown.option("NMPZ", "NMPZ");
+
+  //setTypeDropDown.changed();
   
   changeMapSize();
 
@@ -311,6 +333,8 @@ function draw() {
   fixsizes();
   bannerTextChange();
   timeDrain();
+  lockDropDown();
+  NMPZ();
 }
 
 function windowResized() {
@@ -329,6 +353,15 @@ function addmap(map, country) {
   }
 }
 
+function lockDropDown() {
+  if (setActive) {
+    setTypeDropDown.attribute("disabled", "");
+  }
+  else {
+    setTypeDropDown.removeAttribute("disabled");
+  }
+}
+
 function fixsizes() {
   optxwidth = (windowWidth + windowHeight) / optxwidthDivisor;
 
@@ -340,7 +373,9 @@ function fixsizes() {
 
   confirmButton.position(windowWidth - 67, windowHeight - 250);
   hideMapButton.position(windowWidth - 67, windowHeight - 310);
-  startSetButton.position(windowWidth - 67, windowHeight - 120);
+  startSetButton.position(10, 10);
+  setTypeDropDown.position(10, 40);
+
 }
 
 function bannerTextChange() {
@@ -349,7 +384,15 @@ function bannerTextChange() {
       banner.html("Round: " + curretnRoundNumber + "/" + maxRounds + " | Time Left: " + timeLeft);
     }
     else {
-      banner.html("Best Set: " + bestSet.toLocaleString());
+      if (setTypeDropDown.value() === "normal") {
+        banner.html("Best Set: " + bestSet.toLocaleString());
+      }
+      else if (setTypeDropDown.value() === "blitz") {
+        banner.html("Best Blitz Set: " + bestBlitz.toLocaleString());
+      }
+      else if (setTypeDropDown.value() === "NMPZ") {
+        banner.html("Best NMPZ Set: " + bestNMPZ.toLocaleString());
+      }
     }
   }
 }
@@ -507,8 +550,20 @@ function afterGuess() {
         setMarkers.push(setAnswerLine);
       }
       
-      if (bestSet < totalSetPoints) {
-        bestSet = totalSetPoints;
+      if (setTypeDropDown.value() === "normal") {
+        if (bestSet < totalSetPoints) {
+          bestSet = totalSetPoints;
+        }
+      }
+      else if (setTypeDropDown.value() === "blitz") {
+        if (bestBlitz < totalSetPoints) {
+          bestBlitz = totalSetPoints;
+        }
+      }
+      else if (setTypeDropDown.value() === "NMPZ") {
+        if (bestNMPZ < totalSetPoints) {
+          bestNMPZ = totalSetPoints;
+        }
       }
 
       banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points + " | Round Overall: " + totalSetPoints);
@@ -561,6 +616,16 @@ function adjustAfterGuess() {
   map.fitBounds(bounds, { padding: [answerPadding, answerPadding] });
 }
 
+//stands for No Pan, Move, or Zoom
+function NMPZ() {
+  if (setActive && setTypeDropDown.value() === "NMPZ") {
+    street.style("pointer-events", "none");
+  }
+  else {
+    street.style("pointer-events", "auto");
+  }
+}
+
 function changeMapSize() {
   //make sure they are not on phone
   mapID.mouseOver(() => {
@@ -593,10 +658,16 @@ function mapChange() {
     lng: 0,
   };
   if (setActive) {
-    timeLeft = timeRestriction;
+    timeLeft = timeRestriction + 1;
+    if (setTypeDropDown.value() === "blitz") {
+      timeLeft = blitzTime + 1;
+    }
   }
 }
 
 function saveProgress() {
   localStorage.setItem("BestSet", bestSet);
+  localStorage.setItem("BestBlitz", bestBlitz);
+  localStorage.setItem("BestNMPZ", bestNMPZ);
+
 }
