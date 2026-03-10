@@ -134,6 +134,7 @@ let points;
 let bestSet = 0;
 let bestBlitz = 0;
 let bestNMPZ = 0;
+let bestBlink = 0;
 
 //map variables
 let superDis = 250000;
@@ -185,7 +186,7 @@ let startSetButton;
 let setTypeDropDown;
 
 //set variables
-let blitzTime = 10
+let blitzTime = 10;
 
 let setLocations = [];
 let setClickedPoints = [];
@@ -200,6 +201,16 @@ let timeRestriction = 30;
 let timeLeft;
 let nextInterval;
 let time = 0;
+
+//black cover
+let cover;
+let covering = false;
+
+//blink cover
+let blink = false;
+let blinkTime = 0;
+let blinkCountdown;
+let blinkMax = 3;
 
 function setup() {
   noCanvas();
@@ -255,6 +266,9 @@ function setup() {
   }
   if (localStorage.getItem("BestNMPZ") !== null) {
     bestNMPZ = Number(localStorage.getItem("BestNMPZ"));
+  }
+  if (localStorage.getItem("BestBlink") !== null) {
+    bestBlink = Number(localStorage.getItem("BestBlink"));
   }
 
   //default text
@@ -321,9 +335,14 @@ function setup() {
   setTypeDropDown.option("Normal", "normal");
   setTypeDropDown.option("Blitz", "blitz");
   setTypeDropDown.option("NMPZ", "NMPZ");
+  setTypeDropDown.option("Blink", "blink");
 
-  //setTypeDropDown.changed();
-  
+
+  //create cover
+  cover = createDiv();
+  cover.style("background", "rgb(0, 0, 0)");
+  cover.style("z-index", "-1");
+
   changeMapSize();
 
 }
@@ -335,6 +354,29 @@ function draw() {
   timeDrain();
   lockDropDown();
   NMPZ();
+  covertoggle();
+}
+
+function covertoggle() {
+  if (covering) {
+    cover.style("z-index", "1");
+  }
+  else {
+    cover.style("z-index", "-1");
+  }
+}
+
+function blinkToggle() {
+  if (blink) {
+    blinkCountdown = blink;
+    if (millis() - blinkTime > 1000) {
+      blinkTime = millis();
+      blinkCountdown -= 1;
+      if (blinkCountdown < 0) {
+        blink = false;
+      }
+    }
+  }
 }
 
 function windowResized() {
@@ -368,6 +410,9 @@ function fixsizes() {
   banner.position(0, 0);
   banner.size(windowWidth, bannerHeight);
 
+  cover.size(windowWidth, windowHeight);
+  cover.position(0,0);
+
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor;
   banner.style("font-size", `${textsize}px`);
 
@@ -393,6 +438,9 @@ function bannerTextChange() {
       else if (setTypeDropDown.value() === "NMPZ") {
         banner.html("Best NMPZ Set: " + bestNMPZ.toLocaleString());
       }
+      else if (setTypeDropDown.value() === "blink") {
+        banner.html("Best Blink Set: " + bestBlink.toLocaleString());
+      }
     }
   }
 }
@@ -402,12 +450,15 @@ function timeDrain() {
     if (setActive && timeLeft >= 0 && millis() - time > 1000) {
       time = millis();
       timeLeft -= 1;
+
       console.log(timeLeft)
     }
 
     //ran out of time
-    if (timeLeft <= -1) {
-      confirmed();
+    if (timeLeft < 0) {
+      //hide screen after timeout
+      covering = true;
+      timeLeft = 0;
     }
   }
 }
@@ -461,33 +512,36 @@ function setupMap() {
 }
   
 function confirmed() {
-  if (endScreen === false) {
-    //find meters
-    
-    let point1 = L.latLng(randomlocation.lat, randomlocation.lng);
-    let point2 = L.latLng(clickedPoint.lat, clickedPoint.lng);
+  if (mapShowing) {
+    if (endScreen === false) {
+      covering = false;
+      //find meters
+      
+      let point1 = L.latLng(randomlocation.lat, randomlocation.lng);
+      let point2 = L.latLng(clickedPoint.lat, clickedPoint.lng);
 
-    totalDistance = point1.distanceTo(point2);
+      totalDistance = point1.distanceTo(point2);
 
-    afterGuess();
-  }
-  else if (endScreen === true) {
-    endScreen = false;
-    answermarker.remove();
-    answerLine.remove();
-    mapChange();
-    map.setView([0, 0], 1);
+      afterGuess();
+    }
+    else if (endScreen === true) {
+      endScreen = false;
+      answermarker.remove();
+      answerLine.remove();
+      mapChange();
+      map.setView([0, 0], 1);
 
-    //change map size back to original
-    enlarged = false;
-    mapID.style("bottom", "20px");
-    mapID.style("right", "75px");
-    mapID.size(mapOriginalWidth, mapOriginalHeight);
-    map.invalidateSize();
-    map.setView([0, 0], 1);
+      //change map size back to original
+      enlarged = false;
+      mapID.style("bottom", "20px");
+      mapID.style("right", "75px");
+      mapID.size(mapOriginalWidth, mapOriginalHeight);
+      map.invalidateSize();
+      map.setView([0, 0], 1);
 
-    for (let item of setMarkers) {
-      item.remove();
+      for (let item of setMarkers) {
+        item.remove();
+      }
     }
   }
 }
@@ -563,6 +617,11 @@ function afterGuess() {
       else if (setTypeDropDown.value() === "NMPZ") {
         if (bestNMPZ < totalSetPoints) {
           bestNMPZ = totalSetPoints;
+        }
+      }
+      else if (setTypeDropDown.value() === "blink") {
+        if (bestBlink < totalSetPoints) {
+          bestBlink = totalSetPoints;
         }
       }
 
@@ -663,11 +722,14 @@ function mapChange() {
       timeLeft = blitzTime + 1;
     }
   }
+  if (setActive && setTypeDropDown.value() === "blink") {
+    blink = true;
+  }
 }
 
 function saveProgress() {
   localStorage.setItem("BestSet", bestSet);
   localStorage.setItem("BestBlitz", bestBlitz);
   localStorage.setItem("BestNMPZ", bestNMPZ);
-
+  localStorage.setItem("BestBlink", bestBlink);
 }
