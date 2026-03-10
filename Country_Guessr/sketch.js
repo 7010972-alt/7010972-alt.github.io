@@ -7,6 +7,8 @@
 //I used leaflet maps which somehow had everything I needed like getting corrdinates from where I clicked, and adding markers and many more
 //the Leaflet website was incredibly easy to follow aswell https://leafletjs.com/examples.html
 
+let socket;
+
 let street;
 let map;
 let mapID;
@@ -204,6 +206,12 @@ let time = 0;
 function setup() {
   noCanvas();
 
+  socket = io();
+
+  socket.on("connect", () => {
+    console.log("connected:", socket.id);
+  });
+
   console.log("Changed");
 
   //leaflet map
@@ -325,6 +333,8 @@ function setup() {
   //setTypeDropDown.changed();
   
   changeMapSize();
+
+  socket.emit("print", "hello")
 
 }
 
