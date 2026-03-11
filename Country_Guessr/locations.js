@@ -148423,6 +148423,7 @@ window.allCountries = [
   nepal,
   bhutan,
   srilanka,
+  cyprus,
   oman,
   unitedarabemirates,
   qatar,
@@ -148430,6 +148431,7 @@ window.allCountries = [
   israel,
   lebanon,
   kazakhstan,
+  kyrgyzstan,
   mongolia,
   hongkong,
 

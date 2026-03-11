@@ -11,6 +11,35 @@ let street;
 let map;
 let mapID;
 
+//ranks and images
+let Rank = "coal"
+
+//rank sields
+let shieldSize = 80
+let rankIcon;
+
+let coalS = "coalShield.png"
+let bronzeS = "bronzeShield.png"
+let silverS = "silverShield.png"
+let goldS = "goldShield.png"
+let diamondS = "diamondShield.png"
+let obsidianS = "obsidianShield.png"
+let slimeS = "slimeShield.png"
+let interS = "interShield.png"
+
+let currentShield = coalS
+
+let coalP = "coalPin.png"
+let bronzeP = "bronzePin.png"
+let silverP = "silverPin.png"
+let goldP = "goldPin.png"
+let diamondP = "diamondPin.png"
+let obsidianP = "obsidianPin.png"
+let slimeP = "slimePin.png"
+let interP = "interPin.png"
+
+let currentPin = coalP
+
 // all countries that have street view
 let countries = [
   "None",
@@ -137,6 +166,7 @@ let bestNMPZ = 0;
 let bestBlink = 0;
 
 //map variables
+let ultraDis = 50000; 
 let superDis = 250000;
 let correctDis = 1000000;
 let wrongDis = 6000000;
@@ -211,11 +241,15 @@ let blink = false;
 let blinkTime = 0;
 let blinkCountdown;
 let blinkMax = 3;
+let visibleTime = 1;
+let decreaseAmount = 0.1;
 
 function setup() {
   noCanvas();
 
-  console.log("Changed");
+  rankIcon = createImg(currentShield, "rank display");
+  rankIcon.size(shieldSize, shieldSize)
+  rankIcon.style("z-index", "20")
 
   //leaflet map
   map = L.map("map").setView([0, 0], 1);
@@ -258,18 +292,18 @@ function setup() {
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor;
 
   //load info
-  if (localStorage.getItem("BestSet") !== null) {
-    bestSet = Number(localStorage.getItem("BestSet"));
-  }
-  if (localStorage.getItem("BestBlitz") !== null) {
-    bestBlitz = Number(localStorage.getItem("BestBlitz"));
-  }
-  if (localStorage.getItem("BestNMPZ") !== null) {
-    bestNMPZ = Number(localStorage.getItem("BestNMPZ"));
-  }
-  if (localStorage.getItem("BestBlink") !== null) {
-    bestBlink = Number(localStorage.getItem("BestBlink"));
-  }
+  // if (localStorage.getItem("BestSet") !== null) {
+  //   bestSet = Number(localStorage.getItem("BestSet"));
+  // }
+  // if (localStorage.getItem("BestBlitz") !== null) {
+  //   bestBlitz = Number(localStorage.getItem("BestBlitz"));
+  // }
+  // if (localStorage.getItem("BestNMPZ") !== null) {
+  //   bestNMPZ = Number(localStorage.getItem("BestNMPZ"));
+  // }
+  // if (localStorage.getItem("BestBlink") !== null) {
+  //   bestBlink = Number(localStorage.getItem("BestBlink"));
+  // }
 
   //default text
   bannerText = ("Best Set: " + bestSet.toLocaleString());
@@ -343,6 +377,14 @@ function setup() {
   cover.style("background", "rgb(0, 0, 0)");
   cover.style("z-index", "-1");
 
+  cover.style("display", "flex");
+  cover.style("justify-content", "center"); // horizontal center
+  cover.style("align-items", "center");     // vertical center
+  cover.style("font-weight", "bold");
+
+  cover.style("font-size", "50px");         // text size
+  cover.style("color", "white");            // text color
+
   changeMapSize();
 
 }
@@ -355,6 +397,58 @@ function draw() {
   lockDropDown();
   NMPZ();
   covertoggle();
+  blinkToggle();
+  rankModify();
+}
+
+function rankModify() {
+  if (bestSet > 23500 && bestBlitz > 23000 && bestNMPZ > 22500 && bestBlink > 22000) {
+    rank = "inter"
+    currentPin = interP
+    currentShield = interS
+  }
+  else if (bestSet > 22500 && bestBlitz > 22000 && bestNMPZ > 21500 && bestBlink > 21000) {
+    rank = "slime"
+    currentPin = slimeP
+    currentShield = slimeS
+  }
+  else if (bestSet > 20000 && bestBlitz > 19000 && bestNMPZ > 17500) {
+    rank = "obsidian"
+    currentPin = obsidianP
+    currentShield = obsidianS
+  }
+  else if (bestSet > 17500 && bestBlitz > 16000 && bestNMPZ > 15000) {
+    rank = "diamond"
+    currentPin = diamondP
+    currentShield = diamondS
+  }
+  else if (bestSet > 12500 && bestBlitz > 10000) {
+    rank = "gold"
+    currentPin = goldP
+    currentShield = goldS
+  }
+  else if (bestSet > 10000) {
+    rank = "silver"
+    currentPin = silverP
+    currentShield = silverS
+  }
+  else if (bestSet > 5000) {
+    rank = "bronze"
+    currentPin = bronzeP
+    currentShield = bronzeS
+  }
+
+
+
+  markerIcon = L.icon({
+    iconUrl: currentPin,
+
+    iconSize: [40, 40],
+    iconAnchor: [20, 38],
+  });
+  marker.setIcon(markerIcon);
+
+  rankIcon.attribute("src", currentShield);
 }
 
 function covertoggle() {
@@ -368,12 +462,19 @@ function covertoggle() {
 
 function blinkToggle() {
   if (blink) {
-    blinkCountdown = blink;
-    if (millis() - blinkTime > 1000) {
+    if (millis() - blinkTime > 100) {
       blinkTime = millis();
-      blinkCountdown -= 1;
-      if (blinkCountdown < 0) {
-        blink = false;
+      blinkCountdown -= decreaseAmount;
+
+      //show text in 2 decimal places
+      cover.html((blinkCountdown - visibleTime + decreaseAmount).toFixed(1))
+      if (blinkCountdown < visibleTime) {
+        covering = false;
+        cover.html("")
+        if (blinkCountdown < 0) {
+          blink = false;
+          covering = true;
+        }
       }
     }
   }
@@ -421,6 +522,7 @@ function fixsizes() {
   startSetButton.position(10, 10);
   setTypeDropDown.position(10, 40);
 
+  rankIcon.position(windowWidth - shieldSize - 10, bannerHeight + 10);
 }
 
 function bannerTextChange() {
@@ -576,7 +678,10 @@ function afterGuess() {
 
       //save line colors
       let lineCol = "black";
-      if (totalDistance <= superDis) {
+      if (totalDistance <= ultraDis) {
+        lineCol = "orange";
+      }
+      else if (totalDistance <= superDis) {
         lineCol = "purple";
       }
       else if (totalDistance <= correctDis) {
@@ -593,7 +698,7 @@ function afterGuess() {
       //show the previous guesses, the idea is that the final guess will be shown normally so all 5 guesses will be shown
       for (i = 0; i < maxRounds - 1; i++) {
         var setAnswerMarker = L.marker([setLocations[i][0], setLocations[i][1]], {icon: answerIcon}).addTo(map);
-        var setClickedMarker = L.marker([setClickedPoints[i][0], setClickedPoints[i][1]]).addTo(map);
+        var setClickedMarker = L.marker([setClickedPoints[i][0], setClickedPoints[i][1]], {icon: markerIcon}).addTo(map);
         var setAnswerLine = L.polyline([[setLocations[i][0], setLocations[i][1]],[setClickedPoints[i][0], setClickedPoints[i][1]]], {
           color: setLineColors[i],
           opacity: 0.7
@@ -643,8 +748,12 @@ function afterGuess() {
 
   answermarker = L.marker([randomlocation.lat, randomlocation.lng], {icon: answerIcon}).addTo(map);
 
+  //set line colors
   let lineCol = "black";
-  if (totalDistance <= superDis) {
+  if (totalDistance <= ultraDis) {
+    lineCol = "orange";
+  }
+  else if (totalDistance <= superDis) {
     lineCol = "purple";
   }
   else if (totalDistance <= correctDis) {
@@ -676,8 +785,9 @@ function adjustAfterGuess() {
 }
 
 //stands for No Pan, Move, or Zoom
+//also no moving allowed for blink
 function NMPZ() {
-  if (setActive && setTypeDropDown.value() === "NMPZ") {
+  if (setActive && (setTypeDropDown.value() === "NMPZ" || setTypeDropDown.value() === "blink")) {
     street.style("pointer-events", "none");
   }
   else {
@@ -724,6 +834,11 @@ function mapChange() {
   }
   if (setActive && setTypeDropDown.value() === "blink") {
     blink = true;
+
+    //have to plus 1 because one second gets removed instantly
+    blinkCountdown = blinkMax + visibleTime;
+    covering = true;
+    cover.html(blinkCountdown)
   }
 }
 
