@@ -292,18 +292,18 @@ function setup() {
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor;
 
   //load info
-  // if (localStorage.getItem("BestSet") !== null) {
-  //   bestSet = Number(localStorage.getItem("BestSet"));
-  // }
-  // if (localStorage.getItem("BestBlitz") !== null) {
-  //   bestBlitz = Number(localStorage.getItem("BestBlitz"));
-  // }
-  // if (localStorage.getItem("BestNMPZ") !== null) {
-  //   bestNMPZ = Number(localStorage.getItem("BestNMPZ"));
-  // }
-  // if (localStorage.getItem("BestBlink") !== null) {
-  //   bestBlink = Number(localStorage.getItem("BestBlink"));
-  // }
+  if (localStorage.getItem("BestSet") !== null) {
+    bestSet = Number(localStorage.getItem("BestSet"));
+  }
+  if (localStorage.getItem("BestBlitz") !== null) {
+    bestBlitz = Number(localStorage.getItem("BestBlitz"));
+  }
+  if (localStorage.getItem("BestNMPZ") !== null) {
+    bestNMPZ = Number(localStorage.getItem("BestNMPZ"));
+  }
+  if (localStorage.getItem("BestBlink") !== null) {
+    bestBlink = Number(localStorage.getItem("BestBlink"));
+  }
 
   //default text
   bannerText = ("Best Set: " + bestSet.toLocaleString());
