@@ -12,33 +12,37 @@ let map;
 let mapID;
 
 //ranks and images
-let Rank = "coal"
+let Rank = "coal";
+let nextBestSet = 2500;
+let nextBestBlitz = 0;
+let nextBestNMPZ = 0;
+let nextBestBlink = 0;
 
 //rank sields
-let shieldSize = 80
+let shieldSize = 80;
 let rankIcon;
 
-let coalS = "coalShield.png"
-let bronzeS = "bronzeShield.png"
-let silverS = "silverShield.png"
-let goldS = "goldShield.png"
-let diamondS = "diamondShield.png"
-let obsidianS = "obsidianShield.png"
-let slimeS = "slimeShield.png"
-let interS = "interShield.png"
+let coalS = "coalShield.png";
+let bronzeS = "bronzeShield.png";
+let silverS = "silverShield.png";
+let goldS = "goldShield.png";
+let diamondS = "diamondShield.png";
+let obsidianS = "obsidianShield.png";
+let slimeS = "slimeShield.png";
+let interS = "interShield.png";
 
-let currentShield = coalS
+let currentShield = coalS;
 
-let coalP = "coalPin.png"
-let bronzeP = "bronzePin.png"
-let silverP = "silverPin.png"
-let goldP = "goldPin.png"
-let diamondP = "diamondPin.png"
-let obsidianP = "obsidianPin.png"
-let slimeP = "slimePin.png"
-let interP = "interPin.png"
+let coalP = "coalPin.png";
+let bronzeP = "bronzePin.png";
+let silverP = "silverPin.png";
+let goldP = "goldPin.png";
+let diamondP = "diamondPin.png";
+let obsidianP = "obsidianPin.png";
+let slimeP = "slimePin.png";
+let interP = "interPin.png";
 
-let currentPin = coalP
+let currentPin = coalP;
 
 // all countries that have street view
 let countries = [
@@ -144,14 +148,14 @@ let countries = [
 ];
 
 //markers
-var answermarker;
-var marker;
+let answermarker;
+let marker;
 
-var answerIcon = L.icon({
-    iconUrl: 'green_marker.png',
+let answerIcon = L.icon({
+  iconUrl: 'green_marker.png',
 
-    iconSize: [30, 40], // size of the icon
-    iconAnchor: [15, 39], // point of the icon which will correspond to marker's location
+  iconSize: [30, 40], // size of the icon
+  iconAnchor: [15, 39], // point of the icon which will correspond to marker's location
 });
 
 //game variables
@@ -170,7 +174,7 @@ let ultraDis = 50000;
 let superDis = 250000;
 let correctDis = 1000000;
 let wrongDis = 6000000;
-var answerLine;
+let answerLine;
 let answerPadding = 50;
 let mapOriginalHeight = 300;
 let mapOriginalWidth = 400;
@@ -214,6 +218,7 @@ let confirmButton;
 let hideMapButton;
 let startSetButton;
 let setTypeDropDown;
+let showRankButton;
 
 //set variables
 let blitzTime = 10;
@@ -227,7 +232,7 @@ let totalSetPoints = 0;
 let setMarkers = [];
 let setLineColors = [];
 
-let timeRestriction = 30;
+let timeRestriction = 60;
 let timeLeft;
 let nextInterval;
 let time = 0;
@@ -244,12 +249,16 @@ let blinkMax = 3;
 let visibleTime = 1;
 let decreaseAmount = 0.1;
 
+//show next rank info
+let showingRankInfo = false;
+let showRankScreen;
+
 function setup() {
   noCanvas();
 
   rankIcon = createImg(currentShield, "rank display");
-  rankIcon.size(shieldSize, shieldSize)
-  rankIcon.style("z-index", "20")
+  rankIcon.size(shieldSize, shieldSize);
+  rankIcon.style("z-index", "20");
 
   //leaflet map
   map = L.map("map").setView([0, 0], 1);
@@ -306,7 +315,7 @@ function setup() {
   }
 
   //default text
-  bannerText = ("Best Set: " + bestSet.toLocaleString());
+  bannerText = "Best Set: " + bestSet.toLocaleString();
 
   banner = createDiv(bannerText);
   banner.style("background", "rgb(154, 255, 120)");
@@ -371,6 +380,14 @@ function setup() {
   setTypeDropDown.option("NMPZ", "NMPZ");
   setTypeDropDown.option("Blink", "blink");
 
+  //button to start a set
+  showRankButton = createButton("Rank Info");
+  showRankButton.size(shieldSize, 20);
+  showRankButton.style("position", "absolute");
+  showRankButton.style("z-index", "21");
+
+  showRankButton.mousePressed(showRank);
+
 
   //create cover
   cover = createDiv();
@@ -378,12 +395,25 @@ function setup() {
   cover.style("z-index", "-1");
 
   cover.style("display", "flex");
-  cover.style("justify-content", "center"); // horizontal center
-  cover.style("align-items", "center");     // vertical center
+  cover.style("justify-content", "center");
+  cover.style("align-items", "center");
   cover.style("font-weight", "bold");
 
-  cover.style("font-size", "50px");         // text size
-  cover.style("color", "white");            // text color
+  cover.style("font-size", "50px");
+  cover.style("color", "white");
+
+  //create rank info
+  showRankScreen = createDiv();
+  showRankScreen.style("background", "rgb(154, 255, 120)");
+  showRankScreen.style("z-index", "-1");
+
+  showRankScreen.style("display", "flex");
+  showRankScreen.style("justify-content", "center");
+  showRankScreen.style("align-items", "center");
+  showRankScreen.style("font-weight", "bold");
+
+  showRankScreen.style("font-size", "20px");
+  showRankScreen.style("color", "white");
 
   changeMapSize();
 
@@ -399,43 +429,85 @@ function draw() {
   covertoggle();
   blinkToggle();
   rankModify();
+  changeRankInfo();
+}
+
+function changeRankInfo() {
+  if (rank === "obsidian") {
+    showRankScreen.html("hello");
+  }
 }
 
 function rankModify() {
-  if (bestSet > 23500 && bestBlitz > 23000 && bestNMPZ > 22500 && bestBlink > 22000) {
-    rank = "inter"
-    currentPin = interP
-    currentShield = interS
+  if (bestSet > 22500 && bestBlitz > 21500 && bestNMPZ > 21000 && bestBlink > 20000) {
+    rank = "inter";
+    currentPin = interP;
+    currentShield = interS;
+
+    // nextBestSet = "5000" + "/" + bestSet;
+    // nextBestBlitz = "0" + "/" + bestBlink;
+    // nextBestNMPZ = "0" + "/" + bestNMPZ;
+    // nextBestBlink = "0" + "/" + bestBlink;
   }
-  else if (bestSet > 22500 && bestBlitz > 22000 && bestNMPZ > 21500 && bestBlink > 21000) {
-    rank = "slime"
-    currentPin = slimeP
-    currentShield = slimeS
+  else if (bestSet > 20000 && bestBlitz > 19000 && bestNMPZ > 18000 && bestBlink > 17000) {
+    rank = "slime";
+    currentPin = slimeP;
+    currentShield = slimeS;
+
+    nextBestSet = "22500" + "/" + bestSet;
+    nextBestBlitz = "21500" + "/" + bestBlink;
+    nextBestNMPZ = "21000" + "/" + bestNMPZ;
+    nextBestBlink = "20000" + "/" + bestBlink;
   }
-  else if (bestSet > 20000 && bestBlitz > 19000 && bestNMPZ > 17500) {
-    rank = "obsidian"
-    currentPin = obsidianP
-    currentShield = obsidianS
+  else if (bestSet > 17500 && bestBlitz > 15000 && bestNMPZ > 12500) {
+    rank = "obsidian";
+    currentPin = obsidianP;
+    currentShield = obsidianS;
+
+    nextBestSet = "20000" + "/" + bestSet;
+    nextBestBlitz = "19000" + "/" + bestBlink;
+    nextBestNMPZ = "18000" + "/" + bestNMPZ;
+    nextBestBlink = "17000" + "/" + bestBlink;
   }
-  else if (bestSet > 17500 && bestBlitz > 16000 && bestNMPZ > 15000) {
-    rank = "diamond"
-    currentPin = diamondP
-    currentShield = diamondS
+  else if (bestSet > 15000 && bestBlitz > 10000 && bestNMPZ > 7500) {
+    rank = "diamond";
+    currentPin = diamondP;
+    currentShield = diamondS;
+
+    nextBestSet = "17500" + "/" + bestSet;
+    nextBestBlitz = "15000" + "/" + bestBlink;
+    nextBestNMPZ = "12500" + "/" + bestNMPZ;
+    nextBestBlink = "0" + "/" + bestBlink;
   }
-  else if (bestSet > 12500 && bestBlitz > 10000) {
-    rank = "gold"
-    currentPin = goldP
-    currentShield = goldS
-  }
-  else if (bestSet > 10000) {
-    rank = "silver"
-    currentPin = silverP
-    currentShield = silverS
+  else if (bestSet > 10000 && bestBlitz > 5000) {
+    rank = "gold";
+    currentPin = goldP;
+    currentShield = goldS;
+
+    nextBestSet = "15000" + "/" + bestSet;
+    nextBestBlitz = "10000" + "/" + bestBlink;
+    nextBestNMPZ = "7500" + "/" + bestNMPZ;
+    nextBestBlink = "0" + "/" + bestBlink;
   }
   else if (bestSet > 5000) {
-    rank = "bronze"
-    currentPin = bronzeP
-    currentShield = bronzeS
+    rank = "silver";
+    currentPin = silverP;
+    currentShield = silverS;
+
+    nextBestSet = "10000" + "/" + bestSet;
+    nextBestBlitz = "5000" + "/" + bestBlink;
+    nextBestNMPZ = "0" + "/" + bestNMPZ;
+    nextBestBlink = "0" + "/" + bestBlink;
+  }
+  else if (bestSet > 2500) {
+    rank = "bronze";
+    currentPin = bronzeP;
+    currentShield = bronzeS;
+
+    nextBestSet = "5000" + "/" + bestSet;
+    nextBestBlitz = "0" + "/" + bestBlink;
+    nextBestNMPZ = "0" + "/" + bestNMPZ;
+    nextBestBlink = "0" + "/" + bestBlink;
   }
 
 
@@ -467,10 +539,10 @@ function blinkToggle() {
       blinkCountdown -= decreaseAmount;
 
       //show text in 2 decimal places
-      cover.html((blinkCountdown - visibleTime + decreaseAmount).toFixed(1))
+      cover.html((blinkCountdown - visibleTime + decreaseAmount).toFixed(1));
       if (blinkCountdown < visibleTime) {
         covering = false;
-        cover.html("")
+        cover.html("");
         if (blinkCountdown < 0) {
           blink = false;
           covering = true;
@@ -488,9 +560,9 @@ function addmap(map, country) {
   for (let location of map) {
     currentLocations.push(
       {
-      lat: location[0],
-      lng: location[1],
-      cnt: country,
+        lat: location[0],
+        lng: location[1],
+        cnt: country,
       }
     );
   }
@@ -523,6 +595,21 @@ function fixsizes() {
   setTypeDropDown.position(10, 40);
 
   rankIcon.position(windowWidth - shieldSize - 10, bannerHeight + 10);
+  showRankButton.position(windowWidth - shieldSize - 10, bannerHeight + shieldSize + 5);
+  showRankScreen.size(windowWidth / 2, windowHeight / 2);
+  showRankScreen.position(windowWidth / 4, windowHeight / 4);
+}
+
+//shows the info for rank up
+function showRank() {
+  if (!showingRankInfo) {
+    showRankScreen.style("z-index", "20");
+    showingRankInfo = true;
+  }
+  else {
+    showRankScreen.style("z-index", "-1");
+    showingRankInfo = false;
+  }
 }
 
 function bannerTextChange() {
@@ -553,7 +640,7 @@ function timeDrain() {
       time = millis();
       timeLeft -= 1;
 
-      console.log(timeLeft)
+      console.log(timeLeft);
     }
 
     //ran out of time
@@ -697,9 +784,9 @@ function afterGuess() {
     else {
       //show the previous guesses, the idea is that the final guess will be shown normally so all 5 guesses will be shown
       for (i = 0; i < maxRounds - 1; i++) {
-        var setAnswerMarker = L.marker([setLocations[i][0], setLocations[i][1]], {icon: answerIcon}).addTo(map);
-        var setClickedMarker = L.marker([setClickedPoints[i][0], setClickedPoints[i][1]], {icon: markerIcon}).addTo(map);
-        var setAnswerLine = L.polyline([[setLocations[i][0], setLocations[i][1]],[setClickedPoints[i][0], setClickedPoints[i][1]]], {
+        let setAnswerMarker = L.marker([setLocations[i][0], setLocations[i][1]], {icon: answerIcon}).addTo(map);
+        let setClickedMarker = L.marker([setClickedPoints[i][0], setClickedPoints[i][1]], {icon: markerIcon}).addTo(map);
+        let setAnswerLine = L.polyline([[setLocations[i][0], setLocations[i][1]],[setClickedPoints[i][0], setClickedPoints[i][1]]], {
           color: setLineColors[i],
           opacity: 0.7
         }).addTo(map);
@@ -838,7 +925,7 @@ function mapChange() {
     //have to plus 1 because one second gets removed instantly
     blinkCountdown = blinkMax + visibleTime;
     covering = true;
-    cover.html(blinkCountdown)
+    cover.html(blinkCountdown);
   }
 }
 
