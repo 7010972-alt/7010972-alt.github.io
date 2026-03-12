@@ -22,10 +22,10 @@ let nextBestBlink = 0;
 let shieldSize = 80;
 let rankIcon;
 
-let allPins = "allPins.png"
+let allPins = "allPins.png";
 let allPinsDisplay;
 
-let allShields = "allShields.png"
+let allShields = "allShields.png";
 let allShieldsDisplay;
 
 let coalS = "coalShield.png";
@@ -51,107 +51,107 @@ let interP = "interPin.png";
 let currentPin = coalP;
 
 // all countries that have street view
-let countries = [
-  "None",
-  "Albania",
-  "Andorra",
-  "Argentina",
-  "Australia",
-  "Austria",
-  "Bangladesh",
-  "Belgium",
-  "Bhutan",
-  "Bolivia",
-  "Bosnia and Herzegovina",
-  "Botswana",
-  "Brazil",
-  "Bulgaria",
-  "Cambodia",
-  "Canada",
-  "Chile",
-  "Colombia",
-  "Costa Rica",
-  "Croatia",
-  "Czechia",
-  "Denmark",
-  "Dominican Republic",
-  "Ecuador",
-  "Estonia",
-  "Eswatini",
-  "Finland",
-  "France",
-  "Germany",
-  "Ghana",
-  "Greece",
-  "Guatemala",
-  "Hong Kong",
-  "Hungary",
-  "Iceland",
-  "India",
-  "Indonesia",
-  "Ireland",
-  "Israel",
-  "Italy",
-  "Japan",
-  "Jordan",
-  "Kazakhstan",
-  "Kenya",
-  "Kyrgyzstan",
-  "Latvia",
-  "Lebanon",
-  "Lesotho",
-  "Lithuania",
-  "Luxembourg",
-  "Malaysia",
-  "Malta",
-  "Mexico",
-  "Monaco",
-  "Mongolia",
-  "Montenegro",
-  "Namibia",
-  "Netherlands",
-  "Nepal",
-  "New Zealand",
-  "Nigeria",
-  "North Macedonia",
-  "Norway",
-  "Oman",
-  "Panama",
-  "Paraguay",
-  "Peru",
-  "Philippines",
-  "Poland",
-  "Portugal",
-  "Puerto Rico",
-  "Qatar",
-  "Romania",
-  "Russia",
-  "Rwanda",
-  "San Marino",
-  "Sao Tome and Principe",
-  "Senegal",
-  "Serbia",
-  "Singapore",
-  "Slovakia",
-  "Slovenia",
-  "South Africa",
-  "South Korea",
-  "Spain",
-  "Sri Lanka",
-  "Sweden",
-  "Switzerland",
-  "Taiwan",
-  "Thailand",
-  "Tunisia",
-  "Turkey",
-  "Uganda",
-  "Ukraine",
-  "United Arab Emirates",
-  "United Kingdom",
-  "United States",
-  "Uruguay",
-  "Vietnam",
-];
+// let countries = [
+//   "None",
+//   "Albania",
+//   "Andorra",
+//   "Argentina",
+//   "Australia",
+//   "Austria",
+//   "Bangladesh",
+//   "Belgium",
+//   "Bhutan",
+//   "Bolivia",
+//   "Bosnia and Herzegovina",
+//   "Botswana",
+//   "Brazil",
+//   "Bulgaria",
+//   "Cambodia",
+//   "Canada",
+//   "Chile",
+//   "Colombia",
+//   "Costa Rica",
+//   "Croatia",
+//   "Czechia",
+//   "Denmark",
+//   "Dominican Republic",
+//   "Ecuador",
+//   "Estonia",
+//   "Eswatini",
+//   "Finland",
+//   "France",
+//   "Germany",
+//   "Ghana",
+//   "Greece",
+//   "Guatemala",
+//   "Hong Kong",
+//   "Hungary",
+//   "Iceland",
+//   "India",
+//   "Indonesia",
+//   "Ireland",
+//   "Israel",
+//   "Italy",
+//   "Japan",
+//   "Jordan",
+//   "Kazakhstan",
+//   "Kenya",
+//   "Kyrgyzstan",
+//   "Latvia",
+//   "Lebanon",
+//   "Lesotho",
+//   "Lithuania",
+//   "Luxembourg",
+//   "Malaysia",
+//   "Malta",
+//   "Mexico",
+//   "Monaco",
+//   "Mongolia",
+//   "Montenegro",
+//   "Namibia",
+//   "Netherlands",
+//   "Nepal",
+//   "New Zealand",
+//   "Nigeria",
+//   "North Macedonia",
+//   "Norway",
+//   "Oman",
+//   "Panama",
+//   "Paraguay",
+//   "Peru",
+//   "Philippines",
+//   "Poland",
+//   "Portugal",
+//   "Puerto Rico",
+//   "Qatar",
+//   "Romania",
+//   "Russia",
+//   "Rwanda",
+//   "San Marino",
+//   "Sao Tome and Principe",
+//   "Senegal",
+//   "Serbia",
+//   "Singapore",
+//   "Slovakia",
+//   "Slovenia",
+//   "South Africa",
+//   "South Korea",
+//   "Spain",
+//   "Sri Lanka",
+//   "Sweden",
+//   "Switzerland",
+//   "Taiwan",
+//   "Thailand",
+//   "Tunisia",
+//   "Turkey",
+//   "Uganda",
+//   "Ukraine",
+//   "United Arab Emirates",
+//   "United Kingdom",
+//   "United States",
+//   "Uruguay",
+//   "Vietnam",
+// ];
 
 //markers
 let answermarker;
@@ -252,7 +252,7 @@ let blink = false;
 let blinkTime = 0;
 let blinkCountdown;
 let blinkMax = 3;
-let visibleTime = 1;
+let visibleTime = 0.5;
 let decreaseAmount = 0.1;
 
 //show next rank info
@@ -455,10 +455,10 @@ function rankModify() {
     currentPin = interP;
     currentShield = interS;
 
-    // nextBestSet = "5000";
-    // nextBestBlitz = "0";
-    // nextBestNMPZ = "0";
-    // nextBestBlink = "0";
+    nextBestSet = "25000";
+    nextBestBlitz = "25000";
+    nextBestNMPZ = "25000";
+    nextBestBlink = "25000";
   }
   else if (bestSet > 20000 && bestBlitz > 19000 && bestNMPZ > 18000 && bestBlink > 17000) {
     rank = "slime";
@@ -528,27 +528,27 @@ function rankModify() {
   let blinkCol = "red";
 
   if (bestSet >= nextBestSet) {
-    normCol = "green"
+    normCol = "green";
   }
   if (bestBlitz >= nextBestBlitz) {
-    blitzCol = "green"
+    blitzCol = "green";
   }
   if (bestNMPZ >= nextBestNMPZ) {
-    NMPZCol = "green"
+    NMPZCol = "green";
   }
   if (bestBlink >= nextBestBlink) {
-    blinkCol = "green"
+    blinkCol = "green";
   }
 
   //change rank info screen so they know the req
   showRankScreen.html(
-    `<span style="color:black;">Requirements</span><br>` +
+    `<span style="font-size:${windowWidth / 30}px;">Requirements</span><br>` +
     `<span style="color:black;"></span><br>` +
 
-    `<span style="color:${normCol};">${nextBestSet + "/" + bestSet}</span><br>` +
-    `<span style="color:${blitzCol};">${nextBestBlitz + "/" + bestBlitz}</span><br>` +
-    `<span style="color:${NMPZCol};">${nextBestNMPZ + "/" + bestNMPZ}</span><br>` +
-    `<span style="color:${blinkCol};">${nextBestBlink + "/" + bestBlink}</span>`
+    `<span style="color:${normCol};">${"Normal: " + bestSet + "/" + nextBestSet}</span><br>` +
+    `<span style="color:${blitzCol};">${"Blitz: " + bestBlitz + "/" + nextBestBlitz}</span><br>` +
+    `<span style="color:${NMPZCol};">${"NMPZ: " + bestNMPZ + "/" + nextBestNMPZ}</span><br>` +
+    `<span style="color:${blinkCol};">${"Blink: " + bestBlink + "/" + nextBestBlink}</span>`
   );
 
 
@@ -635,17 +635,17 @@ function fixsizes() {
   startSetButton.position(10, 10);
   setTypeDropDown.position(10, 40);
 
-  rankIcon.position(windowWidth - shieldSize - 10, bannerHeight + 10);
+  rankIcon.position(10, bannerHeight + 10);
 
   //change sizes of the rank info in relation to the screensizes
-  showRankButton.position(windowWidth - shieldSize - 10, bannerHeight + shieldSize + 5);
+  showRankButton.position(10, bannerHeight + shieldSize + 5);
   showRankScreen.size(windowWidth / 2, windowWidth / 4);
   showRankScreen.position(windowWidth / 4, windowHeight / 2 - windowWidth / 8);
-  showRankScreen.style("font-size", windowWidth / 30 + "px");
-  showRankScreen.style("padding-left", windowWidth / 30 + "px")
-  showRankScreen.style("padding-top", windowWidth / 45 + "px")
+  showRankScreen.style("font-size", windowWidth / 40 + "px");
+  showRankScreen.style("padding-left", windowWidth / 40 + "px");
+  showRankScreen.style("padding-top", windowWidth / 20 + "px");
 
-  let showRankPosY = windowHeight / 2 - windowWidth / 8
+  let showRankPosY = windowHeight / 2 - windowWidth / 8;
 
   //change the sizes of the rank displays
   allPinsDisplay.position(windowWidth / 1.95, windowHeight / 1.97);
@@ -709,8 +709,6 @@ function timeDrain() {
     if (setActive && timeLeft >= 0 && millis() - time > 1000) {
       time = millis();
       timeLeft -= 1;
-
-      console.log(timeLeft);
     }
 
     //ran out of time
@@ -811,6 +809,7 @@ function afterGuess() {
   endScreen = true;
 
   //exponential points
+  //got this equation from geoguessr
   points = Math.round(5000 * Math.exp(-10 * totalDistance / worldMapSize));
 
   //set distance text

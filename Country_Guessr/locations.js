@@ -148378,7 +148378,7 @@ window.iceland = [
       -22.35049575570857
     ]
   ]
-]
+];
 
 
 window.allCountries = [
@@ -148473,9 +148473,4 @@ window.allCountries = [
   latvia,
   estonia,
   iceland,
-
-
-
-
-
 ];
