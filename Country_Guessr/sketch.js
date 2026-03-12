@@ -22,6 +22,12 @@ let nextBestBlink = 0;
 let shieldSize = 80;
 let rankIcon;
 
+let allPins = "allPins.png"
+let allPinsDisplay;
+
+let allShields = "allShields.png"
+let allShieldsDisplay;
+
 let coalS = "coalShield.png";
 let bronzeS = "bronzeShield.png";
 let silverS = "silverShield.png";
@@ -258,7 +264,18 @@ function setup() {
 
   rankIcon = createImg(currentShield, "rank display");
   rankIcon.size(shieldSize, shieldSize);
-  rankIcon.style("z-index", "20");
+  rankIcon.style("z-index", "21");
+  rankIcon.style("opacity", "1");
+
+  allPinsDisplay = createImg(allPins, "all the pins");
+  allPinsDisplay.style("z-index", "21");
+  allPinsDisplay.style("z-index", "-1");
+  allPinsDisplay.style("opacity", "0");
+
+  allShieldsDisplay = createImg(allShields, "all the Shields");
+  allShieldsDisplay.style("z-index", "21");
+  allShieldsDisplay.style("z-index", "-1");
+  allShieldsDisplay.style("opacity", "0");
 
   //leaflet map
   map = L.map("map").setView([0, 0], 1);
@@ -406,14 +423,15 @@ function setup() {
   showRankScreen = createDiv();
   showRankScreen.style("background", "rgb(154, 255, 120)");
   showRankScreen.style("z-index", "-1");
+  showRankScreen.style("opacity", "0");
 
-  showRankScreen.style("display", "flex");
-  showRankScreen.style("justify-content", "center");
+  showRankScreen.style("justify-content", "left");
   showRankScreen.style("align-items", "center");
   showRankScreen.style("font-weight", "bold");
 
-  showRankScreen.style("font-size", "20px");
-  showRankScreen.style("color", "white");
+  showRankScreen.style("color", "black");
+  showRankScreen.style("border-radius", "12px");
+  showRankScreen.style("border", "4px solid black");
 
   changeMapSize();
 
@@ -429,13 +447,6 @@ function draw() {
   covertoggle();
   blinkToggle();
   rankModify();
-  changeRankInfo();
-}
-
-function changeRankInfo() {
-  if (rank === "obsidian") {
-    showRankScreen.html("hello");
-  }
 }
 
 function rankModify() {
@@ -444,71 +455,101 @@ function rankModify() {
     currentPin = interP;
     currentShield = interS;
 
-    // nextBestSet = "5000" + "/" + bestSet;
-    // nextBestBlitz = "0" + "/" + bestBlink;
-    // nextBestNMPZ = "0" + "/" + bestNMPZ;
-    // nextBestBlink = "0" + "/" + bestBlink;
+    // nextBestSet = "5000";
+    // nextBestBlitz = "0";
+    // nextBestNMPZ = "0";
+    // nextBestBlink = "0";
   }
   else if (bestSet > 20000 && bestBlitz > 19000 && bestNMPZ > 18000 && bestBlink > 17000) {
     rank = "slime";
     currentPin = slimeP;
     currentShield = slimeS;
 
-    nextBestSet = "22500" + "/" + bestSet;
-    nextBestBlitz = "21500" + "/" + bestBlink;
-    nextBestNMPZ = "21000" + "/" + bestNMPZ;
-    nextBestBlink = "20000" + "/" + bestBlink;
+    nextBestSet = "22500";
+    nextBestBlitz = "21500";
+    nextBestNMPZ = "21000";
+    nextBestBlink = "20000";
   }
   else if (bestSet > 17500 && bestBlitz > 15000 && bestNMPZ > 12500) {
     rank = "obsidian";
     currentPin = obsidianP;
     currentShield = obsidianS;
 
-    nextBestSet = "20000" + "/" + bestSet;
-    nextBestBlitz = "19000" + "/" + bestBlink;
-    nextBestNMPZ = "18000" + "/" + bestNMPZ;
-    nextBestBlink = "17000" + "/" + bestBlink;
+    nextBestSet = "20000";
+    nextBestBlitz = "19000";
+    nextBestNMPZ = "18000";
+    nextBestBlink = "17000";
   }
   else if (bestSet > 15000 && bestBlitz > 10000 && bestNMPZ > 7500) {
     rank = "diamond";
     currentPin = diamondP;
     currentShield = diamondS;
 
-    nextBestSet = "17500" + "/" + bestSet;
-    nextBestBlitz = "15000" + "/" + bestBlink;
-    nextBestNMPZ = "12500" + "/" + bestNMPZ;
-    nextBestBlink = "0" + "/" + bestBlink;
+    nextBestSet = "17500";
+    nextBestBlitz = "15000";
+    nextBestNMPZ = "12500";
+    nextBestBlink = "0";
   }
   else if (bestSet > 10000 && bestBlitz > 5000) {
     rank = "gold";
     currentPin = goldP;
     currentShield = goldS;
 
-    nextBestSet = "15000" + "/" + bestSet;
-    nextBestBlitz = "10000" + "/" + bestBlink;
-    nextBestNMPZ = "7500" + "/" + bestNMPZ;
-    nextBestBlink = "0" + "/" + bestBlink;
+    nextBestSet = "15000";
+    nextBestBlitz = "10000";
+    nextBestNMPZ = "7500";
+    nextBestBlink = "0";
   }
   else if (bestSet > 5000) {
     rank = "silver";
     currentPin = silverP;
     currentShield = silverS;
 
-    nextBestSet = "10000" + "/" + bestSet;
-    nextBestBlitz = "5000" + "/" + bestBlink;
-    nextBestNMPZ = "0" + "/" + bestNMPZ;
-    nextBestBlink = "0" + "/" + bestBlink;
+    nextBestSet = "10000";
+    nextBestBlitz = "5000";
+    nextBestNMPZ = "0";
+    nextBestBlink = "0";
   }
   else if (bestSet > 2500) {
     rank = "bronze";
     currentPin = bronzeP;
     currentShield = bronzeS;
 
-    nextBestSet = "5000" + "/" + bestSet;
-    nextBestBlitz = "0" + "/" + bestBlink;
-    nextBestNMPZ = "0" + "/" + bestNMPZ;
-    nextBestBlink = "0" + "/" + bestBlink;
+    nextBestSet = "5000";
+    nextBestBlitz = "0";
+    nextBestNMPZ = "0";
+    nextBestBlink = "0";
   }
+
+  //change the color of each line depending on if they met the req
+  let normCol = "red";
+  let blitzCol = "red";
+  let NMPZCol = "red";
+  let blinkCol = "red";
+
+  if (bestSet >= nextBestSet) {
+    normCol = "green"
+  }
+  if (bestBlitz >= nextBestBlitz) {
+    blitzCol = "green"
+  }
+  if (bestNMPZ >= nextBestNMPZ) {
+    NMPZCol = "green"
+  }
+  if (bestBlink >= nextBestBlink) {
+    blinkCol = "green"
+  }
+
+  //change rank info screen so they know the req
+  showRankScreen.html(
+    `<span style="color:black;">Requirements</span><br>` +
+    `<span style="color:black;"></span><br>` +
+
+    `<span style="color:${normCol};">${nextBestSet + "/" + bestSet}</span><br>` +
+    `<span style="color:${blitzCol};">${nextBestBlitz + "/" + bestBlitz}</span><br>` +
+    `<span style="color:${NMPZCol};">${nextBestNMPZ + "/" + bestNMPZ}</span><br>` +
+    `<span style="color:${blinkCol};">${nextBestBlink + "/" + bestBlink}</span>`
+  );
 
 
 
@@ -516,7 +557,7 @@ function rankModify() {
     iconUrl: currentPin,
 
     iconSize: [40, 40],
-    iconAnchor: [20, 38],
+    iconAnchor: [20, 37],
   });
   marker.setIcon(markerIcon);
 
@@ -595,19 +636,48 @@ function fixsizes() {
   setTypeDropDown.position(10, 40);
 
   rankIcon.position(windowWidth - shieldSize - 10, bannerHeight + 10);
+
+  //change sizes of the rank info in relation to the screensizes
   showRankButton.position(windowWidth - shieldSize - 10, bannerHeight + shieldSize + 5);
-  showRankScreen.size(windowWidth / 2, windowHeight / 2);
-  showRankScreen.position(windowWidth / 4, windowHeight / 4);
+  showRankScreen.size(windowWidth / 2, windowWidth / 4);
+  showRankScreen.position(windowWidth / 4, windowHeight / 2 - windowWidth / 8);
+  showRankScreen.style("font-size", windowWidth / 30 + "px");
+  showRankScreen.style("padding-left", windowWidth / 30 + "px")
+  showRankScreen.style("padding-top", windowWidth / 45 + "px")
+
+  let showRankPosY = windowHeight / 2 - windowWidth / 8
+
+  //change the sizes of the rank displays
+  allPinsDisplay.position(windowWidth / 1.95, windowHeight / 1.97);
+  allPinsDisplay.size(windowWidth / 4, windowWidth / 6);
+
+  allShieldsDisplay.position(windowWidth / 1.95, showRankPosY + windowHeight / 100);
+  allShieldsDisplay.size(windowWidth / 4, windowWidth / 6);
 }
 
 //shows the info for rank up
 function showRank() {
   if (!showingRankInfo) {
     showRankScreen.style("z-index", "20");
+    showRankScreen.style("opacity", "1");
+
+    allPinsDisplay.style("z-index", "21");
+    allPinsDisplay.style("opacity", "1");
+
+    allShieldsDisplay.style("z-index", "21");
+    allShieldsDisplay.style("opacity", "1");
     showingRankInfo = true;
   }
   else {
     showRankScreen.style("z-index", "-1");
+    showRankScreen.style("opacity", "0");
+
+    allPinsDisplay.style("z-index", "-1");
+    allPinsDisplay.style("opacity", "0");
+
+    allShieldsDisplay.style("z-index", "-1");
+    allShieldsDisplay.style("opacity", "0");
+
     showingRankInfo = false;
   }
 }
