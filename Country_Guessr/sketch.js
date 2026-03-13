@@ -26,7 +26,9 @@ function preload() {
     normalTimeLeft: -1,
     normalTime: 0,
     normalConfirm: false,
+    normalMapChanged: false,
     normalRoundNumber: 0,
+    normalPartyEnded: false,
 
     blitzPlayers: 0,
 
@@ -92,7 +94,7 @@ let answerIcon = L.icon({
 });
 
 //game variables
-let timeAfterFirstGuess = 15;
+let timeAfterFirstGuess = 5;
 let calcLocation;
 let mapShowing = true;
 let winStreak = 0;
@@ -192,6 +194,7 @@ let showRankScreen;
 //p5 party local variables
 let inParty = false;
 let currentParty;
+let lockedIn = false;
 
 let wasNormalGuessed = false;
 
@@ -236,7 +239,7 @@ function setup() {
 
   //when the map is clicked
   function onMapClick(e) {
-    if (endScreen === false) {
+    if (endScreen === false && !lockedIn) {
       let lat = e.latlng.lat;
       let lng = e.latlng.lng;
 
@@ -382,7 +385,6 @@ function setup() {
   showRankScreen.style("border", "4px solid black");
 
   changeMapSize();
-
 }
 
 function draw() {
@@ -397,17 +399,57 @@ function draw() {
   rankModify();
   timePartyLimit();
   forceConfirm();
+  forceLeaveEnd();
+  checkPartyEnded();
+}
+
+function checkPartyEnded() {
+  if (inParty && currentParty === "normal" && shared.normalPartyEnded) {
+    inParty = false;
+    currentParty = "";
+    lockedIn = false;
+    endScreen = false;
+
+    // if (answermarker) answermarker.remove();
+    // if (answerLine) answerLine.remove();
+
+    //reset map
+    mapID.style("bottom", "20px");
+    mapID.style("right", "75px");
+    mapID.size(mapOriginalWidth, mapOriginalHeight);
+    map.invalidateSize();
+    map.setView([0, 0], 1);
+
+    marker.setLatLng([0, 0]);
+    clickedPoint = { lat: 0, lng: 0 };
+  }
+}
+
+//force everyone in party to leave endscreen
+function forceLeaveEnd() {
+  if (inParty && endScreen) {
+    if (setTypeDropDown.value() === "normal" && shared.normalround === "ongoing") {
+      confirmed()
+    }
+  }
 }
 
 function forceConfirm() {
-  if (setTypeDropDown.value() === "normal" && shared.normalConfirm === true && inParty) {
+  if (setTypeDropDown.value() === "normal" && shared.normalConfirm === true && inParty && !endScreen) {
+    console.log("here")
     confirmed()
   }
 }
 
 function timePartyLimit() {
-  if (setTypeDropDown.value() === "normal") {
-    shared.normalTimeLeft = ceil((shared.normalTime - millis()) / 1000)
+  if (inParty) {
+    if (setTypeDropDown.value() === "normal") {
+      shared.normalTimeLeft = ceil((shared.normalTime - Date.now()) / 1000)
+      if (shared.normalTimeLeft <= 0 && shared.normalround !== "over") {
+        shared.normalround = "over"
+        confirmed()
+      }
+    }
   }
 }
 
@@ -452,8 +494,8 @@ function partyChange(place, type) {
   );
 
   //add the basic time if it hasn't already been added
-  if (type === "normal" && shared.normalTime - millis() < 0) {
-    shared.normalTime = millis() + timeRestriction * 1000
+  if (type === "normal" && shared.normalTime - Date.now() < 0) {
+    shared.normalTime = Date.now() + timeRestriction * 1000
   }
 }
 
@@ -596,8 +638,8 @@ function covertoggle() {
 
 function blinkToggle() {
   if (blink) {
-    if (millis() - blinkTime > 100) {
-      blinkTime = millis();
+    if (Date.now() - blinkTime > 100) {
+      blinkTime = Date.now();
       blinkCountdown -= decreaseAmount;
 
       //show text in 2 decimal places
@@ -701,7 +743,7 @@ function bannerTextChange() {
     if (setActive) {
       banner.html("Round: " + curretnRoundNumber + "/" + maxRounds + " | Time Left: " + timeLeft);
     }
-    else if (inParty && setTypeDropDown.value() === "normal" && shared.normalTime - millis() >= 0) {
+    else if (inParty && setTypeDropDown.value() === "normal" && shared.normalTime - Date.now() >= 0) {
       banner.html("Round: " + shared.normalRoundNumber + "/" + maxRounds + " | Time Left: " + shared.normalTimeLeft);
     }
     else {
@@ -723,8 +765,8 @@ function bannerTextChange() {
 
 function timeDrain() {
   if (!endScreen) {
-    if ((setActive) && timeLeft >= 0 && millis() - time > 1000) {
-      time = millis();
+    if ((setActive) && timeLeft >= 0 && Date.now() - time > 1000) {
+      time = Date.now();
       timeLeft -= 1;
     }
 
@@ -788,11 +830,16 @@ function setupMap() {
 function confirmed() {
   if (mapShowing) {
     //if you are in a party
-    if (inParty && shared.normalround !== "over") {
+    if (inParty && shared.normalround !== "over" && !endScreen) {
+      lockedIn = true;
       //if someone has guessed then trigger the 15s time limit
       if (shared.normalGuessed === false && shared.normalTimeLeft > timeAfterFirstGuess) {
         shared.normalGuessed = true;
-        shared.normalTime = millis() + timeAfterFirstGuess * 1000
+        shared.normalTime = Date.now() + timeAfterFirstGuess * 1000
+
+        //reset some variables
+        shared.normalMapChanged = false;
+        shared.normalConfirm = false;
       }
     }
     else {
@@ -819,10 +866,38 @@ function confirmed() {
         afterGuess();
       }
       else if (endScreen === true) {
+        //if you are in a party
+        if (inParty) {
+          if (setTypeDropDown.value() === "normal") {
+            //make others leave end screen
+            shared.normalEndScreenLeave = true;
+
+            //reset all values and end the party round if it was the last round
+            if (shared.normalRoundNumber >= 5) {
+              shared.normalPartyEnded = true;
+              shared.normalRoundNumber = 1;
+            }
+            shared.normalRoundNumber += 1
+            shared.normalTime = -1
+            shared.normalTimeLeft = 0
+            shared.normalGuessed = false;
+            shared.normalConfirm = false;
+            shared.normalround = "ongoing";
+            shared.forceConfirm
+            lockedIn = false;
+            if (!shared.normalMapChanged) {
+              shared.normalMap = random(currentLocations)
+              shared.normalMapChanged = true;
+            }
+            partyChange(shared.normalMap, "normal")
+          }
+        }
+        else {
+          mapChange();
+        }
         endScreen = false;
         answermarker.remove();
         answerLine.remove();
-        mapChange();
         map.setView([0, 0], 1);
 
         //change map size back to original
