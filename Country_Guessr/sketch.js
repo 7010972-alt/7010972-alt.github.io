@@ -197,7 +197,7 @@ let currentParty;
 let lockedIn = false;
 
 let wasNormalGuessed = false;
-let maxPartyRoundNumber = 5;
+let maxPartyRoundNumber = 2;
 
 function setup() {
   noCanvas();
@@ -423,6 +423,8 @@ function checkPartyEnded() {
 
     marker.setLatLng([0, 0]);
     clickedPoint = { lat: 0, lng: 0 };
+
+    mapChange()
   }
 }
 
@@ -469,6 +471,11 @@ function joinParty() {
       currentParty = "normal";
       shared.normalPlayers += 1;
       setPartyMap();
+      if (shared.normalPartyEnded) {
+        shared.normalPartyEnded = false;
+        shared.normalTime = -1;
+        shared.normalTimeLeft = 0;
+      }
       partyChange(shared.normalMap, "normal");
     }
     else if (setTypeDropDown.value() === "blitz") {
@@ -890,8 +897,6 @@ function confirmed() {
               shared.normalMap = random(currentLocations);
               shared.normalRoundNumber += 1;
               shared.normalMapChanged = true;
-              shared.normalTime = -1;
-              shared.normalTimeLeft = 0;
             }
             partyChange(shared.normalMap, "normal");
           }
