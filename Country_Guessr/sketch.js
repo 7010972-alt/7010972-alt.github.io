@@ -197,6 +197,7 @@ let currentParty;
 let lockedIn = false;
 
 let wasNormalGuessed = false;
+let maxPartyRoundNumber = 5;
 
 function setup() {
   noCanvas();
@@ -746,7 +747,7 @@ function bannerTextChange() {
     }
     else if (inParty) {
       if (setTypeDropDown.value() === "normal" && shared.normalTime - Date.now() >= 0) {
-        banner.html("Round: " + shared.normalRoundNumber + "/" + maxRounds + " | Time Left: " + shared.normalTimeLeft);
+        banner.html("Round: " + shared.normalRoundNumber + "/" + maxPartyRoundNumber + " | Time Left: " + shared.normalTimeLeft);
       }
     }
     else {
@@ -876,21 +877,21 @@ function confirmed() {
             shared.normalEndScreenLeave = true;
 
             //reset all values and end the party round if it was the last round
-            if (shared.normalRoundNumber >= 5) {
+            if (shared.normalRoundNumber >= maxPartyRoundNumber) {
               shared.normalPartyEnded = true;
               shared.normalRoundNumber = 1;
             }
-            shared.normalTime = -1;
-            shared.normalTimeLeft = 0
             shared.normalGuessed = false;
             shared.normalConfirm = false;
             shared.normalround = "ongoing";
-            shared.forceConfirm;
+            shared.forceConfirm = false;
             lockedIn = false;
             if (!shared.normalMapChanged) {
               shared.normalMap = random(currentLocations);
               shared.normalRoundNumber += 1;
               shared.normalMapChanged = true;
+              shared.normalTime = -1;
+              shared.normalTimeLeft = 0;
             }
             partyChange(shared.normalMap, "normal");
           }
