@@ -7,6 +7,36 @@
 //I used leaflet maps which somehow had everything I needed like getting corrdinates from where I clicked, and adding markers and many more
 //the Leaflet website was incredibly easy to follow aswell https://leafletjs.com/examples.html
 
+//set up p5 party
+let shared;
+
+function preload() {
+  partyConnect(
+    "wss://demoserver.p5party.org",
+    "country_guessr"
+  );
+
+  shared = partyLoadShared("shared", {
+    gameStarted: false,
+
+    normalPlayers: 0,
+    normalMap: "none",
+    normalGuessed: false,
+    normalround: "ongoing",
+    normalTimeLeft: -1,
+    normalTime: 0,
+    normalConfirm: false,
+    normalRoundNumber: 0,
+
+    blitzPlayers: 0,
+
+
+    NMPZPlayers: 0,
+    blinkPlayers: 0,
+
+  });
+}
+
 let street;
 let map;
 let mapID;
@@ -50,109 +80,6 @@ let interP = "interPin.png";
 
 let currentPin = coalP;
 
-// all countries that have street view
-// let countries = [
-//   "None",
-//   "Albania",
-//   "Andorra",
-//   "Argentina",
-//   "Australia",
-//   "Austria",
-//   "Bangladesh",
-//   "Belgium",
-//   "Bhutan",
-//   "Bolivia",
-//   "Bosnia and Herzegovina",
-//   "Botswana",
-//   "Brazil",
-//   "Bulgaria",
-//   "Cambodia",
-//   "Canada",
-//   "Chile",
-//   "Colombia",
-//   "Costa Rica",
-//   "Croatia",
-//   "Czechia",
-//   "Denmark",
-//   "Dominican Republic",
-//   "Ecuador",
-//   "Estonia",
-//   "Eswatini",
-//   "Finland",
-//   "France",
-//   "Germany",
-//   "Ghana",
-//   "Greece",
-//   "Guatemala",
-//   "Hong Kong",
-//   "Hungary",
-//   "Iceland",
-//   "India",
-//   "Indonesia",
-//   "Ireland",
-//   "Israel",
-//   "Italy",
-//   "Japan",
-//   "Jordan",
-//   "Kazakhstan",
-//   "Kenya",
-//   "Kyrgyzstan",
-//   "Latvia",
-//   "Lebanon",
-//   "Lesotho",
-//   "Lithuania",
-//   "Luxembourg",
-//   "Malaysia",
-//   "Malta",
-//   "Mexico",
-//   "Monaco",
-//   "Mongolia",
-//   "Montenegro",
-//   "Namibia",
-//   "Netherlands",
-//   "Nepal",
-//   "New Zealand",
-//   "Nigeria",
-//   "North Macedonia",
-//   "Norway",
-//   "Oman",
-//   "Panama",
-//   "Paraguay",
-//   "Peru",
-//   "Philippines",
-//   "Poland",
-//   "Portugal",
-//   "Puerto Rico",
-//   "Qatar",
-//   "Romania",
-//   "Russia",
-//   "Rwanda",
-//   "San Marino",
-//   "Sao Tome and Principe",
-//   "Senegal",
-//   "Serbia",
-//   "Singapore",
-//   "Slovakia",
-//   "Slovenia",
-//   "South Africa",
-//   "South Korea",
-//   "Spain",
-//   "Sri Lanka",
-//   "Sweden",
-//   "Switzerland",
-//   "Taiwan",
-//   "Thailand",
-//   "Tunisia",
-//   "Turkey",
-//   "Uganda",
-//   "Ukraine",
-//   "United Arab Emirates",
-//   "United Kingdom",
-//   "United States",
-//   "Uruguay",
-//   "Vietnam",
-// ];
-
 //markers
 let answermarker;
 let marker;
@@ -165,6 +92,8 @@ let answerIcon = L.icon({
 });
 
 //game variables
+let timeAfterFirstGuess = 15;
+let calcLocation;
 let mapShowing = true;
 let winStreak = 0;
 let worldMapSize = 14916862;
@@ -225,6 +154,7 @@ let hideMapButton;
 let startSetButton;
 let setTypeDropDown;
 let showRankButton;
+let joinButton;
 
 //set variables
 let blitzTime = 10;
@@ -259,8 +189,20 @@ let decreaseAmount = 0.1;
 let showingRankInfo = false;
 let showRankScreen;
 
+//p5 party local variables
+let inParty = false;
+let currentParty;
+
+let wasNormalGuessed = false;
+
 function setup() {
   noCanvas();
+
+  //add maps to a list
+  setupMap();
+
+  //give each party a map
+  setPartyMap()
 
   rankIcon = createImg(currentShield, "rank display");
   rankIcon.size(shieldSize, shieldSize);
@@ -350,8 +292,6 @@ function setup() {
   banner.style("border-bottom", "4px solid black");
   banner.style("box-sizing", "border-box");
 
-  setupMap();
-
   //pick random location
   randomlocation = random(currentLocations);
   newlat = randomlocation.lat;
@@ -388,9 +328,17 @@ function setup() {
 
   startSetButton.mousePressed(startSet);
 
+  //button to start a set
+  joinButton = createButton("Join Party");
+  joinButton.size(80, 30);
+  joinButton.style("position", "absolute");
+  joinButton.style("z-index", "21");
+
+  joinButton.mousePressed(joinParty);
+
   //dropdown menu to select set type
   setTypeDropDown = createSelect();
-  setTypeDropDown.size(80, 20);
+  setTypeDropDown.size(160, 20);
   setTypeDropDown.style("z-index", "21");
   setTypeDropDown.option("Normal", "normal");
   setTypeDropDown.option("Blitz", "blitz");
@@ -442,11 +390,84 @@ function draw() {
   fixsizes();
   bannerTextChange();
   timeDrain();
-  lockDropDown();
+  lockStartJoin();
   NMPZ();
   covertoggle();
   blinkToggle();
   rankModify();
+  timePartyLimit();
+  forceConfirm();
+}
+
+function forceConfirm() {
+  if (setTypeDropDown.value() === "normal" && shared.normalConfirm === true && inParty) {
+    confirmed()
+  }
+}
+
+function timePartyLimit() {
+  if (setTypeDropDown.value() === "normal") {
+    shared.normalTimeLeft = ceil((shared.normalTime - millis()) / 1000)
+  }
+}
+
+function setPartyMap() {
+  if (shared.normalMap === "none") {
+    shared.normalMap = random(currentLocations);
+    shared.normalRoundNumber = 1;
+  }
+}
+
+
+function joinParty() {
+  if (!inParty) {
+    inParty = true;
+    if (setTypeDropDown.value() === "normal") {
+      currentParty = "normal"
+      shared.normalPlayers += 1
+      partyChange(shared.normalMap, "normal")
+    }
+    else if (setTypeDropDown.value() === "blitz") {
+      currentParty = "blitz"
+      shared.blitzPlayers += 1
+    }
+    else if (setTypeDropDown.value() === "NMPZ") {
+      currentParty = "NMPZ"
+      shared.NMPZPlayers += 1
+    }
+    else if (setTypeDropDown.value() === "blink") {
+      currentParty = "blink"
+      shared.blinkPlayers += 1
+    }
+  }
+}
+
+function partyChange(place, type) {
+  newlat = place.lat;
+  newlng = place.lng;
+  
+  street.attribute(
+    "src",
+    `https://www.google.com/maps?q=&layer=c&cbll=${newlat},${newlng}&cbp=11,0,0,0,0&output=svembed`
+  );
+
+  //add the basic time if it hasn't already been added
+  if (type === "normal" && shared.normalTime - millis() < 0) {
+    shared.normalTime = millis() + timeRestriction * 1000
+  }
+}
+
+function lockStartJoin() {
+  if (inParty || setActive || endScreen) {
+    joinButton.attribute("disabled", "");
+    startSetButton.attribute("disabled", "");
+    setTypeDropDown.attribute("disabled", "");
+  }
+  else {
+    joinButton.removeAttribute("disabled");
+    startSetButton.removeAttribute("disabled");
+    setTypeDropDown.removeAttribute("disabled");
+  }
 }
 
 function rankModify() {
@@ -609,15 +630,6 @@ function addmap(map, country) {
   }
 }
 
-function lockDropDown() {
-  if (setActive) {
-    setTypeDropDown.attribute("disabled", "");
-  }
-  else {
-    setTypeDropDown.removeAttribute("disabled");
-  }
-}
-
 function fixsizes() {
   optxwidth = (windowWidth + windowHeight) / optxwidthDivisor;
 
@@ -633,6 +645,8 @@ function fixsizes() {
   confirmButton.position(windowWidth - 67, windowHeight - 250);
   hideMapButton.position(windowWidth - 67, windowHeight - 310);
   startSetButton.position(10, 10);
+  joinButton.position(90, 10);
+
   setTypeDropDown.position(10, 40);
 
   rankIcon.position(10, bannerHeight + 10);
@@ -687,6 +701,9 @@ function bannerTextChange() {
     if (setActive) {
       banner.html("Round: " + curretnRoundNumber + "/" + maxRounds + " | Time Left: " + timeLeft);
     }
+    else if (inParty && setTypeDropDown.value() === "normal" && shared.normalTime - millis() >= 0) {
+      banner.html("Round: " + shared.normalRoundNumber + "/" + maxRounds + " | Time Left: " + shared.normalTimeLeft);
+    }
     else {
       if (setTypeDropDown.value() === "normal") {
         banner.html("Best Set: " + bestSet.toLocaleString());
@@ -706,7 +723,7 @@ function bannerTextChange() {
 
 function timeDrain() {
   if (!endScreen) {
-    if (setActive && timeLeft >= 0 && millis() - time > 1000) {
+    if ((setActive) && timeLeft >= 0 && millis() - time > 1000) {
       time = millis();
       timeLeft -= 1;
     }
@@ -770,34 +787,55 @@ function setupMap() {
   
 function confirmed() {
   if (mapShowing) {
-    if (endScreen === false) {
-      covering = false;
-      //find meters
-      
-      let point1 = L.latLng(randomlocation.lat, randomlocation.lng);
-      let point2 = L.latLng(clickedPoint.lat, clickedPoint.lng);
-
-      totalDistance = point1.distanceTo(point2);
-
-      afterGuess();
+    //if you are in a party
+    if (inParty && shared.normalround !== "over") {
+      //if someone has guessed then trigger the 15s time limit
+      if (shared.normalGuessed === false && shared.normalTimeLeft > timeAfterFirstGuess) {
+        shared.normalGuessed = true;
+        shared.normalTime = millis() + timeAfterFirstGuess * 1000
+      }
     }
-    else if (endScreen === true) {
-      endScreen = false;
-      answermarker.remove();
-      answerLine.remove();
-      mapChange();
-      map.setView([0, 0], 1);
+    else {
+      if (endScreen === false) {
+        covering = false;
 
-      //change map size back to original
-      enlarged = false;
-      mapID.style("bottom", "20px");
-      mapID.style("right", "75px");
-      mapID.size(mapOriginalWidth, mapOriginalHeight);
-      map.invalidateSize();
-      map.setView([0, 0], 1);
+        //determine location
+        if (!inParty) {
+          calcLocation = randomlocation
+        }
+        else {
+          if (setTypeDropDown.value() === "normal") {
+            calcLocation = shared.normalMap
+          }
+        }
 
-      for (let item of setMarkers) {
-        item.remove();
+        //find meters
+        
+        let point1 = L.latLng(calcLocation.lat, calcLocation.lng);
+        let point2 = L.latLng(clickedPoint.lat, clickedPoint.lng);
+
+        totalDistance = point1.distanceTo(point2);
+
+        afterGuess();
+      }
+      else if (endScreen === true) {
+        endScreen = false;
+        answermarker.remove();
+        answerLine.remove();
+        mapChange();
+        map.setView([0, 0], 1);
+
+        //change map size back to original
+        enlarged = false;
+        mapID.style("bottom", "20px");
+        mapID.style("right", "75px");
+        mapID.size(mapOriginalWidth, mapOriginalHeight);
+        map.invalidateSize();
+        map.setView([0, 0], 1);
+
+        for (let item of setMarkers) {
+          item.remove();
+        }
       }
     }
   }
@@ -829,7 +867,7 @@ function afterGuess() {
     totalSetPoints += points;
     if (curretnRoundNumber < maxRounds) {
       curretnRoundNumber += 1;
-      setLocations.push([randomlocation.lat, randomlocation.lng]);
+      setLocations.push([calcLocation.lat, calcLocation.lng]);
       setClickedPoints.push([clickedPoint.lat, clickedPoint.lng]);
 
       //save line colors
@@ -902,7 +940,7 @@ function afterGuess() {
   mapID.size(windowWidth, windowHeight - bannerHeight);
   map.invalidateSize();
 
-  answermarker = L.marker([randomlocation.lat, randomlocation.lng], {icon: answerIcon}).addTo(map);
+  answermarker = L.marker([calcLocation.lat, calcLocation.lng], {icon: answerIcon}).addTo(map);
 
   //set line colors
   let lineCol = "black";
@@ -920,7 +958,7 @@ function afterGuess() {
   }
 
   //show a line from the clicked point to the answer
-  answerLine = L.polyline([[randomlocation.lat, randomlocation.lng],[clickedPoint.lat, clickedPoint.lng]], {
+  answerLine = L.polyline([[calcLocation.lat, calcLocation.lng],[clickedPoint.lat, clickedPoint.lng]], {
     color: lineCol,
     opacity: 0.7
   }).addTo(map);
@@ -931,7 +969,7 @@ function afterGuess() {
 function adjustAfterGuess() {
   //set the bounds to both the points as 2 corners
   let bounds = L.latLngBounds(
-    [randomlocation.lat, randomlocation.lng],
+    [calcLocation.lat, calcLocation.lng],
     [clickedPoint.lat, clickedPoint.lng]
   );
   
@@ -1004,3 +1042,106 @@ function saveProgress() {
   localStorage.setItem("BestNMPZ", bestNMPZ);
   localStorage.setItem("BestBlink", bestBlink);
 }
+
+// all countries that have street view
+// let countries = [
+//   "None",
+//   "Albania",
+//   "Andorra",
+//   "Argentina",
+//   "Australia",
+//   "Austria",
+//   "Bangladesh",
+//   "Belgium",
+//   "Bhutan",
+//   "Bolivia",
+//   "Bosnia and Herzegovina",
+//   "Botswana",
+//   "Brazil",
+//   "Bulgaria",
+//   "Cambodia",
+//   "Canada",
+//   "Chile",
+//   "Colombia",
+//   "Costa Rica",
+//   "Croatia",
+//   "Czechia",
+//   "Denmark",
+//   "Dominican Republic",
+//   "Ecuador",
+//   "Estonia",
+//   "Eswatini",
+//   "Finland",
+//   "France",
+//   "Germany",
+//   "Ghana",
+//   "Greece",
+//   "Guatemala",
+//   "Hong Kong",
+//   "Hungary",
+//   "Iceland",
+//   "India",
+//   "Indonesia",
+//   "Ireland",
+//   "Israel",
+//   "Italy",
+//   "Japan",
+//   "Jordan",
+//   "Kazakhstan",
+//   "Kenya",
+//   "Kyrgyzstan",
+//   "Latvia",
+//   "Lebanon",
+//   "Lesotho",
+//   "Lithuania",
+//   "Luxembourg",
+//   "Malaysia",
+//   "Malta",
+//   "Mexico",
+//   "Monaco",
+//   "Mongolia",
+//   "Montenegro",
+//   "Namibia",
+//   "Netherlands",
+//   "Nepal",
+//   "New Zealand",
+//   "Nigeria",
+//   "North Macedonia",
+//   "Norway",
+//   "Oman",
+//   "Panama",
+//   "Paraguay",
+//   "Peru",
+//   "Philippines",
+//   "Poland",
+//   "Portugal",
+//   "Puerto Rico",
+//   "Qatar",
+//   "Romania",
+//   "Russia",
+//   "Rwanda",
+//   "San Marino",
+//   "Sao Tome and Principe",
+//   "Senegal",
+//   "Serbia",
+//   "Singapore",
+//   "Slovakia",
+//   "Slovenia",
+//   "South Africa",
+//   "South Korea",
+//   "Spain",
+//   "Sri Lanka",
+//   "Sweden",
+//   "Switzerland",
+//   "Taiwan",
+//   "Thailand",
+//   "Tunisia",
+//   "Turkey",
+//   "Uganda",
+//   "Ukraine",
+//   "United Arab Emirates",
+//   "United Kingdom",
+//   "United States",
+//   "Uruguay",
+//   "Vietnam",
+// ];
