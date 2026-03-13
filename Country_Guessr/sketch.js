@@ -465,9 +465,10 @@ function joinParty() {
   if (!inParty) {
     inParty = true;
     if (setTypeDropDown.value() === "normal") {
-      currentParty = "normal"
-      shared.normalPlayers += 1
-      partyChange(shared.normalMap, "normal")
+      currentParty = "normal";
+      shared.normalPlayers += 1;
+      setPartyMap();
+      partyChange(shared.normalMap, "normal");
     }
     else if (setTypeDropDown.value() === "blitz") {
       currentParty = "blitz"
@@ -743,8 +744,10 @@ function bannerTextChange() {
     if (setActive) {
       banner.html("Round: " + curretnRoundNumber + "/" + maxRounds + " | Time Left: " + timeLeft);
     }
-    else if (inParty && setTypeDropDown.value() === "normal" && shared.normalTime - Date.now() >= 0) {
-      banner.html("Round: " + shared.normalRoundNumber + "/" + maxRounds + " | Time Left: " + shared.normalTimeLeft);
+    else if (inParty) {
+      if (setTypeDropDown.value() === "normal" && shared.normalTime - Date.now() >= 0) {
+        banner.html("Round: " + shared.normalRoundNumber + "/" + maxRounds + " | Time Left: " + shared.normalTimeLeft);
+      }
     }
     else {
       if (setTypeDropDown.value() === "normal") {
@@ -877,19 +880,19 @@ function confirmed() {
               shared.normalPartyEnded = true;
               shared.normalRoundNumber = 1;
             }
-            shared.normalRoundNumber += 1
-            shared.normalTime = -1
+            shared.normalTime = -1;
             shared.normalTimeLeft = 0
             shared.normalGuessed = false;
             shared.normalConfirm = false;
             shared.normalround = "ongoing";
-            shared.forceConfirm
+            shared.forceConfirm;
             lockedIn = false;
             if (!shared.normalMapChanged) {
-              shared.normalMap = random(currentLocations)
+              shared.normalMap = random(currentLocations);
+              shared.normalRoundNumber += 1;
               shared.normalMapChanged = true;
             }
-            partyChange(shared.normalMap, "normal")
+            partyChange(shared.normalMap, "normal");
           }
         }
         else {
