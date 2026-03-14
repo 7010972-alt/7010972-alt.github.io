@@ -24,11 +24,12 @@ function preload() {
     normalGuessed: false,
     normalround: "ongoing",
     normalTimeLeft: -1,
-    normalTime: 0,
+    normalTimeMax: 60,
     normalConfirm: false,
     normalMapChanged: false,
     normalRoundNumber: 0,
     normalPartyEnded: false,
+    normalClickedPositions: [],
 
     blitzPlayers: 0,
 
@@ -197,7 +198,7 @@ let currentParty;
 let lockedIn = false;
 
 let wasNormalGuessed = false;
-let maxPartyRoundNumber = 2;
+let maxPartyRoundNumber = 5;
 
 function setup() {
   noCanvas();
@@ -398,7 +399,6 @@ function draw() {
   covertoggle();
   blinkToggle();
   rankModify();
-  timePartyLimit();
   forceConfirm();
   forceLeaveEnd();
   checkPartyEnded();
@@ -410,6 +410,7 @@ function checkPartyEnded() {
     currentParty = "";
     lockedIn = false;
     endScreen = false;
+    shared.normalClickedPositions = []
 
     // if (answermarker) answermarker.remove();
     // if (answerLine) answerLine.remove();
@@ -444,18 +445,6 @@ function forceConfirm() {
   }
 }
 
-function timePartyLimit() {
-  if (inParty) {
-    if (setTypeDropDown.value() === "normal") {
-      shared.normalTimeLeft = ceil((shared.normalTime - Date.now()) / 1000)
-      if (shared.normalTimeLeft <= 0 && shared.normalround !== "over") {
-        shared.normalround = "over"
-        confirmed()
-      }
-    }
-  }
-}
-
 function setPartyMap() {
   if (shared.normalMap === "none") {
     shared.normalMap = random(currentLocations);
@@ -473,7 +462,6 @@ function joinParty() {
       setPartyMap();
       if (shared.normalPartyEnded) {
         shared.normalPartyEnded = false;
-        shared.normalTime = -1;
         shared.normalTimeLeft = 0;
       }
       partyChange(shared.normalMap, "normal");
@@ -503,8 +491,8 @@ function partyChange(place, type) {
   );
 
   //add the basic time if it hasn't already been added
-  if (type === "normal" && shared.normalTime - Date.now() < 0) {
-    shared.normalTime = Date.now() + timeRestriction * 1000
+  if (type === "normal") {
+    timeLeft = shared.normalTimeMax
   }
 }
 
@@ -753,8 +741,8 @@ function bannerTextChange() {
       banner.html("Round: " + curretnRoundNumber + "/" + maxRounds + " | Time Left: " + timeLeft);
     }
     else if (inParty) {
-      if (setTypeDropDown.value() === "normal" && shared.normalTime - Date.now() >= 0) {
-        banner.html("Round: " + shared.normalRoundNumber + "/" + maxPartyRoundNumber + " | Time Left: " + shared.normalTimeLeft);
+      if (setTypeDropDown.value() === "normal") {
+        banner.html("Round: " + shared.normalRoundNumber + "/" + maxPartyRoundNumber + " | Time Left: " + timeLeft);
       }
     }
     else {
@@ -776,7 +764,7 @@ function bannerTextChange() {
 
 function timeDrain() {
   if (!endScreen) {
-    if ((setActive) && timeLeft >= 0 && Date.now() - time > 1000) {
+    if ((setActive || inParty) && timeLeft >= 0 && Date.now() - time > 1000) {
       time = Date.now();
       timeLeft -= 1;
     }
@@ -842,7 +830,14 @@ function confirmed() {
   if (mapShowing) {
     //if you are in a party
     if (inParty && shared.normalround !== "over" && !endScreen) {
+
       lockedIn = true;
+      shared.normalClickedPositions.push({
+        lat: clickedPoint.lat,
+        lng: clickedPoint.lng,
+        Pin: currentPin,
+      })
+
       //if someone has guessed then trigger the 15s time limit
       if (shared.normalGuessed === false && shared.normalTimeLeft > timeAfterFirstGuess) {
         shared.normalGuessed = true;
