@@ -7,6 +7,9 @@
 //I used leaflet maps which somehow had everything I needed like getting corrdinates from where I clicked, and adding markers and many more
 //the Leaflet website was incredibly easy to follow aswell https://leafletjs.com/examples.html
 
+//setting still does not work in parties
+
+
 //set up p5 party
 let shared;
 
@@ -433,6 +436,7 @@ function checkPartyEnded() {
 function forceLeaveEnd() {
   if (inParty && endScreen) {
     if (setTypeDropDown.value() === "normal" && shared.normalround === "ongoing") {
+      console.log("forceleaveend")
       confirmed()
     }
   }
@@ -440,7 +444,7 @@ function forceLeaveEnd() {
 
 function forceConfirm() {
   if (setTypeDropDown.value() === "normal" && shared.normalConfirm === true && inParty && !endScreen) {
-    console.log("here")
+    console.log("forceconfirm")
     confirmed()
   }
 }
@@ -771,9 +775,22 @@ function timeDrain() {
 
     //ran out of time
     if (timeLeft < 0) {
-      //hide screen after timeout
-      covering = true;
       timeLeft = 0;
+
+      //if time ends and you are in a party
+      //be forced to confirm the guess and set the state
+      if (inParty) {
+        if (shared.normalround === "ongoing") {
+          shared.normalround === "over"
+        }
+        console.log("timedrain")
+        confirmed()
+      }
+
+      else {
+        //hide screen after timeout
+        covering = true;
+      }
     }
   }
 }
@@ -829,100 +846,127 @@ function setupMap() {
 function confirmed() {
   if (mapShowing) {
     //if you are in a party
-    if (inParty && shared.normalround !== "over" && !endScreen) {
+    if (inParty) {
+      if (!endScreen) {
+        //if they are in the normal party
+        if (setTypeDropDown.value() === "normal") {
+          //if in normal party and round is ongoing
+          if (shared.normalround === "ongoing" && timeLeft > 0) {
+            console.log("set")
+            lockedIn = true;
 
-      lockedIn = true;
-      shared.normalClickedPositions.push({
-        lat: clickedPoint.lat,
-        lng: clickedPoint.lng,
-        Pin: currentPin,
-      })
+            //if someone has guessed then trigger the time limit
+            if (shared.normalGuessed === false && timeLeft > timeAfterFirstGuess) {
+              shared.normalGuessed = true;
+              timeLeft = timeAfterFirstGuess
 
-      //if someone has guessed then trigger the 15s time limit
-      if (shared.normalGuessed === false && shared.normalTimeLeft > timeAfterFirstGuess) {
-        shared.normalGuessed = true;
-        shared.normalTime = Date.now() + timeAfterFirstGuess * 1000
+              //reset some variables
+              shared.normalMapChanged = false;
+              shared.normalConfirm = false;
+            }
+          }
 
-        //reset some variables
-        shared.normalMapChanged = false;
-        shared.normalConfirm = false;
-      }
-    }
-    else {
-      if (endScreen === false) {
-        covering = false;
-
-        //determine location
-        if (!inParty) {
-          calcLocation = randomlocation
-        }
-        else {
-          if (setTypeDropDown.value() === "normal") {
-            calcLocation = shared.normalMap
+          //going into the end of a party round
+          else {
+            shared.normalround = "over"
+            //add the clicked location to the liist holding all the players clicked locations
+            shared.normalClickedPositions.push({
+              lat: clickedPoint.lat,
+              lng: clickedPoint.lng,
+              Pin: currentPin,
+            })
+            console.log("ended")
+            afterGuess()
           }
         }
+      }
+      //escape the end screen when inside of a party
+      else {
 
-        //find meters
-        
-        let point1 = L.latLng(calcLocation.lat, calcLocation.lng);
-        let point2 = L.latLng(clickedPoint.lat, clickedPoint.lng);
+        if (shared.normalround === "over") {
+          shared.normalround = "ongoing";
+        }
 
-        totalDistance = point1.distanceTo(point2);
+        console.log("force leave")
+        //make others leave end screen
+        shared.normalEndScreenLeave = true;
 
+        //reset all values and end the party round if it was the last round
+        if (shared.normalRoundNumber >= maxPartyRoundNumber) {
+          shared.normalPartyEnded = true;
+          shared.normalRoundNumber = 1;
+        }
+        shared.normalGuessed = false;
+        shared.normalConfirm = false;
+        shared.normalround = "ongoing";
+        shared.forceConfirm = false;
+        lockedIn = false;
+        if (!shared.normalMapChanged) {
+          shared.normalMap = random(currentLocations);
+          shared.normalRoundNumber += 1;
+          shared.normalMapChanged = true;
+        }
+        partyChange(shared.normalMap, "normal");
+
+        leaveMap();
+      }
+
+    }
+
+    //what normally runs when you are not in a party
+    else {
+      if (!endScreen) {
         afterGuess();
       }
       else if (endScreen === true) {
-        //if you are in a party
-        if (inParty) {
-          if (setTypeDropDown.value() === "normal") {
-            //make others leave end screen
-            shared.normalEndScreenLeave = true;
-
-            //reset all values and end the party round if it was the last round
-            if (shared.normalRoundNumber >= maxPartyRoundNumber) {
-              shared.normalPartyEnded = true;
-              shared.normalRoundNumber = 1;
-            }
-            shared.normalGuessed = false;
-            shared.normalConfirm = false;
-            shared.normalround = "ongoing";
-            shared.forceConfirm = false;
-            lockedIn = false;
-            if (!shared.normalMapChanged) {
-              shared.normalMap = random(currentLocations);
-              shared.normalRoundNumber += 1;
-              shared.normalMapChanged = true;
-            }
-            partyChange(shared.normalMap, "normal");
-          }
-        }
-        else {
-          mapChange();
-        }
-        endScreen = false;
-        answermarker.remove();
-        answerLine.remove();
-        map.setView([0, 0], 1);
-
-        //change map size back to original
-        enlarged = false;
-        mapID.style("bottom", "20px");
-        mapID.style("right", "75px");
-        mapID.size(mapOriginalWidth, mapOriginalHeight);
-        map.invalidateSize();
-        map.setView([0, 0], 1);
-
-        for (let item of setMarkers) {
-          item.remove();
-        }
+        mapChange();
+        leaveMap()
       }
     }
+  }
+}
+
+function leaveMap() {
+  endScreen = false;
+  answermarker.remove();
+  answerLine.remove();
+  map.setView([0, 0], 1);
+
+  //change map size back to original
+  enlarged = false;
+  mapID.style("bottom", "20px");
+  mapID.style("right", "75px");
+  mapID.size(mapOriginalWidth, mapOriginalHeight);
+  map.invalidateSize();
+  map.setView([0, 0], 1);
+
+  for (let item of setMarkers) {
+    item.remove();
   }
 }
 
 
 //runs after the player has guessed
 function afterGuess() {
+  covering = false;
+
+  //determine location for calculations
+  if (!inParty) {
+    calcLocation = randomlocation
+  }
+  else {
+    if (setTypeDropDown.value() === "normal") {
+      calcLocation = shared.normalMap
+    }
+  }
+
+  //find meters
+  
+  let point1 = L.latLng(calcLocation.lat, calcLocation.lng);
+  let point2 = L.latLng(clickedPoint.lat, clickedPoint.lng);
+
+  totalDistance = point1.distanceTo(point2);
+
   endScreen = true;
 
   //exponential points
