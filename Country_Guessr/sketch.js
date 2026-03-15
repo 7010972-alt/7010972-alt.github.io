@@ -96,7 +96,7 @@ let answerIcon = L.icon({
 });
 
 //game variables
-let timeAfterFirstGuess = 3;
+let timeAfterFirstGuess = 16;
 let calcLocation;
 let mapShowing = true;
 let winStreak = 0;
