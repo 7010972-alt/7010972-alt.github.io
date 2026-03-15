@@ -7,8 +7,6 @@
 //I used leaflet maps which somehow had everything I needed like getting corrdinates from where I clicked, and adding markers and many more
 //the Leaflet website was incredibly easy to follow aswell https://leafletjs.com/examples.html
 
-//setting still does not work in parties
-
 
 //set up p5 party
 let shared;
@@ -98,7 +96,7 @@ let answerIcon = L.icon({
 });
 
 //game variables
-let timeAfterFirstGuess = 5;
+let timeAfterFirstGuess = 3;
 let calcLocation;
 let mapShowing = true;
 let winStreak = 0;
@@ -202,6 +200,10 @@ let lockedIn = false;
 
 let wasNormalGuessed = false;
 let maxPartyRoundNumber = 5;
+
+let displayMarkers = []
+let currentMuiltIcon = coalP
+let preChangeClickedLength;
 
 function setup() {
   noCanvas();
@@ -405,6 +407,63 @@ function draw() {
   forceConfirm();
   forceLeaveEnd();
   checkPartyEnded();
+  partyTimeChange();
+  displayOthers();
+}
+
+//display the other players markers in the same party
+function displayOthers() {
+  if (inParty) {
+    if (setTypeDropDown.value() === "normal" && shared.normalround === "over" && preChangeClickedLength !== shared.normalClickedPositions.length) {
+      preChangeClickedLength = shared.normalClickedPositions.length;
+      for (let info of shared.normalClickedPositions) {
+
+        //calculate distance so that line color can be changed
+        let point1 = L.latLng(shared.normalMap.lat, shared.normalMap.lng);
+        let point2 = L.latLng(info.lat, info.lng);
+
+        let distance = point1.distanceTo(point2);
+
+        let lineCol = "black";
+        if (distance <= ultraDis) {
+          lineCol = "orange";
+        }
+        else if (distance <= superDis) {
+          lineCol = "purple";
+        }
+        else if (distance <= correctDis) {
+          lineCol = "green";
+        }
+        else if (distance >= wrongDis) {
+          lineCol = "red";
+        }
+
+        currentMuiltIcon = info.Pin
+
+        //used to show the marks of other players
+        muiltIcon = L.icon({
+          iconUrl: currentMuiltIcon,
+
+          iconSize: [40, 40],
+          iconAnchor: [20, 37],
+        });
+
+        let muiltMarker = L.marker([info.lat, info.lng], {icon: muiltIcon}).addTo(map);
+        let muiltAnswerLine = L.polyline(
+          [[info.lat, info.lng], [shared.normalMap.lat, shared.normalMap.lng]],
+          {
+            color: lineCol,
+            opacity: 0.7
+          }
+        ).addTo(map);
+
+        displayMarkers.push(muiltMarker)
+        displayMarkers.push(muiltAnswerLine)
+
+      }
+      console.log(preChangeClickedLength)
+    }
+  }
 }
 
 function checkPartyEnded() {
@@ -414,9 +473,6 @@ function checkPartyEnded() {
     lockedIn = false;
     endScreen = false;
     shared.normalClickedPositions = []
-
-    // if (answermarker) answermarker.remove();
-    // if (answerLine) answerLine.remove();
 
     //reset map
     mapID.style("bottom", "20px");
@@ -432,11 +488,22 @@ function checkPartyEnded() {
   }
 }
 
+// if someone has guessed then change everyone's time
+function partyTimeChange() {
+  if (inParty) {
+    if (setTypeDropDown.value() === "normal" && shared.normalGuessed) {
+      if (timeLeft > timeAfterFirstGuess) {
+        timeLeft = timeAfterFirstGuess;
+        time = millis()
+      }
+    }
+  }
+}
+
 //force everyone in party to leave endscreen
 function forceLeaveEnd() {
   if (inParty && endScreen) {
     if (setTypeDropDown.value() === "normal" && shared.normalround === "ongoing") {
-      console.log("forceleaveend")
       confirmed()
     }
   }
@@ -444,7 +511,6 @@ function forceLeaveEnd() {
 
 function forceConfirm() {
   if (setTypeDropDown.value() === "normal" && shared.normalConfirm === true && inParty && !endScreen) {
-    console.log("forceconfirm")
     confirmed()
   }
 }
@@ -466,7 +532,7 @@ function joinParty() {
       setPartyMap();
       if (shared.normalPartyEnded) {
         shared.normalPartyEnded = false;
-        shared.normalTimeLeft = 0;
+        timeLeft = 0;
       }
       partyChange(shared.normalMap, "normal");
     }
@@ -498,6 +564,8 @@ function partyChange(place, type) {
   if (type === "normal") {
     timeLeft = shared.normalTimeMax
   }
+
+  //shared.normalClickedPositions = []
 }
 
 function lockStartJoin() {
@@ -616,13 +684,14 @@ function rankModify() {
   );
 
 
-
+  //used for the skin of you rown icon
   markerIcon = L.icon({
     iconUrl: currentPin,
 
     iconSize: [40, 40],
     iconAnchor: [20, 37],
   });
+
   marker.setIcon(markerIcon);
 
   rankIcon.attribute("src", currentShield);
@@ -781,9 +850,9 @@ function timeDrain() {
       //be forced to confirm the guess and set the state
       if (inParty) {
         if (shared.normalround === "ongoing") {
-          shared.normalround === "over"
+          shared.normalround = "over"
         }
-        console.log("timedrain")
+
         confirmed()
       }
 
@@ -852,13 +921,21 @@ function confirmed() {
         if (setTypeDropDown.value() === "normal") {
           //if in normal party and round is ongoing
           if (shared.normalround === "ongoing" && timeLeft > 0) {
-            console.log("set")
+
+            if (!lockedIn) {
+              shared.normalClickedPositions.push({
+                lat: clickedPoint.lat,
+                lng: clickedPoint.lng,
+                Pin: currentPin,
+              })
+            }
+
+
             lockedIn = true;
 
             //if someone has guessed then trigger the time limit
             if (shared.normalGuessed === false && timeLeft > timeAfterFirstGuess) {
               shared.normalGuessed = true;
-              timeLeft = timeAfterFirstGuess
 
               //reset some variables
               shared.normalMapChanged = false;
@@ -868,26 +945,42 @@ function confirmed() {
 
           //going into the end of a party round
           else {
-            shared.normalround = "over"
             //add the clicked location to the liist holding all the players clicked locations
-            shared.normalClickedPositions.push({
-              lat: clickedPoint.lat,
-              lng: clickedPoint.lng,
-              Pin: currentPin,
-            })
-            console.log("ended")
+            if (!lockedIn) {
+              shared.normalClickedPositions.push({
+                lat: clickedPoint.lat,
+                lng: clickedPoint.lng,
+                Pin: currentPin,
+              })
+            }
+
+            lockedIn = true
+            shared.normalround = "over"
+
             afterGuess()
           }
         }
       }
       //escape the end screen when inside of a party
       else {
+        for (let item of displayMarkers) {
+          item.remove()
+        }
+        preChangeClickedLength = 0;
+        shared.normalClickedPositions = [];
+        displayMarkers = [];
+        
+        //variables that reset from only 1 player
+        if (!shared.normalMapChanged) {
+          shared.normalMapChanged = true;
+          shared.normalMap = random(currentLocations);
+          shared.normalRoundNumber += 1;
+        }
 
         if (shared.normalround === "over") {
           shared.normalround = "ongoing";
         }
 
-        console.log("force leave")
         //make others leave end screen
         shared.normalEndScreenLeave = true;
 
@@ -901,11 +994,6 @@ function confirmed() {
         shared.normalround = "ongoing";
         shared.forceConfirm = false;
         lockedIn = false;
-        if (!shared.normalMapChanged) {
-          shared.normalMap = random(currentLocations);
-          shared.normalRoundNumber += 1;
-          shared.normalMapChanged = true;
-        }
         partyChange(shared.normalMap, "normal");
 
         leaveMap();
