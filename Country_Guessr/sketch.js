@@ -139,6 +139,13 @@ let newlng;
 let bannerHeight = 70;
 let banner;
 let bannerText;
+let currentBannerColor = "rgb(177, 255, 151)"
+
+let bannerGreen = "rgb(112, 255, 64)"
+let bannerRed = "rgb(255, 88, 88)"
+let bannerPurple = "rgb(192, 83, 255)"
+let bannerOrange = "rgb(250, 221, 91)"
+
 
 let textsize;
 let textSizeScreenDividor = 75;
@@ -426,6 +433,19 @@ function draw() {
   togglePartyButton();
   joinParty();
   lockMap();
+  bannerColChange();
+}
+
+function bannerColChange() {
+  if (timeLeft > -1 && timeLeft < timeAfterFirstGuess && !endScreen) {
+    banner.style("background", "rgb(206, 29, 29)");
+  }
+  else if (endScreen) {
+    banner.style("background", currentBannerColor);
+  }
+  else {
+    banner.style("background", "rgb(154, 255, 120)");
+  }
 }
 
 //make sure that the map is open during parties
@@ -1181,15 +1201,19 @@ function afterGuess() {
       let lineCol = "black";
       if (totalDistance <= ultraDis) {
         lineCol = "orange";
+        currentBannerColor = bannerOrange
       }
       else if (totalDistance <= superDis) {
         lineCol = "purple";
+        currentBannerColor = bannerPurple
       }
       else if (totalDistance <= correctDis) {
         lineCol = "green";
+        currentBannerColor = bannerGreen
       }
       else if (totalDistance >= wrongDis) {
         lineCol = "red";
+        currentBannerColor = bannerRed
       }
 
       setLineColors.push(lineCol);
@@ -1253,15 +1277,19 @@ function afterGuess() {
   let lineCol = "black";
   if (totalDistance <= ultraDis) {
     lineCol = "orange";
+    currentBannerColor = bannerOrange
   }
   else if (totalDistance <= superDis) {
     lineCol = "purple";
+    currentBannerColor = bannerPurple
   }
   else if (totalDistance <= correctDis) {
     lineCol = "green";
+    currentBannerColor = bannerGreen
   }
   else if (totalDistance >= wrongDis) {
     lineCol = "red";
+    currentBannerColor = bannerRed
   }
 
   //show a line from the clicked point to the answer
