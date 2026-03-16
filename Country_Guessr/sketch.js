@@ -31,6 +31,7 @@ function preload() {
     normalRoundNumber: 0,
     normalPartyEnded: false,
     normalClickedPositions: [],
+    normalStarted: false,
 
     blitzPlayers: 0,
 
@@ -91,8 +92,8 @@ let marker;
 let answerIcon = L.icon({
   iconUrl: 'green_marker.png',
 
-  iconSize: [30, 40], // size of the icon
-  iconAnchor: [15, 39], // point of the icon which will correspond to marker's location
+  iconSize: [30, 40], //size of the icon
+  iconAnchor: [15, 39], //point of the icon which will correspond to marker's location
 });
 
 //game variables
@@ -159,6 +160,7 @@ let startSetButton;
 let setTypeDropDown;
 let showRankButton;
 let joinButton;
+let startPartyButton;
 
 //set variables
 let blitzTime = 10;
@@ -204,6 +206,8 @@ let maxPartyRoundNumber = 5;
 let displayMarkers = []
 let currentMuiltIcon = coalP
 let preChangeClickedLength;
+let waitingLobby = false;
+let lobbyJoined = false;
 
 function setup() {
   noCanvas();
@@ -344,7 +348,15 @@ function setup() {
   joinButton.style("position", "absolute");
   joinButton.style("z-index", "21");
 
-  joinButton.mousePressed(joinParty);
+  joinButton.mousePressed(joinWait);
+
+  //button to start a party
+  startPartyButton = createButton("Start Party");
+  startPartyButton.size(80, 30);
+  startPartyButton.style("position", "absolute");
+  startPartyButton.style("z-index", "-1");
+
+  startPartyButton.mousePressed(joiningCheck);
 
   //dropdown menu to select set type
   setTypeDropDown = createSelect();
@@ -409,6 +421,29 @@ function draw() {
   checkPartyEnded();
   partyTimeChange();
   displayOthers();
+  togglePartyButton();
+  joinParty();
+  lockMap();
+}
+
+//make sure that the map is open during parties
+function lockMap() {
+  if (lockedIn) {
+    hideMapButton.attribute("disabled", "");
+  }
+  else {
+    hideMapButton.removeAttribute("disabled");
+  }
+}
+
+//show and hide the start party button
+function togglePartyButton() {
+  if (waitingLobby) {
+    startPartyButton.style("z-index", "25")
+  }
+  else {
+    startPartyButton.style("z-index", "-1")
+  }
 }
 
 //display the other players markers in the same party
@@ -461,18 +496,28 @@ function displayOthers() {
         displayMarkers.push(muiltAnswerLine)
 
       }
-      console.log(preChangeClickedLength)
     }
   }
 }
 
 function checkPartyEnded() {
-  if (inParty && currentParty === "normal" && shared.normalPartyEnded) {
-    inParty = false;
-    currentParty = "";
-    lockedIn = false;
-    endScreen = false;
-    shared.normalClickedPositions = []
+  if (inParty && currentParty === "normal" && shared.normalPartyEnded && !waitingLobby) {
+
+  //local resets
+  currentParty = "none"
+  inParty = false;
+  waitingLobby = false;
+  lobbyJoined = false;
+  lockedIn = false;
+  endScreen = false;
+  covering = false;
+  timeLeft = 0;
+  preChangeClickedLength = 0;
+
+  for (let item of displayMarkers) {
+    item.remove();
+  }
+  displayMarkers = [];
 
     //reset map
     mapID.style("bottom", "20px");
@@ -483,6 +528,7 @@ function checkPartyEnded() {
 
     marker.setLatLng([0, 0]);
     clickedPoint = { lat: 0, lng: 0 };
+
 
     mapChange()
   }
@@ -522,19 +568,61 @@ function setPartyMap() {
   }
 }
 
-
-function joinParty() {
+function joinWait() {
   if (!inParty) {
     inParty = true;
+    waitingLobby = true;
+    covering = true;
     if (setTypeDropDown.value() === "normal") {
+      shared.normalPartyEnded = true;
       currentParty = "normal";
       shared.normalPlayers += 1;
+    }
+    else if (setTypeDropDown.value() === "blitz") {
+      currentParty = "blitz"
+      shared.blitzPlayers += 1
+    }
+    else if (setTypeDropDown.value() === "NMPZ") {
+      currentParty = "NMPZ"
+      shared.NMPZPlayers += 1
+    }
+    else if (setTypeDropDown.value() === "blink") {
+      currentParty = "blink"
+      shared.blinkPlayers += 1
+    }
+  }
+}
+
+function joiningCheck() {
+  if (setTypeDropDown.value() === "normal") {
+    shared.normalStarted = true;
+  }
+  else if (setTypeDropDown.value() === "blitz") {
+
+  }
+  else if (setTypeDropDown.value() === "NMPZ") {
+
+  }
+  else if (setTypeDropDown.value() === "blink") {
+
+  }
+}
+
+function joinParty() {
+  if (!lobbyJoined) {
+    if (setTypeDropDown.value() === "normal" && shared.normalStarted) {
+      
       setPartyMap();
       if (shared.normalPartyEnded) {
         shared.normalPartyEnded = false;
         timeLeft = 0;
       }
       partyChange(shared.normalMap, "normal");
+
+      //goes into all of them
+      lobbyJoined = true;
+      waitingLobby = false;
+      covering = false;
     }
     else if (setTypeDropDown.value() === "blitz") {
       currentParty = "blitz"
@@ -779,6 +867,10 @@ function fixsizes() {
 
   allShieldsDisplay.position(windowWidth / 1.95, showRankPosY + windowHeight / 100);
   allShieldsDisplay.size(windowWidth / 4, windowWidth / 6);
+
+  //always have start party button in the middle of the screen
+  startPartyButton.position(windowWidth / 2, windowHeight / 2);
+   
 }
 
 //shows the info for rank up
@@ -836,7 +928,7 @@ function bannerTextChange() {
 }
 
 function timeDrain() {
-  if (!endScreen) {
+  if (!endScreen && !waitingLobby) {
     if ((setActive || inParty) && timeLeft >= 0 && Date.now() - time > 1000) {
       time = Date.now();
       timeLeft -= 1;
@@ -852,7 +944,6 @@ function timeDrain() {
         if (shared.normalround === "ongoing") {
           shared.normalround = "over"
         }
-
         confirmed()
       }
 
@@ -913,7 +1004,7 @@ function setupMap() {
 }
   
 function confirmed() {
-  if (mapShowing) {
+  if (mapShowing && !waitingLobby) {
     //if you are in a party
     if (inParty) {
       if (!endScreen) {
@@ -972,9 +1063,11 @@ function confirmed() {
         
         //variables that reset from only 1 player
         if (!shared.normalMapChanged) {
-          shared.normalMapChanged = true;
-          shared.normalMap = random(currentLocations);
-          shared.normalRoundNumber += 1;
+          if (currentParty === "normal") {
+            shared.normalMapChanged = true;
+            shared.normalMap = random(currentLocations);
+            shared.normalRoundNumber += 1;
+          }
         }
 
         if (shared.normalround === "over") {
@@ -985,9 +1078,10 @@ function confirmed() {
         shared.normalEndScreenLeave = true;
 
         //reset all values and end the party round if it was the last round
-        if (shared.normalRoundNumber >= maxPartyRoundNumber) {
-          shared.normalPartyEnded = true;
+        if (shared.normalRoundNumber > maxPartyRoundNumber) {
           shared.normalRoundNumber = 1;
+          shared.normalStarted = false;
+          shared.normalPartyEnded = true;
         }
         shared.normalGuessed = false;
         shared.normalConfirm = false;
