@@ -2,8 +2,6 @@
 //Bertin Li
 //March 5/26
 
-
-
 //Making maps on https://map-degen.vercel.app/
 //Converting them to coords at https://education.openguessr.com/tools/map-converter
 //I used leaflet maps which somehow had everything I needed like getting corrdinates from where I clicked, and adding markers and many more
@@ -99,7 +97,8 @@ let answerIcon = L.icon({
 });
 
 //game variables
-let timeAfterFirstGuess = 11;
+let allowGuess = true;
+let timeAfterFirstGuess = 16;
 let calcLocation;
 let mapShowing = true;
 let winStreak = 0;
@@ -436,8 +435,10 @@ function draw() {
   bannerColChange();
 }
 
+//changes the color of the banner based on the conditions
+//wil be red when time is running low and matches color of the answer line
 function bannerColChange() {
-  if (timeLeft > -1 && timeLeft < timeAfterFirstGuess && !endScreen) {
+  if (timeLeft > 0 && timeLeft <= timeAfterFirstGuess && !endScreen) {
     banner.style("background", "rgb(206, 29, 29)");
   }
   else if (endScreen) {
@@ -522,24 +523,25 @@ function displayOthers() {
   }
 }
 
+//will kick everyone out of a party when all rounds are up and reset local varibales
 function checkPartyEnded() {
   if (inParty && currentParty === "normal" && shared.normalPartyEnded && !waitingLobby) {
 
-  //local resets
-  currentParty = "none"
-  inParty = false;
-  waitingLobby = false;
-  lobbyJoined = false;
-  lockedIn = false;
-  endScreen = false;
-  covering = false;
-  timeLeft = 0;
-  preChangeClickedLength = 0;
+    //local resets
+    currentParty = "none";
+    inParty = false;
+    waitingLobby = false;
+    lobbyJoined = false;
+    lockedIn = false;
+    endScreen = false;
+    covering = false;
+    timeLeft = 0;
+    preChangeClickedLength = 0;
 
-  for (let item of displayMarkers) {
-    item.remove();
-  }
-  displayMarkers = [];
+    for (let item of displayMarkers) {
+      item.remove();
+    }
+    displayMarkers = [];
 
     //reset map
     mapID.style("bottom", "20px");
@@ -577,12 +579,14 @@ function forceLeaveEnd() {
   }
 }
 
+//forces others in the party to confirm
 function forceConfirm() {
   if (setTypeDropDown.value() === "normal" && shared.normalConfirm === true && inParty && !endScreen) {
     confirmed()
   }
 }
 
+//at the start will choose a map for each party
 function setPartyMap() {
   if (shared.normalMap === "none") {
     shared.normalMap = random(currentLocations);
@@ -590,6 +594,8 @@ function setPartyMap() {
   }
 }
 
+//this runs when players first press join party
+//will send them to the waiting lobby of the chosen party
 function joinWait() {
   if (!inParty) {
     inParty = true;
@@ -615,6 +621,7 @@ function joinWait() {
   }
 }
 
+//runs when the start party button is pressed and will lead to all players in the waiting lobby to join
 function joiningCheck() {
   if (setTypeDropDown.value() === "normal") {
     shared.normalStarted = true;
@@ -630,6 +637,7 @@ function joiningCheck() {
   }
 }
 
+//checks if the conditions are met and places the player into a party
 function joinParty() {
   if (!lobbyJoined) {
     if (setTypeDropDown.value() === "normal" && shared.normalStarted) {
@@ -661,6 +669,7 @@ function joinParty() {
   }
 }
 
+//generates a new place for the party street view
 function partyChange(place, type) {
   newlat = place.lat;
   newlng = place.lng;
@@ -672,12 +681,13 @@ function partyChange(place, type) {
 
   //add the basic time if it hasn't already been added
   if (type === "normal") {
-    timeLeft = shared.normalTimeMax
+    timeLeft = shared.normalTimeMax;
   }
 
   //shared.normalClickedPositions = []
 }
 
+//I wanted the player to not be able to join parties or sets or change the dropdown value when they are in either one
 function lockStartJoin() {
   if (inParty || setActive || endScreen) {
     joinButton.attribute("disabled", "");
@@ -691,6 +701,8 @@ function lockStartJoin() {
   }
 }
 
+
+//this changes the ranks based on how the players best scores are
 function rankModify() {
   if (bestSet > 22500 && bestBlitz > 21500 && bestNMPZ > 21000 && bestBlink > 20000) {
     rank = "inter";
@@ -807,6 +819,7 @@ function rankModify() {
   rankIcon.attribute("src", currentShield);
 }
 
+//this is used to hide and how the cover
 function covertoggle() {
   if (covering) {
     cover.style("z-index", "1");
@@ -816,6 +829,9 @@ function covertoggle() {
   }
 }
 
+
+//runs a countdown then uncovers for visible time and then covers again
+//for the blink gamemode
 function blinkToggle() {
   if (blink) {
     if (Date.now() - blinkTime > 100) {
@@ -836,10 +852,13 @@ function blinkToggle() {
   }
 }
 
+//always make the street view the full size of the screen
 function windowResized() {
   street.size(windowWidth, windowHeight);
 }
 
+
+//converts each location into a lat and lng and a country although my game developed to not even use the country part
 function addmap(map, country) {
   for (let location of map) {
     currentLocations.push(
@@ -1018,6 +1037,7 @@ function nextmap() {
   }
 }
 
+//put all the maps from the locations script into a table
 function setupMap() {
   currentLocations = [];
   for (let country of allCountries) {
@@ -1035,12 +1055,13 @@ function confirmed() {
           //if in normal party and round is ongoing
           if (shared.normalround === "ongoing" && timeLeft > 0) {
 
+            //make the marks show for other players when you put in a guess
             if (!lockedIn) {
               shared.normalClickedPositions.push({
                 lat: clickedPoint.lat,
                 lng: clickedPoint.lng,
                 Pin: currentPin,
-              })
+              });
             }
 
 
@@ -1105,6 +1126,8 @@ function confirmed() {
           shared.normalStarted = false;
           shared.normalPartyEnded = true;
         }
+
+        //reset values
         shared.normalGuessed = false;
         shared.normalConfirm = false;
         shared.normalround = "ongoing";
@@ -1122,15 +1145,17 @@ function confirmed() {
       if (!endScreen) {
         afterGuess();
       }
-      else if (endScreen === true) {
+      else if (endScreen === true && allowGuess) {
         mapChange();
-        leaveMap()
+        leaveMap();
       }
     }
   }
 }
 
+//makes you leave the endscreen and removes markers also reverts map back
 function leaveMap() {
+
   endScreen = false;
   answermarker.remove();
   answerLine.remove();
@@ -1152,6 +1177,15 @@ function leaveMap() {
 
 //runs after the player has guessed
 function afterGuess() {
+  currentBannerColor = "rgb(177, 255, 151)";
+
+  //make so that they cannot spam rounds
+  allowGuess = false;
+  setTimeout(() => {
+    allowGuess = true;
+  }, 1000);
+
+
   covering = false;
 
   //determine location for calculations
@@ -1201,19 +1235,19 @@ function afterGuess() {
       let lineCol = "black";
       if (totalDistance <= ultraDis) {
         lineCol = "orange";
-        currentBannerColor = bannerOrange
+        currentBannerColor = bannerOrange;
       }
       else if (totalDistance <= superDis) {
         lineCol = "purple";
-        currentBannerColor = bannerPurple
+        currentBannerColor = bannerPurple;
       }
       else if (totalDistance <= correctDis) {
         lineCol = "green";
-        currentBannerColor = bannerGreen
+        currentBannerColor = bannerGreen;
       }
       else if (totalDistance >= wrongDis) {
         lineCol = "red";
-        currentBannerColor = bannerRed
+        currentBannerColor = bannerRed;
       }
 
       setLineColors.push(lineCol);
