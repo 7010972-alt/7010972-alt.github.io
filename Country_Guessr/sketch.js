@@ -2,6 +2,8 @@
 //Bertin Li
 //March 5/26
 
+
+
 //Making maps on https://map-degen.vercel.app/
 //Converting them to coords at https://education.openguessr.com/tools/map-converter
 //I used leaflet maps which somehow had everything I needed like getting corrdinates from where I clicked, and adding markers and many more
@@ -97,7 +99,7 @@ let answerIcon = L.icon({
 });
 
 //game variables
-let timeAfterFirstGuess = 16;
+let timeAfterFirstGuess = 11;
 let calcLocation;
 let mapShowing = true;
 let winStreak = 0;
