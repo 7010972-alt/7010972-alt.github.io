@@ -1,4 +1,6 @@
-//Arrays and Object Notation Assignment
+//Grid Assignment
+//I am adding onto my arrays project so you can find most of my grid assignment work near the bottom of my code
+
 //Bertin Li
 //March 5/26
 
@@ -6,6 +8,7 @@
 //Converting them to coords at https://education.openguessr.com/tools/map-converter
 //I used leaflet maps which somehow had everything I needed like getting corrdinates from where I clicked, and adding markers and many more
 //the Leaflet website was incredibly easy to follow aswell https://leafletjs.com/examples.html
+
 
 
 //set up p5 party
@@ -45,6 +48,12 @@ function preload() {
 let street;
 let map;
 let mapID;
+
+//let stats
+let totalGuesses = 0;
+let totalGreen = 0;
+let totalPurple = 0;
+let totalGold = 0;
 
 //ranks and images
 let Rank = "coal";
@@ -169,6 +178,8 @@ let setTypeDropDown;
 let showRankButton;
 let joinButton;
 let startPartyButton;
+let showGridButton;
+
 
 //set variables
 let blitzTime = 10;
@@ -202,6 +213,13 @@ let decreaseAmount = 0.1;
 //show next rank info
 let showingRankInfo = false;
 let showRankScreen;
+
+//show grid screen
+let showGrid = false;
+let showGridScreen;
+
+let griddedMap;
+let gridMapID;
 
 //p5 party local variables
 let inParty = false;
@@ -251,7 +269,7 @@ function setup() {
     attribution: "&copy; OpenStreetMap contributors"
   }).addTo(map);
 
-  mapID  = select("#map");
+  mapID = select("#map");
 
   //marker placement
   marker = L.marker([0, 0]).addTo(map);
@@ -271,10 +289,27 @@ function setup() {
     }
   }
 
+  //gridded map
+  griddedMap = L.map("griddedmap").setView([0, 0], 1);
+
+  //pasted from leaflet
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    minZoom: 1,
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(griddedMap);
+
+  //set points when normal map is clicked
   clickedPoint = {
     lat: 0,
     lng: 0,
   };
+
+  gridMapID = select("#griddedmap");
+
+  gridMapID.hide()
+
+  addGrid();
 
   map.on('click', onMapClick);
 
@@ -282,6 +317,8 @@ function setup() {
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor;
 
   //load info
+
+  //load best sets
   if (localStorage.getItem("BestSet") !== null) {
     bestSet = Number(localStorage.getItem("BestSet"));
   }
@@ -293,6 +330,20 @@ function setup() {
   }
   if (localStorage.getItem("BestBlink") !== null) {
     bestBlink = Number(localStorage.getItem("BestBlink"));
+  }
+
+  //load saved stats
+  if (localStorage.getItem("totalguesses") !== null) {
+    totalGuesses = Number(localStorage.getItem("totalguesses"));
+  }
+  if (localStorage.getItem("totalgreen") !== null) {
+    totalGreen = Number(localStorage.getItem("totalgreen"));
+  }
+  if (localStorage.getItem("totalpurple") !== null) {
+    totalPurple = Number(localStorage.getItem("totalpurple"));
+  }
+  if (localStorage.getItem("totalgold") !== null) {
+    totalGold = Number(localStorage.getItem("totalgold"));
   }
 
   //default text
@@ -383,6 +434,14 @@ function setup() {
 
   showRankButton.mousePressed(showRank);
 
+  //button to start a set
+  showGridButton = createButton("Grid Map");
+  showGridButton.size(shieldSize, 20);
+  showGridButton.style("position", "absolute");
+  showGridButton.style("z-index", "21");
+
+  showGridButton.mousePressed(displayGrid);
+
 
   //create cover
   cover = createDiv();
@@ -411,6 +470,20 @@ function setup() {
   showRankScreen.style("border-radius", "12px");
   showRankScreen.style("border", "4px solid black");
 
+  //create grid info
+  showGridScreen = createDiv();
+  showGridScreen.style("background", "rgb(154, 255, 120)");
+  showGridScreen.style("z-index", "-1");
+  showGridScreen.style("opacity", "0");
+
+  showGridScreen.style("justify-content", "left");
+  showGridScreen.style("align-items", "center");
+  showGridScreen.style("font-weight", "bold");
+
+  showGridScreen.style("color", "black");
+  showGridScreen.style("border-radius", "12px");
+  showGridScreen.style("border", "4px solid black");
+
   changeMapSize();
 }
 
@@ -433,6 +506,68 @@ function draw() {
   joinParty();
   lockMap();
   bannerColChange();
+  gridTextChange();
+}
+
+function gridTextChange() {
+//update the text of each grid and player total stats
+if (currentgrid && currentgrid !== "none") {
+
+  let displayDis = "none"
+
+  //change the distance to text form
+  if (currentgrid.averageDistance >= 1000) {
+    displayDis = (round(currentgrid.averageDistance / 1000)).toLocaleString() + "km"
+  }
+  else if (currentgrid.answerAmount === 0) {
+    displayDis = "none"
+  }
+  else {
+    displayDis = round(currentgrid.averageDistance).toLocaleString() + "m"
+  }
+
+  showGridScreen.html(
+    "Total Stats" + "<br>" +
+    "Guesses: " + totalGuesses + "<br>" +
+    "Rank: " + rank + "<br>" +
+    "1000km - 250km: " + totalGreen + "<br>" +
+    "250km - 50km: " + totalPurple + "<br>" +
+    "50km - 0km: " + totalGold + "<br>" +
+
+    " " + "<br>" +
+
+    "Grid Stats" + "<br>" +
+    "Been Answer: " + currentgrid.answerAmount + "<br>" +
+    "Correct: " + currentgrid.correctAmount + "<br>" +
+    "Missed: " + currentgrid.wrongAmount + "<br>" +
+
+    "Guessed: " + currentgrid.guessedAmount + "<br>" +
+    "Avg Distance: " + displayDis + "<br>" +
+    "Correct %: " + currentgrid.correctPercent
+  );
+}
+else {
+
+  showGridScreen.html(
+    "Total Stats" + "<br>" +
+    "Guesses: " + totalGuesses + "<br>" +
+    "Rank: " + rank + "<br>" +
+    "1000km - 250km: " + totalGreen + "<br>" +
+    "250km - 50km: " + totalPurple + "<br>" +
+    "50km - 0km: " + totalGold + "<br>" +
+
+    " " + "<br>" +
+
+    "Grid Stats" + "<br>" +
+    "Been Answer: " + "none" + "<br>" +
+    "Correct: " + "none" + "<br>" +
+    "Incorrect: " + "none" + "<br>" +
+
+    "Guessed: " + "none" + "<br>" +
+    "Avg Distance: " + "none" + "<br>" +
+    "Correct %: " + "none"
+  );
+}
 }
 
 //changes the color of the banner based on the conditions
@@ -705,7 +840,7 @@ function lockStartJoin() {
 //this changes the ranks based on how the players best scores are
 function rankModify() {
   if (bestSet > 22500 && bestBlitz > 21500 && bestNMPZ > 21000 && bestBlink > 20000) {
-    rank = "inter";
+    rank = "Inter-Dimensional";
     currentPin = interP;
     currentShield = interS;
 
@@ -715,7 +850,7 @@ function rankModify() {
     nextBestBlink = "25000";
   }
   else if (bestSet > 20000 && bestBlitz > 19000 && bestNMPZ > 18000 && bestBlink > 17000) {
-    rank = "slime";
+    rank = "Slime";
     currentPin = slimeP;
     currentShield = slimeS;
 
@@ -725,7 +860,7 @@ function rankModify() {
     nextBestBlink = "20000";
   }
   else if (bestSet > 17500 && bestBlitz > 15000 && bestNMPZ > 12500) {
-    rank = "obsidian";
+    rank = "Obsidian";
     currentPin = obsidianP;
     currentShield = obsidianS;
 
@@ -735,7 +870,7 @@ function rankModify() {
     nextBestBlink = "17000";
   }
   else if (bestSet > 15000 && bestBlitz > 10000 && bestNMPZ > 7500) {
-    rank = "diamond";
+    rank = "Diamond";
     currentPin = diamondP;
     currentShield = diamondS;
 
@@ -745,7 +880,7 @@ function rankModify() {
     nextBestBlink = "0";
   }
   else if (bestSet > 10000 && bestBlitz > 5000) {
-    rank = "gold";
+    rank = "Gold";
     currentPin = goldP;
     currentShield = goldS;
 
@@ -755,7 +890,7 @@ function rankModify() {
     nextBestBlink = "0";
   }
   else if (bestSet > 5000) {
-    rank = "silver";
+    rank = "Silver";
     currentPin = silverP;
     currentShield = silverS;
 
@@ -765,7 +900,7 @@ function rankModify() {
     nextBestBlink = "0";
   }
   else if (bestSet > 2500) {
-    rank = "bronze";
+    rank = "Bronze";
     currentPin = bronzeP;
     currentShield = bronzeS;
 
@@ -773,6 +908,9 @@ function rankModify() {
     nextBestBlitz = "0";
     nextBestNMPZ = "0";
     nextBestBlink = "0";
+  }
+  else {
+    rank = "Coal"
   }
 
   //change the color of each line depending on if they met the req
@@ -900,6 +1038,21 @@ function fixsizes() {
   showRankScreen.style("padding-left", windowWidth / 40 + "px");
   showRankScreen.style("padding-top", windowWidth / 20 + "px");
 
+  showGridButton.position(10, bannerHeight + shieldSize + 30);
+  showGridScreen.size(windowWidth / 2, windowWidth / 4);
+  showGridScreen.position(windowWidth / 4, windowHeight / 2 - windowWidth / 8);
+  showGridScreen.style("font-size", windowWidth / 69 + "px");
+  showGridScreen.style("padding-left", windowWidth / 40 + "px");
+  showGridScreen.style("padding-top", windowWidth / 60 + "px");
+
+  let gridMapH = windowWidth / 4.1
+  let gridmapW = windowWidth / 3.2
+
+  gridMapID.position(windowWidth / 1.31 - gridmapW, windowHeight / 2 - windowWidth / 9)
+  gridMapID.size(gridmapW, gridMapH)
+
+  griddedMap.invalidateSize()
+
   let showRankPosY = windowHeight / 2 - windowWidth / 8;
 
   //change the sizes of the rank displays
@@ -912,6 +1065,22 @@ function fixsizes() {
   //always have start party button in the middle of the screen
   startPartyButton.position(windowWidth / 2, windowHeight / 2);
    
+}
+
+//shows the grids
+function displayGrid() {
+  if (!showGrid) {
+    showGridScreen.style("z-index", "20");
+    showGridScreen.style("opacity", "1");
+    gridMapID.show()
+    showGrid = true;
+  }
+  else {
+    showGridScreen.style("z-index", "-1");
+    showGridScreen.style("opacity", "0");
+    gridMapID.hide()
+    showGrid = false;
+  }
 }
 
 //shows the info for rank up
@@ -1177,6 +1346,7 @@ function leaveMap() {
 
 //runs after the player has guessed
 function afterGuess() {
+
   currentBannerColor = "rgb(177, 255, 151)";
 
   //make so that they cannot spam rounds
@@ -1198,12 +1368,31 @@ function afterGuess() {
     }
   }
 
+
   //find meters
   
   let point1 = L.latLng(calcLocation.lat, calcLocation.lng);
   let point2 = L.latLng(clickedPoint.lat, clickedPoint.lng);
 
   totalDistance = point1.distanceTo(point2);
+
+  //add stats
+  totalGuesses += 1
+
+  //determine which color stat to add
+    if (totalDistance <= ultraDis) {
+      totalGold += 1
+    }
+    else if (totalDistance <= superDis) {
+      totalPurple += 1
+    }
+    else if (totalDistance <= correctDis) {
+      totalGreen += 1
+    }
+
+
+  //add grid stats
+  addGridStats(clickedPoint, calcLocation, totalDistance)
 
   endScreen = true;
 
@@ -1405,112 +1594,153 @@ function mapChange() {
   }
 }
 
+
+//storage
 function saveProgress() {
+  //set bests
   localStorage.setItem("BestSet", bestSet);
   localStorage.setItem("BestBlitz", bestBlitz);
   localStorage.setItem("BestNMPZ", bestNMPZ);
   localStorage.setItem("BestBlink", bestBlink);
+
+  //stats
+  localStorage.setItem("totalguesses", totalGuesses);
+  localStorage.setItem("totalgreen", totalGreen);
+  localStorage.setItem("totalpurple", totalPurple);
+  localStorage.setItem("totalgold", totalGold);
+  localStorage.setItem("griddedmap", JSON.stringify(mapGrid));
 }
 
-// all countries that have street view
-// let countries = [
-//   "None",
-//   "Albania",
-//   "Andorra",
-//   "Argentina",
-//   "Australia",
-//   "Austria",
-//   "Bangladesh",
-//   "Belgium",
-//   "Bhutan",
-//   "Bolivia",
-//   "Bosnia and Herzegovina",
-//   "Botswana",
-//   "Brazil",
-//   "Bulgaria",
-//   "Cambodia",
-//   "Canada",
-//   "Chile",
-//   "Colombia",
-//   "Costa Rica",
-//   "Croatia",
-//   "Czechia",
-//   "Denmark",
-//   "Dominican Republic",
-//   "Ecuador",
-//   "Estonia",
-//   "Eswatini",
-//   "Finland",
-//   "France",
-//   "Germany",
-//   "Ghana",
-//   "Greece",
-//   "Guatemala",
-//   "Hong Kong",
-//   "Hungary",
-//   "Iceland",
-//   "India",
-//   "Indonesia",
-//   "Ireland",
-//   "Israel",
-//   "Italy",
-//   "Japan",
-//   "Jordan",
-//   "Kazakhstan",
-//   "Kenya",
-//   "Kyrgyzstan",
-//   "Latvia",
-//   "Lebanon",
-//   "Lesotho",
-//   "Lithuania",
-//   "Luxembourg",
-//   "Malaysia",
-//   "Malta",
-//   "Mexico",
-//   "Monaco",
-//   "Mongolia",
-//   "Montenegro",
-//   "Namibia",
-//   "Netherlands",
-//   "Nepal",
-//   "New Zealand",
-//   "Nigeria",
-//   "North Macedonia",
-//   "Norway",
-//   "Oman",
-//   "Panama",
-//   "Paraguay",
-//   "Peru",
-//   "Philippines",
-//   "Poland",
-//   "Portugal",
-//   "Puerto Rico",
-//   "Qatar",
-//   "Romania",
-//   "Russia",
-//   "Rwanda",
-//   "San Marino",
-//   "Sao Tome and Principe",
-//   "Senegal",
-//   "Serbia",
-//   "Singapore",
-//   "Slovakia",
-//   "Slovenia",
-//   "South Africa",
-//   "South Korea",
-//   "Spain",
-//   "Sri Lanka",
-//   "Sweden",
-//   "Switzerland",
-//   "Taiwan",
-//   "Thailand",
-//   "Tunisia",
-//   "Turkey",
-//   "Uganda",
-//   "Ukraine",
-//   "United Arab Emirates",
-//   "United Kingdom",
-//   "United States",
-//   "Uruguay",
-//   "Vietnam",
-// ];
+
+//this is what I am making for my grid assignment
+//the basic idea is that the map will be divided into many grids to serve many purposes
+// - players can see how much the 2d map is stretched (places like Greenland look massive but are not actually)
+// - stats will be saved to each grid showing players their best and worst areas
+
+
+//grid system for map
+const GRID_LENGTH = 15;
+let gridOpacity = 0.5;
+let gridWeight = 1;
+let mapGrid = []
+let basicGridInfo = {
+  answerAmount: 0,
+  correctAmount: 0,
+  wrongAmount: 0,
+
+  guessedAmount: 0,
+  averageDistance: 0,
+  correctPercent: 0,
+}
+
+let currentgrid;
+
+function addGrid() {
+  //create a new grid if the player does not have one already
+  if (localStorage.getItem("griddedmap") === null) {
+
+    //lng
+    let rows = 360 / GRID_LENGTH
+
+    //lat
+    let cols = 180 / GRID_LENGTH
+
+    for (let c = 0; c < cols; c++) {
+      mapGrid.push([])
+      for (let r = 0; r < rows; r++) {
+        mapGrid[c].push(structuredClone(basicGridInfo))
+      }
+    }
+  }
+  else {
+    mapGrid = JSON.parse(localStorage.getItem("griddedmap"));
+  }
+
+  //create the grid pattern on the map, I mad all values in the for loop positive so it is easier to create the grid
+  //latitidue is 180 tall
+  for (let lat = 0; lat <= 180; lat += GRID_LENGTH) {
+    let gridLine = L.polyline(
+      [[lat - 90, -180], [lat - 90, 180]],
+      {
+        color: "black",
+        opacity: gridOpacity,
+        weight: gridWeight
+      }
+    ).addTo(griddedMap);
+  }
+
+  //longitude is 360 long
+  for (let lng = 0; lng <= 360; lng += GRID_LENGTH) {
+    let gridLine = L.polyline(
+      [[-90, lng - 180], [90, lng - 180]],
+      {
+        color: "black",
+        opacity: gridOpacity,
+        weight: gridWeight
+      }
+    ).addTo(griddedMap);
+  }
+
+  //function to determine the current grid
+  function onGridMapClick(e) {
+    let lat = e.latlng.lat;
+    let lng = e.latlng.lng;
+
+    let currentCol = Math.floor((lat + 90) / GRID_LENGTH)
+    let currentRow = Math.floor((lng + 180) / GRID_LENGTH)
+
+    currentgrid = mapGrid[currentCol][currentRow]
+
+    //if the player presses outside of the gridded map
+    if (currentgrid === undefined) {
+      currentgrid = "none"
+    }
+  }
+
+  griddedMap.on("click", onGridMapClick);
+}
+
+function addGridStats(clicked, answer, totaldis) {
+
+  //find which grid the answer is in
+  let ansLat = answer.lat
+  let ansLng = answer.lng
+
+  let answerCol = Math.floor((ansLat + 90) / GRID_LENGTH)
+  let answerRow = Math.floor((ansLng + 180) / GRID_LENGTH)
+
+  //find whcih grid the guess was in
+  let clickLat = clicked.lat
+  let clickLng = clicked.lng
+
+  let clickedCol = Math.floor((clickLat + 90) / GRID_LENGTH)
+  let clickedRow = Math.floor((clickLng + 180) / GRID_LENGTH)
+
+  //add to the amount of times the answer has been in that grid
+  mapGrid[answerCol][answerRow].answerAmount += 1
+
+  //add if the player guessed in the same grid as answer
+  if (clickedCol === answerCol && clickedRow === answerRow) {
+    mapGrid[answerCol][answerRow].correctAmount += 1
+  }
+  //add if player gets wrong
+  else {
+    mapGrid[answerCol][answerRow].wrongAmount += 1
+  }
+
+  //add to the amount of times the player has guessed this grid
+  mapGrid[clickedCol][clickedRow].guessedAmount += 1
+
+  //find the average distance of all guesses when the answer was this grid
+  let guessAmount = mapGrid[answerCol][answerRow].answerAmount
+  if (guessAmount === 1) {
+    mapGrid[answerCol][answerRow].averageDistance = totaldis
+  }
+  else {
+    mapGrid[answerCol][answerRow].averageDistance = ((guessAmount - 1) * mapGrid[answerCol][answerRow].averageDistance + totaldis) / guessAmount
+  }
+
+  //find the percent of getting the grid correct
+  mapGrid[answerCol][answerRow].correctPercent = round((mapGrid[answerCol][answerRow].correctAmount / guessAmount) * 100)
+
+}
