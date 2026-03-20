@@ -6,7 +6,8 @@
 - [image demo](images)
 - [Ball Array](ball-array)
 - [gen art](gen_art)
-- ["grid assignment"](grid)
+- ["grid demo"](grid)
+- ["rectangular grid"](rect-grid)
 
 ## Assignments
 - [square grower](interactive-scene)
