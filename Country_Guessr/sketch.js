@@ -179,6 +179,7 @@ let showRankButton;
 let joinButton;
 let startPartyButton;
 let showGridButton;
+let showGridDropDown;
 
 
 //set variables
@@ -426,6 +427,13 @@ function setup() {
   setTypeDropDown.option("NMPZ", "NMPZ");
   setTypeDropDown.option("Blink", "blink");
 
+  //dropdown menu to select what type of info you want to see
+  showGridDropDown = createSelect();
+  showGridDropDown.size(80, 20);
+  showGridDropDown.style("z-index", "-1");
+  showGridDropDown.option("Grid", "grid");
+  showGridDropDown.option("Total", "total");
+
   //button to start a set
   showRankButton = createButton("Rank Info");
   showRankButton.size(shieldSize, 20);
@@ -511,61 +519,61 @@ function draw() {
 
 function gridTextChange() {
 //update the text of each grid and player total stats
-if (currentgrid && currentgrid !== "none") {
+if (showGridDropDown.value() === "grid") {
+  if (currentgrid && currentgrid !== "none") {
 
-  let displayDis = "none"
+    let displayDis = "none"
 
-  //change the distance to text form
-  if (currentgrid.averageDistance >= 1000) {
-    displayDis = (round(currentgrid.averageDistance / 1000)).toLocaleString() + "km"
-  }
-  else if (currentgrid.answerAmount === 0) {
-    displayDis = "none"
+    //change the distance to text form
+    if (currentgrid.averageDistance >= 1000) {
+      displayDis = (round(currentgrid.averageDistance / 1000)).toLocaleString() + "km"
+    }
+    else if (currentgrid.answerAmount === 0) {
+      displayDis = "none"
+    }
+    else {
+      displayDis = round(currentgrid.averageDistance).toLocaleString() + "m"
+    }
+
+    showGridScreen.html(
+      "<br>" +
+      "Grid Stats" + "<br>" +
+      "Been Answer: " + currentgrid.answerAmount + "<br>" +
+      "Correct: " + currentgrid.correctAmount + "<br>" +
+      "Missed: " + currentgrid.wrongAmount + "<br>" +
+
+      "Guessed: " + currentgrid.guessedAmount + "<br>" +
+      "Avg Distance: " + displayDis + "<br>" +
+      "Correct %: " + currentgrid.correctPercent
+    );
   }
   else {
-    displayDis = round(currentgrid.averageDistance).toLocaleString() + "m"
+    showGridScreen.html(
+      "<br>" +
+      "No Grid Selected"
+    );
   }
-
-  showGridScreen.html(
-    "Total Stats" + "<br>" +
-    "Guesses: " + totalGuesses + "<br>" +
-    "Rank: " + rank + "<br>" +
-    "1000km - 250km: " + totalGreen + "<br>" +
-    "250km - 50km: " + totalPurple + "<br>" +
-    "50km - 0km: " + totalGold + "<br>" +
-
-    " " + "<br>" +
-
-    "Grid Stats" + "<br>" +
-    "Been Answer: " + currentgrid.answerAmount + "<br>" +
-    "Correct: " + currentgrid.correctAmount + "<br>" +
-    "Missed: " + currentgrid.wrongAmount + "<br>" +
-
-    "Guessed: " + currentgrid.guessedAmount + "<br>" +
-    "Avg Distance: " + displayDis + "<br>" +
-    "Correct %: " + currentgrid.correctPercent
-  );
 }
+
+//show total stats
 else {
 
+  //convert to percentages
+  let missPercent = round(((totalGuesses - (totalGreen + totalPurple + totalGold)) / totalGuesses) * 100)
+  let greenPercent = round((totalGreen / totalGuesses) * 100)
+  let purplePercent = round((totalPurple / totalGuesses) * 100)
+  let goldPercent = round((totalGold / totalGuesses) * 100)
+
+
   showGridScreen.html(
+    "<br>" +
     "Total Stats" + "<br>" +
     "Guesses: " + totalGuesses + "<br>" +
     "Rank: " + rank + "<br>" +
-    "1000km - 250km: " + totalGreen + "<br>" +
-    "250km - 50km: " + totalPurple + "<br>" +
-    "50km - 0km: " + totalGold + "<br>" +
-
-    " " + "<br>" +
-
-    "Grid Stats" + "<br>" +
-    "Been Answer: " + "none" + "<br>" +
-    "Correct: " + "none" + "<br>" +
-    "Incorrect: " + "none" + "<br>" +
-
-    "Guessed: " + "none" + "<br>" +
-    "Avg Distance: " + "none" + "<br>" +
-    "Correct %: " + "none"
+    "1000km +: " + missPercent + "%" + "<br>" +
+    "1000km - 250km: " + greenPercent + "%" + "<br>" +
+    "250km - 50km: " + purplePercent + "%" + "<br>" +
+    "50km - 0km: " + goldPercent + "%"
   );
 }
 }
@@ -1044,6 +1052,7 @@ function fixsizes() {
   showGridScreen.style("font-size", windowWidth / 69 + "px");
   showGridScreen.style("padding-left", windowWidth / 40 + "px");
   showGridScreen.style("padding-top", windowWidth / 60 + "px");
+  showGridDropDown.position(windowWidth / 3.63, windowHeight / 1.9 - windowWidth / 8);
 
   let gridMapH = windowWidth / 4.1
   let gridmapW = windowWidth / 3.2
@@ -1073,12 +1082,16 @@ function displayGrid() {
     showGridScreen.style("z-index", "20");
     showGridScreen.style("opacity", "1");
     gridMapID.show()
+    showGridDropDown.style("z-index", "21");
+    showGridDropDown.style("opacity", "1");
     showGrid = true;
   }
   else {
     showGridScreen.style("z-index", "-1");
     showGridScreen.style("opacity", "0");
     gridMapID.hide()
+    showGridDropDown.style("z-index", "-1");
+    showGridDropDown.style("opacity", "0");
     showGrid = false;
   }
 }
@@ -1213,7 +1226,7 @@ function setupMap() {
     addmap(country[1], country[0]);
   }
 }
-  
+
 function confirmed() {
   if (mapShowing && !waitingLobby) {
     //if you are in a party
