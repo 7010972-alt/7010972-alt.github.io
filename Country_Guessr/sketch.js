@@ -180,7 +180,9 @@ let joinButton;
 let startPartyButton;
 let showGridButton;
 let showGridDropDown;
-
+let heatMapDropDown;
+let heatMapType;
+let Labels;
 
 //set variables
 let blitzTime = 10;
@@ -429,10 +431,45 @@ function setup() {
 
   //dropdown menu to select what type of info you want to see
   showGridDropDown = createSelect();
-  showGridDropDown.size(80, 20);
+  showGridDropDown.size(80, 30);
   showGridDropDown.style("z-index", "-1");
   showGridDropDown.option("Grid", "grid");
   showGridDropDown.option("Total", "total");
+
+  //dropdown menu to select what type of heat map you want to see
+  heatMapDropDown = createSelect();
+  heatMapDropDown.size(80, 30);
+  heatMapDropDown.style("z-index", "-1");
+  heatMapDropDown.option("None", "none");
+  heatMapDropDown.option("Correct", "correct");
+  heatMapDropDown.option("% Correct", "percent");
+  heatMapDropDown.option("Distance", "distance");
+  heatMapDropDown.option("Answer", "answer");
+  heatMapDropDown.option("Guessed", "guessed");
+
+  heatMapDropDown.changed(findHeatValues);
+
+  //dropdown menu to select what type of heat map you want to see
+  heatMapType = createInput();
+  heatMapType.size(75, 24);
+  heatMapType.style("z-index", "-1");
+  heatMapType.value("1");
+
+  heatMapType.changed(findHeatValues);
+
+  //create labels
+  Labels = createDiv("> Stats < > Heat Map < > Value <");
+  Labels.size(240, 20)
+  Labels.style("background", "rgb(154, 255, 120)");
+  Labels.style("z-index", "-1");
+  Labels.style("opacity", "0");
+
+  Labels.style("display", "flex");
+  Labels.style("justify-content", "center");
+  Labels.style("align-items", "center");
+  Labels.style("font-weight", "bold");
+
+  Labels.style("color", "black");
 
   //button to start a set
   showRankButton = createButton("Rank Info");
@@ -536,7 +573,6 @@ if (showGridDropDown.value() === "grid") {
     }
 
     showGridScreen.html(
-      "<br>" +
       "Grid Stats" + "<br>" +
       "Been Answer: " + currentgrid.answerAmount + "<br>" +
       "Correct: " + currentgrid.correctAmount + "<br>" +
@@ -549,7 +585,6 @@ if (showGridDropDown.value() === "grid") {
   }
   else {
     showGridScreen.html(
-      "<br>" +
       "No Grid Selected"
     );
   }
@@ -566,7 +601,6 @@ else {
 
 
   showGridScreen.html(
-    "<br>" +
     "Total Stats" + "<br>" +
     "Guesses: " + totalGuesses + "<br>" +
     "Rank: " + rank + "<br>" +
@@ -1052,7 +1086,10 @@ function fixsizes() {
   showGridScreen.style("font-size", windowWidth / 69 + "px");
   showGridScreen.style("padding-left", windowWidth / 40 + "px");
   showGridScreen.style("padding-top", windowWidth / 60 + "px");
-  showGridDropDown.position(windowWidth / 3.63, windowHeight / 1.9 - windowWidth / 8);
+  showGridDropDown.position(175, 30);
+  heatMapDropDown.position(255, 30);
+  heatMapType.position(335, 30);
+  Labels.position(175, 10)
 
   let gridMapH = windowWidth / 4.1
   let gridmapW = windowWidth / 3.2
@@ -1084,6 +1121,12 @@ function displayGrid() {
     gridMapID.show()
     showGridDropDown.style("z-index", "21");
     showGridDropDown.style("opacity", "1");
+    heatMapDropDown.style("z-index", "21");
+    heatMapDropDown.style("opacity", "1");
+    heatMapType.style("z-index", "21");
+    heatMapType.style("opacity", "1");
+    Labels.style("z-index", "21");
+    Labels.style("opacity", "1");
     showGrid = true;
   }
   else {
@@ -1092,6 +1135,12 @@ function displayGrid() {
     gridMapID.hide()
     showGridDropDown.style("z-index", "-1");
     showGridDropDown.style("opacity", "0");
+    heatMapDropDown.style("z-index", "-1");
+    heatMapDropDown.style("opacity", "0");
+    heatMapType.style("z-index", "-1");
+    heatMapType.style("opacity", "0");
+    Labels.style("z-index", "-1");
+    Labels.style("opacity", "0");
     showGrid = false;
   }
 }
@@ -1366,7 +1415,7 @@ function afterGuess() {
   allowGuess = false;
   setTimeout(() => {
     allowGuess = true;
-  }, 1000);
+  }, 10);
 
 
   covering = false;
@@ -1406,6 +1455,9 @@ function afterGuess() {
 
   //add grid stats
   addGridStats(clickedPoint, calcLocation, totalDistance)
+
+  //do the heat calculations
+  findHeatValues();
 
   endScreen = true;
 
@@ -1653,6 +1705,10 @@ let currentgrid;
 var selectSquare;
 let shownPastGuesses = [];
 
+//heat map stats
+let greenSquares = [];
+let redSquares = [];
+
 function addGrid() {
   //create a new grid if the player does not have one already
   if (localStorage.getItem("griddedmap") === null) {
@@ -1754,7 +1810,7 @@ function addGrid() {
       shownPastGuesses.push(gridClickedMark)
       shownPastGuesses.push(gridAnswerLine)
     }
-}
+  }
 
   griddedMap.on("click", onGridMapClick);
 }
@@ -1827,4 +1883,139 @@ function addGridStats(clicked, answer, totaldis) {
     lineColor: lineCol
   })
 
+}
+
+//get values for the heat map
+function findHeatValues() {
+  //remove all squares and reset the array
+  for (let item of greenSquares) {
+    item.remove()
+  }
+  greenSquares = []
+
+  for (let item of redSquares) {
+    item.remove()
+  }
+  redSquares = []
+  
+  if (heatMapType.value() !== "") {
+
+    //only run if the typed in value contains a number
+    if (!Number.isNaN(Number(heatMapType.value()))) {
+      //go through each grid
+      for (let col = 0; col < mapGrid.length;  col++) {
+        for (let row = 0; row < mapGrid[col].length; row++) {
+          let checkGrid = mapGrid[col][row]
+
+          //if the "correct" heat map is selected
+          if (heatMapDropDown.value() === "correct") {
+            //make green squares if the pass req
+            if (checkGrid.answerAmount !== 0 && checkGrid.correctAmount >= heatMapType.value()) {
+              addGreen(col, row)
+            }
+
+            //this is for creating red squares
+            if (checkGrid.answerAmount !== 0 && checkGrid.correctAmount < heatMapType.value()) {
+              addRed(col, row)
+            }
+          }
+
+          //if the "answer" heat map is selected
+          if (heatMapDropDown.value() === "answer") {
+            //make green squares if the pass req
+            if (checkGrid.answerAmount !== 0 && checkGrid.answerAmount >= heatMapType.value()) {
+              addGreen(col, row)
+            }
+
+            //this is for creating red squares
+            if (checkGrid.answerAmount !== 0 && checkGrid.answerAmount < heatMapType.value()) {
+              addRed(col, row)
+            }
+          }
+
+          //if the "guessed" heat map is selected
+          if (heatMapDropDown.value() === "guessed") {
+            //make green squares if the pass req
+            if (checkGrid.guessedAmount >= heatMapType.value()) {
+              addGreen(col, row)
+            }
+
+            //this is for creating red squares
+            if (checkGrid.guessedAmount < heatMapType.value()) {
+              addRed(col, row)
+            }
+          }
+
+          //if the "percent" heat map is selected
+          if (heatMapDropDown.value() === "percent") {
+            //make green squares if the pass req
+            if (checkGrid.answerAmount !== 0 && (checkGrid.correctAmount / checkGrid.answerAmount) * 100 >= heatMapType.value()) {
+              addGreen(col, row)
+            }
+
+            //this is for creating red squares
+            if (checkGrid.answerAmount !== 0 && (checkGrid.correctAmount / checkGrid.answerAmount) * 100 < heatMapType.value()) {
+              addRed(col, row)
+            }
+          }
+
+          //if the "distance" heat map is selected
+          //dividing the values by 1000 to simulate km
+          if (heatMapDropDown.value() === "distance") {
+            //make green squares if the pass req
+            if (checkGrid.answerAmount !== 0 && checkGrid.averageDistance / 1000 <= heatMapType.value()) {
+              addGreen(col, row)
+            }
+
+            //this is for creating red squares
+            if (checkGrid.answerAmount !== 0 && checkGrid.averageDistance / 1000 > heatMapType.value()) {
+              addRed(col, row)
+            }
+          }
+
+
+        }
+      }
+    }
+  }
+}
+
+function addGreen(col, row) {
+  //add the heat maps
+  //create a heat map green square
+  rightSquare = L.polygon([
+  [((col) * GRID_LENGTH) - 90, ((row) * GRID_LENGTH) - 180],
+  [((col) * GRID_LENGTH) - 90, ((row + 1) * GRID_LENGTH) - 180],
+  [((col + 1) * GRID_LENGTH) - 90, ((row + 1) * GRID_LENGTH) - 180],
+  [((col + 1) * GRID_LENGTH) - 90, ((row) * GRID_LENGTH) - 180]
+  ], {
+    color: "rgb(54, 202, 98)",
+    weight: 1,
+    opacity: 1,
+
+    fillColor: "green",
+    fillOpacity: 0.3
+  }).addTo(griddedMap);
+
+  greenSquares.push(rightSquare)
+}
+
+function addRed(col, row) {
+  //add the heat maps
+  //create a heat map red square
+  wrongSquare = L.polygon([
+  [((col) * GRID_LENGTH) - 90, ((row) * GRID_LENGTH) - 180],
+  [((col) * GRID_LENGTH) - 90, ((row + 1) * GRID_LENGTH) - 180],
+  [((col + 1) * GRID_LENGTH) - 90, ((row + 1) * GRID_LENGTH) - 180],
+  [((col + 1) * GRID_LENGTH) - 90, ((row) * GRID_LENGTH) - 180]
+  ], {
+    color: "rgb(255, 131, 131)",
+    weight: 1,
+    opacity: 1,
+
+    fillColor: "rgb(255, 131, 131)",
+    fillOpacity: 0.3
+  }).addTo(griddedMap);
+
+  redSquares.push(wrongSquare)
 }
