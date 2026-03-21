@@ -1644,9 +1644,14 @@ let basicGridInfo = {
   guessedAmount: 0,
   averageDistance: 0,
   correctPercent: 0,
+
+  pastGuesses: []
 }
 
 let currentgrid;
+
+var selectSquare;
+let shownPastGuesses = [];
 
 function addGrid() {
   //create a new grid if the player does not have one already
@@ -1696,6 +1701,10 @@ function addGrid() {
 
   //function to determine the current grid
   function onGridMapClick(e) {
+    if (selectSquare !== undefined) {
+      selectSquare.remove()
+    }
+
     let lat = e.latlng.lat;
     let lng = e.latlng.lng;
 
@@ -1708,7 +1717,44 @@ function addGrid() {
     if (currentgrid === undefined) {
       currentgrid = "none"
     }
-  }
+
+    //create a select square
+    selectSquare = L.polygon([
+    [((currentCol) * GRID_LENGTH) - 90, ((currentRow) * GRID_LENGTH) - 180],
+    [((currentCol) * GRID_LENGTH) - 90, ((currentRow + 1) * GRID_LENGTH) - 180],
+    [((currentCol + 1) * GRID_LENGTH) - 90, ((currentRow + 1) * GRID_LENGTH) - 180],
+    [((currentCol + 1) * GRID_LENGTH) - 90, ((currentRow) * GRID_LENGTH) - 180]
+    ], {
+      color: "rgb(187, 196, 74)",
+      weight: 1,
+      opacity: 1,
+
+      fillColor: "yellow",
+      fillOpacity: 0.3
+    }).addTo(griddedMap);
+
+    //remove all guesses that had been there before
+    for (let item of shownPastGuesses) {
+      item.remove()
+    }
+    shownPastGuesses = [];
+
+    //show all guesses that were in that grid
+    for (let info of currentgrid.pastGuesses) {
+      //create all the parts
+      let gridAnswerMark = L.marker([info.answerLat, info.answerLng], {icon: answerIcon}).addTo(griddedMap);
+      let gridClickedMark = L.marker([info.clickedLat, info.clickedLng], {icon: markerIcon}).addTo(griddedMap);
+      let gridAnswerLine = L.polyline([[info.clickedLat, info.clickedLng],[info.answerLat, info.answerLng]], {
+        color: info.lineColor,
+        opacity: 0.7
+      }).addTo(griddedMap);
+
+      //place all marks in list for later removal
+      shownPastGuesses.push(gridAnswerMark)
+      shownPastGuesses.push(gridClickedMark)
+      shownPastGuesses.push(gridAnswerLine)
+    }
+}
 
   griddedMap.on("click", onGridMapClick);
 }
@@ -1755,5 +1801,30 @@ function addGridStats(clicked, answer, totaldis) {
 
   //find the percent of getting the grid correct
   mapGrid[answerCol][answerRow].correctPercent = round((mapGrid[answerCol][answerRow].correctAmount / guessAmount) * 100)
+
+  //save the guess to the grid
+
+  //find what color the line will be
+  let lineCol = "black";
+  if (totaldis <= ultraDis) {
+    lineCol = "orange";
+  }
+  else if (totaldis <= superDis) {
+    lineCol = "purple";
+  }
+  else if (totaldis <= correctDis) {
+    lineCol = "green";
+  }
+  else if (totaldis >= wrongDis) {
+    lineCol = "red";
+  }
+
+  mapGrid[answerCol][answerRow].pastGuesses.push({
+    clickedLat: clickLat,
+    clickedLng: clickLng,
+    answerLat: ansLat,
+    answerLng: ansLng,
+    lineColor: lineCol
+  })
 
 }

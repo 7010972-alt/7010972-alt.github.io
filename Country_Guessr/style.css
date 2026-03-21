@@ -20,7 +20,7 @@ canvas {
   position: absolute;
   bottom: 300px;
   right: 300px;
-  width: 600px;
-  height: 500px;
+  width: 100px;
+  height: 100px;
   z-index: 25;
 }
