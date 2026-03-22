@@ -616,6 +616,24 @@ function draw() {
   dataInfo();
 }
 
+function resetGridView() {
+  //set the grids view
+  griddedMap.setView([0, 0], 2);
+  currentgrid = "none"
+
+  //make the highlighted square disappear
+  if (selectSquare !== undefined) {
+    selectSquare.remove()
+  }
+
+  //remove all guesses that had been there before
+  for (let item of shownPastGuesses) {
+    item.remove()
+  }
+  shownPastGuesses = [];
+
+}
+
 function dataInfo() {
   dataTransScreen.html(
     "Data Transfer" + "<br>" +
@@ -635,8 +653,14 @@ function dataInfo() {
   )
 }
 
+//conditions when some buttons need to be disabled
 function showButtonLock() {
-  if (dataShow) {
+  if (viewing) {
+    showGridButton.attribute("disabled", "");
+    showRankButton.attribute("disabled", "");
+    DataShowButton.attribute("disabled", "");
+  }
+  else if (dataShow) {
     showGridButton.attribute("disabled", "");
     showRankButton.attribute("disabled", "");
   }
@@ -712,6 +736,7 @@ function dataUpload() {
   totalPurple = 0
   totalGold = 0
 
+  resetGridView();
   //reset the grid
   mapGrid = []
   saveProgress()
@@ -1093,7 +1118,7 @@ function partyChange(place, type) {
 
 //I wanted the player to not be able to join parties or sets or change the dropdown value when they are in either one
 function lockStartJoin() {
-  if (inParty || setActive || endScreen) {
+  if (inParty || setActive || endScreen || viewing) {
     joinButton.attribute("disabled", "");
     startSetButton.attribute("disabled", "");
     setTypeDropDown.attribute("disabled", "");
@@ -1180,6 +1205,9 @@ function rankModify() {
   }
   else {
     rank = "Coal"
+
+    currentPin = coalP;
+    currentShield = coalS;
   }
 
   //change the color of each line depending on if they met the req
@@ -1367,6 +1395,7 @@ function displayGrid() {
     showGrid = true;
   }
   else {
+    resetGridView();
     showGridScreen.style("z-index", "-1");
     showGridScreen.style("opacity", "0");
     gridMapID.hide()
@@ -2057,6 +2086,7 @@ function addGrid() {
       //when clicked show the viewer what that location looked like
       gridAnswerMark.on("click", function () {
         viewing = true;
+        resetGridView();
 
         //hide the map grid page
         showGridScreen.style("z-index", "-1");
