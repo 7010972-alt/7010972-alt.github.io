@@ -1693,7 +1693,7 @@ function afterGuess() {
   allowGuess = false;
   setTimeout(() => {
     allowGuess = true;
-  }, 1000);
+  }, 1);
 
 
   covering = false;
@@ -1718,6 +1718,7 @@ function afterGuess() {
 
   //add stats
   totalGuesses += 1
+  console.log("added")
 
   //determine which color stat to add
     if (totalDistance <= ultraDis) {
