@@ -162396,17 +162396,30 @@ window.allCountries = [
   newzealand,
 
   //Africa
+  southafrica,
   tunisia,
+  kenya,
+
+  //double
+  senegal,
   senegal,
   ghana,
+  ghana,
   nigeria,
-  kenya,
+  nigeria,
+  uganda,
+  uganda,
+  uganda,
   uganda,
   rwanda,
+  rwanda,
+  namibia,
   namibia,
   botswana,
-  southafrica,
+  botswana,
   eswatini,
+  eswatini,
+  lesotho,
   lesotho,
 
   //Asia

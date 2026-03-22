@@ -446,8 +446,8 @@ function setup() {
   showGridDropDown = createSelect();
   showGridDropDown.size(80, 30);
   showGridDropDown.style("z-index", "-1");
-  showGridDropDown.option("Grid", "grid");
   showGridDropDown.option("Total", "total");
+  showGridDropDown.option("Grid", "grid");
 
   //dropdown menu to select what type of heat map you want to see
   heatMapDropDown = createSelect();
@@ -515,7 +515,7 @@ function setup() {
   showRankButton.mousePressed(showRank);
 
   //button to who the grid screen a set
-  showGridButton = createButton("Grid Map");
+  showGridButton = createButton("Stats");
   showGridButton.size(shieldSize, 20);
   showGridButton.style("position", "absolute");
   showGridButton.style("z-index", "21");
@@ -1693,7 +1693,7 @@ function afterGuess() {
   allowGuess = false;
   setTimeout(() => {
     allowGuess = true;
-  }, 10);
+  }, 1000);
 
 
   covering = false;
