@@ -21,6 +21,8 @@ function preload() {
   );
 
   shared = partyLoadShared("shared", {
+    transfers: {},
+
     gameStarted: false,
 
     normalPlayers: 0,
@@ -106,6 +108,7 @@ let answerIcon = L.icon({
 });
 
 //game variables
+let viewing = false;
 let allowGuess = true;
 let timeAfterFirstGuess = 16;
 let calcLocation;
@@ -183,6 +186,10 @@ let showGridDropDown;
 let heatMapDropDown;
 let heatMapType;
 let Labels;
+let DataShowButton;
+let loadData;
+let uploadData;
+let dataType;
 
 //set variables
 let blitzTime = 10;
@@ -223,6 +230,12 @@ let showGridScreen;
 
 let griddedMap;
 let gridMapID;
+
+//data transfer
+let dataShow = false;
+let dataTransScreen;
+
+let transferCode = "";
 
 //p5 party local variables
 let inParty = false;
@@ -457,8 +470,30 @@ function setup() {
 
   heatMapType.changed(findHeatValues);
 
+  //button to upload data to saved data
+  uploadData = createButton("Upload");
+  uploadData.size(80, 30);
+  uploadData.style("position", "absolute");
+  uploadData.style("z-index", "-1");
+
+  uploadData.mousePressed(dataUpload);
+
+  //button to start a party
+  loadData = createButton("Load");
+  loadData.size(80, 30);
+  loadData.style("position", "absolute");
+  loadData.style("z-index", "-1");
+
+  loadData.mousePressed(dataLoad);
+
+  //used to write the keycode for data trans
+  dataType = createInput();
+  dataType.size(75, 24);
+  dataType.style("z-index", "-1");
+  dataType.value("Slimed");
+
   //create labels
-  Labels = createDiv("> Stats < > Heat Map < > Value <");
+  Labels = createDiv();
   Labels.size(240, 20)
   Labels.style("background", "rgb(154, 255, 120)");
   Labels.style("z-index", "-1");
@@ -479,13 +514,21 @@ function setup() {
 
   showRankButton.mousePressed(showRank);
 
-  //button to start a set
+  //button to who the grid screen a set
   showGridButton = createButton("Grid Map");
   showGridButton.size(shieldSize, 20);
   showGridButton.style("position", "absolute");
   showGridButton.style("z-index", "21");
 
   showGridButton.mousePressed(displayGrid);
+
+  //button to open the datat transfer screen
+  DataShowButton = createButton("Data Ex.");
+  DataShowButton.size(shieldSize, 20);
+  DataShowButton.style("position", "absolute");
+  DataShowButton.style("z-index", "21");
+
+  DataShowButton.mousePressed(ShowDataScreen);
 
 
   //create cover
@@ -529,6 +572,22 @@ function setup() {
   showGridScreen.style("border-radius", "12px");
   showGridScreen.style("border", "4px solid black");
 
+  //create grid info
+  dataTransScreen = createDiv();
+  dataTransScreen.style("background", "rgb(154, 255, 120)");
+  dataTransScreen.style("z-index", "-1");
+  dataTransScreen.style("opacity", "0");
+
+  dataTransScreen.style("display", "flex");
+  dataTransScreen.style("justify-content", "center");
+  dataTransScreen.style("align-items", "flex-start");
+  dataTransScreen.style("font-weight", "bold");
+
+  dataTransScreen.style("text-align", "center");
+  dataTransScreen.style("color", "black");
+  dataTransScreen.style("border-radius", "12px");
+  dataTransScreen.style("border", "4px solid black");
+
   changeMapSize();
 }
 
@@ -552,6 +611,174 @@ function draw() {
   lockMap();
   bannerColChange();
   gridTextChange();
+  labelConfigure();
+  showButtonLock();
+  dataInfo();
+}
+
+function dataInfo() {
+  dataTransScreen.html(
+    "Data Transfer" + "<br>" +
+    "<br>" +
+    "Move data from 2 different devices or browser (Browser -> Browser)" + "<br>" +
+    "!!! The device which uploads the data will be reverted to a new account !!!" + "<br>" +
+    "!!! receiving account will have data replaced !!!" + "<br>" +
+    "!!! NEVER CLOSE WINDOW DURING PROCESS !!!" + "<br>" +
+    "<br>" +
+    "1: If you are in the account that has the data, choose a code and type it in" + "<br>" +
+    "2: Press UPLOAD and if it worked then your code will appear at the bottom" + "<br>" +
+    "3: Go onto the device you want to recieve the data, type in the code and press LOAD" + "<br>" +
+    "<br>" +
+    "<br>" +
+    "<br>" +
+    `Code: ${transferCode}`
+  )
+}
+
+function showButtonLock() {
+  if (dataShow) {
+    showGridButton.attribute("disabled", "");
+    showRankButton.attribute("disabled", "");
+  }
+  else if (showingRankInfo) {
+    showGridButton.attribute("disabled", "");
+    DataShowButton.attribute("disabled", "");
+  }
+  else if (showGrid) {
+    showRankButton.attribute("disabled", "");
+    DataShowButton.attribute("disabled", "");
+  }
+  else {
+    showGridButton.removeAttribute("disabled");
+    showRankButton.removeAttribute("disabled");
+    DataShowButton.removeAttribute("disabled");
+  }
+}
+
+//change what the label says based on situation
+function labelConfigure() {
+  if (dataShow || showGrid) {
+    Labels.style("z-index", "20");
+    Labels.style("opacity", "1");
+
+    if (dataShow) {
+      Labels.html("> Load < > Upload < > Code <")
+    }
+    else if (showGrid) {
+      Labels.html("> Stats < > Heat Map < > Value <")
+    }
+  }
+  else {
+    Labels.style("z-index", "-1");
+    Labels.style("opacity", "0");
+  }
+}
+
+function dataUpload() {
+  //stop if the code is empty or if a code already exists
+  if (dataType.value() !== "") {
+    if (dataType.value().toLowerCase() in shared.transfers) {
+      return
+    }
+
+  shared.transfers[dataType.value().toLowerCase()] = {
+    //best sets
+    bestSet: bestSet,
+    bestBlitz: bestBlitz,
+    bestNMPZ: bestNMPZ,
+    bestBlink: bestBlink,
+
+    //global stats
+    totalGuesses: totalGuesses,
+    totalGreen: totalGreen,
+    totalPurple: totalPurple,
+    totalGold: totalGold,
+
+    //the map grid
+    mapGrid: structuredClone(mapGrid)
+  }
+
+  transferCode = dataType.value()
+  dataType.value("")
+
+  //reset values
+  bestSet = 0
+  bestBlitz = 0
+  bestNMPZ = 0
+  bestBlink = 0
+
+  totalGuesses = 0
+  totalGreen = 0
+  totalPurple = 0
+  totalGold = 0
+
+  //reset the grid
+  mapGrid = []
+  saveProgress()
+  localStorage.removeItem("griddedmap")
+
+  addGrid()
+  }
+}
+
+function dataLoad() {
+  //if the code is found then load the data
+  if (dataType.value().toLowerCase() in shared.transfers) {
+
+    //load sets
+    bestSet = shared.transfers[dataType.value().toLowerCase()].bestSet
+    bestBlitz = shared.transfers[dataType.value().toLowerCase()].bestBlitz
+    bestNMPZ = shared.transfers[dataType.value().toLowerCase()].bestNMPZ
+    bestBlink = shared.transfers[dataType.value().toLowerCase()].bestBlink
+
+    //load total stats
+    totalGuesses = shared.transfers[dataType.value().toLowerCase()].totalGuesses
+    totalGreen = shared.transfers[dataType.value().toLowerCase()].totalGreen
+    totalPurple = shared.transfers[dataType.value().toLowerCase()].totalPurple
+    totalGold = shared.transfers[dataType.value().toLowerCase()].totalGold
+
+    //load the map grid
+    mapGrid = shared.transfers[dataType.value().toLowerCase()].mapGrid
+
+    delete shared.transfers[dataType.value().toLowerCase()]
+
+    dataType.value("")
+
+    saveProgress()
+  }
+}
+
+function ShowDataScreen() {
+  if (!dataShow) {
+    dataTransScreen.style("z-index", "20");
+    dataTransScreen.style("opacity", "1");
+
+    uploadData.style("z-index", "20");
+    uploadData.style("opacity", "1");
+
+    loadData.style("z-index", "20");
+    loadData.style("opacity", "1");
+
+    dataType.style("z-index", "20");
+    dataType.style("opacity", "1");
+
+    dataShow = true;
+  }
+  else {
+    dataTransScreen.style("z-index", "-1");
+    dataTransScreen.style("opacity", "0");
+
+    uploadData.style("z-index", "-1");
+    uploadData.style("opacity", "0");
+
+    loadData.style("z-index", "-1");
+    loadData.style("opacity", "0");
+
+    dataType.style("z-index", "-1");
+    dataType.style("opacity", "0");
+
+    dataShow = false;
+  }
 }
 
 function gridTextChange() {
@@ -626,9 +853,9 @@ function bannerColChange() {
   }
 }
 
-//make sure that the map is open during parties
+//make sure that the map is open during parties and closed during viewing mode
 function lockMap() {
-  if (lockedIn) {
+  if (lockedIn || viewing) {
     hideMapButton.attribute("disabled", "");
   }
   else {
@@ -1081,8 +1308,8 @@ function fixsizes() {
   showRankScreen.style("padding-top", windowWidth / 20 + "px");
 
   showGridButton.position(10, bannerHeight + shieldSize + 30);
-  showGridScreen.size(windowWidth / 2, windowWidth / 4);
-  showGridScreen.position(windowWidth / 4, windowHeight / 2 - windowWidth / 8);
+  showGridScreen.size(windowWidth / 1.5, windowWidth / 3.25);
+  showGridScreen.position(windowWidth / 6.5, windowHeight / 2.25 - windowWidth / 8);
   showGridScreen.style("font-size", windowWidth / 69 + "px");
   showGridScreen.style("padding-left", windowWidth / 40 + "px");
   showGridScreen.style("padding-top", windowWidth / 60 + "px");
@@ -1091,11 +1318,23 @@ function fixsizes() {
   heatMapType.position(335, 30);
   Labels.position(175, 10)
 
-  let gridMapH = windowWidth / 4.1
-  let gridmapW = windowWidth / 3.2
+  uploadData.position(255, 30);
+  loadData.position(175, 30);
+  dataType.position(335, 30);
 
-  gridMapID.position(windowWidth / 1.31 - gridmapW, windowHeight / 2 - windowWidth / 9)
+  let gridMapH = windowWidth / 3.2
+  let gridmapW = windowWidth / 2.25
+
+  gridMapID.position(windowWidth / 1.19 - gridmapW, windowHeight / 2.17 - windowWidth / 8)
   gridMapID.size(gridmapW, gridMapH)
+
+  dataTransScreen.size(windowWidth / 1.5, windowWidth / 3.25);
+  dataTransScreen.position(windowWidth / 6.5, windowHeight / 2.25 - windowWidth / 8);
+  dataTransScreen.style("font-size", windowWidth / 69 + "px");
+  dataTransScreen.style("padding-left", windowWidth / 40 + "px");
+  dataTransScreen.style("padding-top", windowWidth / 60 + "px");
+
+  DataShowButton.position(10, bannerHeight + shieldSize + 55);
 
   griddedMap.invalidateSize()
 
@@ -1125,8 +1364,6 @@ function displayGrid() {
     heatMapDropDown.style("opacity", "1");
     heatMapType.style("z-index", "21");
     heatMapType.style("opacity", "1");
-    Labels.style("z-index", "21");
-    Labels.style("opacity", "1");
     showGrid = true;
   }
   else {
@@ -1139,8 +1376,6 @@ function displayGrid() {
     heatMapDropDown.style("opacity", "0");
     heatMapType.style("z-index", "-1");
     heatMapType.style("opacity", "0");
-    Labels.style("z-index", "-1");
-    Labels.style("opacity", "0");
     showGrid = false;
   }
 }
@@ -1181,6 +1416,9 @@ function bannerTextChange() {
       if (setTypeDropDown.value() === "normal") {
         banner.html("Round: " + shared.normalRoundNumber + "/" + maxPartyRoundNumber + " | Time Left: " + timeLeft);
       }
+    }
+    else if (viewing) {
+      banner.html("Viewing Mode")
     }
     else {
       if (setTypeDropDown.value() === "normal") {
@@ -1256,9 +1494,12 @@ function hideMap() {
 
 function nextmap() {
   if (switching) {
-    randomlocation = random(currentLocations);
-    newlat = randomlocation.lat;
-    newlng = randomlocation.lng;
+
+    if (!viewing) {
+      randomlocation = random(currentLocations);
+      newlat = randomlocation.lat;
+      newlng = randomlocation.lng;
+    }
     
     street.attribute(
       "src",
@@ -1277,6 +1518,14 @@ function setupMap() {
 }
 
 function confirmed() {
+  //exit the viewing mode
+  if (viewing) {
+    viewing = false;
+    mapID.show()
+    mapChange()
+    return
+  }
+
   if (mapShowing && !waitingLobby) {
     //if you are in a party
     if (inParty) {
@@ -1804,6 +2053,34 @@ function addGrid() {
         color: info.lineColor,
         opacity: 0.7
       }).addTo(griddedMap);
+
+      //when clicked show the viewer what that location looked like
+      gridAnswerMark.on("click", function () {
+        viewing = true;
+
+        //hide the map grid page
+        showGridScreen.style("z-index", "-1");
+        showGridScreen.style("opacity", "0");
+        gridMapID.hide()
+        showGridDropDown.style("z-index", "-1");
+        showGridDropDown.style("opacity", "0");
+        heatMapDropDown.style("z-index", "-1");
+        heatMapDropDown.style("opacity", "0");
+        heatMapType.style("z-index", "-1");
+        heatMapType.style("opacity", "0");
+        Labels.style("z-index", "-1");
+        Labels.style("opacity", "0");
+        showGrid = false;
+
+        //make sure the player cannot access map
+        mapID.hide()
+        hideMapButton.attribute("disabled", "");
+
+        //show the previous location
+        newlat = info.answerLat
+        newlng = info.answerLng
+        switching = true;
+      });
 
       //place all marks in list for later removal
       shownPastGuesses.push(gridAnswerMark)
