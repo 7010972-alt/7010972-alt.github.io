@@ -8,6 +8,7 @@
 - [gen art](gen_art)
 - ["grid demo"](grid)
 - ["rectangular grid"](rect-grid)
+- ["game of Life"](game-of-life)
 
 ## Assignments
 - [square grower](interactive-scene)
