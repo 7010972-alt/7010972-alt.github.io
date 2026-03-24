@@ -750,11 +750,22 @@ function dataLoad() {
   //if the code is found then load the data
   if (dataType.value().toLowerCase() in shared.transfers) {
 
-    //load sets
-    bestSet = shared.transfers[dataType.value().toLowerCase()].bestSet
-    bestBlitz = shared.transfers[dataType.value().toLowerCase()].bestBlitz
-    bestNMPZ = shared.transfers[dataType.value().toLowerCase()].bestNMPZ
-    bestBlink = shared.transfers[dataType.value().toLowerCase()].bestBlink
+    //load sets if it the score is higher than your current set
+    if (bestSet <= shared.transfers[dataType.value().toLowerCase()].bestSet) {
+      bestSet = shared.transfers[dataType.value().toLowerCase()].bestSet
+    }
+
+    if (bestBlitz <= shared.transfers[dataType.value().toLowerCase()].bestBlitz) {
+      bestBlitz = shared.transfers[dataType.value().toLowerCase()].bestBlitz
+    }
+
+    if (bestNMPZ <= shared.transfers[dataType.value().toLowerCase()].bestNMPZ) {
+      bestNMPZ = shared.transfers[dataType.value().toLowerCase()].bestNMPZ
+    }
+
+    if (bestBlink <= shared.transfers[dataType.value().toLowerCase()].bestBlink) {
+      bestBlink = shared.transfers[dataType.value().toLowerCase()].bestBlink
+    }
 
     //load total stats
     totalGuesses = shared.transfers[dataType.value().toLowerCase()].totalGuesses
