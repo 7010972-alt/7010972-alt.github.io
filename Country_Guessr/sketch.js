@@ -150,12 +150,12 @@ let newlng;
 let bannerHeight = 70;
 let banner;
 let bannerText;
-let currentBannerColor = "rgb(177, 255, 151)"
+let currentBannerColor = "rgb(177, 255, 151)";
 
-let bannerGreen = "rgb(112, 255, 64)"
-let bannerRed = "rgb(255, 88, 88)"
-let bannerPurple = "rgb(192, 83, 255)"
-let bannerOrange = "rgb(250, 221, 91)"
+let bannerGreen = "rgb(112, 255, 64)";
+let bannerRed = "rgb(255, 88, 88)";
+let bannerPurple = "rgb(192, 83, 255)";
+let bannerOrange = "rgb(250, 221, 91)";
 
 
 let textsize;
@@ -245,8 +245,8 @@ let lockedIn = false;
 let wasNormalGuessed = false;
 let maxPartyRoundNumber = 5;
 
-let displayMarkers = []
-let currentMuiltIcon = coalP
+let displayMarkers = [];
+let currentMuiltIcon = coalP;
 let preChangeClickedLength;
 let waitingLobby = false;
 let lobbyJoined = false;
@@ -258,7 +258,7 @@ function setup() {
   setupMap();
 
   //give each party a map
-  setPartyMap()
+  setPartyMap();
 
   rankIcon = createImg(currentShield, "rank display");
   rankIcon.size(shieldSize, shieldSize);
@@ -323,7 +323,7 @@ function setup() {
 
   gridMapID = select("#griddedmap");
 
-  gridMapID.hide()
+  gridMapID.hide();
 
   addGrid();
 
@@ -494,7 +494,7 @@ function setup() {
 
   //create labels
   Labels = createDiv();
-  Labels.size(240, 20)
+  Labels.size(240, 20);
   Labels.style("background", "rgb(154, 255, 120)");
   Labels.style("z-index", "-1");
   Labels.style("opacity", "0");
@@ -619,16 +619,16 @@ function draw() {
 function resetGridView() {
   //set the grids view
   griddedMap.setView([0, 0], 2);
-  currentgrid = "none"
+  currentgrid = "none";
 
   //make the highlighted square disappear
   if (selectSquare !== undefined) {
-    selectSquare.remove()
+    selectSquare.remove();
   }
 
   //remove all guesses that had been there before
   for (let item of shownPastGuesses) {
-    item.remove()
+    item.remove();
   }
   shownPastGuesses = [];
 
@@ -650,7 +650,7 @@ function dataInfo() {
     "<br>" +
     "<br>" +
     `Code: ${transferCode}`
-  )
+  );
 }
 
 //conditions when some buttons need to be disabled
@@ -686,10 +686,10 @@ function labelConfigure() {
     Labels.style("opacity", "1");
 
     if (dataShow) {
-      Labels.html("> Load < > Upload < > Code <")
+      Labels.html("> Load < > Upload < > Code <");
     }
     else if (showGrid) {
-      Labels.html("> Stats < > Heat Map < > Value <")
+      Labels.html("> Stats < > Heat Map < > Value <");
     }
   }
   else {
@@ -702,47 +702,47 @@ function dataUpload() {
   //stop if the code is empty or if a code already exists
   if (dataType.value() !== "") {
     if (dataType.value().toLowerCase() in shared.transfers) {
-      return
+      return;
     }
 
-  shared.transfers[dataType.value().toLowerCase()] = {
+    shared.transfers[dataType.value().toLowerCase()] = {
     //best sets
-    bestSet: bestSet,
-    bestBlitz: bestBlitz,
-    bestNMPZ: bestNMPZ,
-    bestBlink: bestBlink,
+      bestSet: bestSet,
+      bestBlitz: bestBlitz,
+      bestNMPZ: bestNMPZ,
+      bestBlink: bestBlink,
 
-    //global stats
-    totalGuesses: totalGuesses,
-    totalGreen: totalGreen,
-    totalPurple: totalPurple,
-    totalGold: totalGold,
+      //global stats
+      totalGuesses: totalGuesses,
+      totalGreen: totalGreen,
+      totalPurple: totalPurple,
+      totalGold: totalGold,
 
-    //the map grid
-    mapGrid: structuredClone(mapGrid)
-  }
+      //the map grid
+      mapGrid: structuredClone(mapGrid)
+    };
 
-  transferCode = dataType.value()
-  dataType.value("")
+    transferCode = dataType.value();
+    dataType.value("");
 
-  //reset values
-  bestSet = 0
-  bestBlitz = 0
-  bestNMPZ = 0
-  bestBlink = 0
+    //reset values
+    bestSet = 0;
+    bestBlitz = 0;
+    bestNMPZ = 0;
+    bestBlink = 0;
 
-  totalGuesses = 0
-  totalGreen = 0
-  totalPurple = 0
-  totalGold = 0
+    totalGuesses = 0;
+    totalGreen = 0;
+    totalPurple = 0;
+    totalGold = 0;
 
-  resetGridView();
-  //reset the grid
-  mapGrid = []
-  saveProgress()
-  localStorage.removeItem("griddedmap")
+    resetGridView();
+    //reset the grid
+    mapGrid = [];
+    saveProgress();
+    localStorage.removeItem("griddedmap");
 
-  addGrid()
+    addGrid();
   }
 }
 
@@ -752,35 +752,35 @@ function dataLoad() {
 
     //load sets if it the score is higher than your current set
     if (bestSet <= shared.transfers[dataType.value().toLowerCase()].bestSet) {
-      bestSet = shared.transfers[dataType.value().toLowerCase()].bestSet
+      bestSet = shared.transfers[dataType.value().toLowerCase()].bestSet;
     }
 
     if (bestBlitz <= shared.transfers[dataType.value().toLowerCase()].bestBlitz) {
-      bestBlitz = shared.transfers[dataType.value().toLowerCase()].bestBlitz
+      bestBlitz = shared.transfers[dataType.value().toLowerCase()].bestBlitz;
     }
 
     if (bestNMPZ <= shared.transfers[dataType.value().toLowerCase()].bestNMPZ) {
-      bestNMPZ = shared.transfers[dataType.value().toLowerCase()].bestNMPZ
+      bestNMPZ = shared.transfers[dataType.value().toLowerCase()].bestNMPZ;
     }
 
     if (bestBlink <= shared.transfers[dataType.value().toLowerCase()].bestBlink) {
-      bestBlink = shared.transfers[dataType.value().toLowerCase()].bestBlink
+      bestBlink = shared.transfers[dataType.value().toLowerCase()].bestBlink;
     }
 
     //load total stats
-    totalGuesses = shared.transfers[dataType.value().toLowerCase()].totalGuesses
-    totalGreen = shared.transfers[dataType.value().toLowerCase()].totalGreen
-    totalPurple = shared.transfers[dataType.value().toLowerCase()].totalPurple
-    totalGold = shared.transfers[dataType.value().toLowerCase()].totalGold
+    totalGuesses = shared.transfers[dataType.value().toLowerCase()].totalGuesses;
+    totalGreen = shared.transfers[dataType.value().toLowerCase()].totalGreen;
+    totalPurple = shared.transfers[dataType.value().toLowerCase()].totalPurple;
+    totalGold = shared.transfers[dataType.value().toLowerCase()].totalGold;
 
     //load the map grid
-    mapGrid = shared.transfers[dataType.value().toLowerCase()].mapGrid
+    mapGrid = shared.transfers[dataType.value().toLowerCase()].mapGrid;
 
-    delete shared.transfers[dataType.value().toLowerCase()]
+    delete shared.transfers[dataType.value().toLowerCase()];
 
-    dataType.value("")
+    dataType.value("");
 
-    saveProgress()
+    saveProgress();
   }
 }
 
@@ -819,24 +819,24 @@ function ShowDataScreen() {
 
 function gridTextChange() {
 //update the text of each grid and player total stats
-if (showGridDropDown.value() === "grid") {
-  if (currentgrid && currentgrid !== "none") {
+  if (showGridDropDown.value() === "grid") {
+    if (currentgrid && currentgrid !== "none") {
 
-    let displayDis = "none"
+      let displayDis = "none";
 
-    //change the distance to text form
-    if (currentgrid.averageDistance >= 1000) {
-      displayDis = (round(currentgrid.averageDistance / 1000)).toLocaleString() + "km"
-    }
-    else if (currentgrid.answerAmount === 0) {
-      displayDis = "none"
-    }
-    else {
-      displayDis = round(currentgrid.averageDistance).toLocaleString() + "m"
-    }
+      //change the distance to text form
+      if (currentgrid.averageDistance >= 1000) {
+        displayDis = round(currentgrid.averageDistance / 1000).toLocaleString() + "km";
+      }
+      else if (currentgrid.answerAmount === 0) {
+        displayDis = "none";
+      }
+      else {
+        displayDis = round(currentgrid.averageDistance).toLocaleString() + "m";
+      }
 
-    showGridScreen.html(
-      "Grid Stats" + "<br>" +
+      showGridScreen.html(
+        "Grid Stats" + "<br>" +
       "Been Answer: " + currentgrid.answerAmount + "<br>" +
       "Correct: " + currentgrid.correctAmount + "<br>" +
       "Missed: " + currentgrid.wrongAmount + "<br>" +
@@ -844,35 +844,35 @@ if (showGridDropDown.value() === "grid") {
       "Guessed: " + currentgrid.guessedAmount + "<br>" +
       "Avg Distance: " + displayDis + "<br>" +
       "Correct %: " + currentgrid.correctPercent
-    );
+      );
+    }
+    else {
+      showGridScreen.html(
+        "No Grid Selected"
+      );
+    }
   }
+
+  //show total stats
   else {
+
+    //convert to percentages
+    let missPercent = round((totalGuesses - (totalGreen + totalPurple + totalGold)) / totalGuesses * 100);
+    let greenPercent = round(totalGreen / totalGuesses * 100);
+    let purplePercent = round(totalPurple / totalGuesses * 100);
+    let goldPercent = round(totalGold / totalGuesses * 100);
+
+
     showGridScreen.html(
-      "No Grid Selected"
-    );
-  }
-}
-
-//show total stats
-else {
-
-  //convert to percentages
-  let missPercent = round(((totalGuesses - (totalGreen + totalPurple + totalGold)) / totalGuesses) * 100)
-  let greenPercent = round((totalGreen / totalGuesses) * 100)
-  let purplePercent = round((totalPurple / totalGuesses) * 100)
-  let goldPercent = round((totalGold / totalGuesses) * 100)
-
-
-  showGridScreen.html(
-    "Total Stats" + "<br>" +
+      "Total Stats" + "<br>" +
     "Guesses: " + totalGuesses + "<br>" +
     "Rank: " + rank + "<br>" +
     "1000km +: " + missPercent + "%" + "<br>" +
     "1000km - 250km: " + greenPercent + "%" + "<br>" +
     "250km - 50km: " + purplePercent + "%" + "<br>" +
     "50km - 0km: " + goldPercent + "%"
-  );
-}
+    );
+  }
 }
 
 //changes the color of the banner based on the conditions
@@ -902,10 +902,10 @@ function lockMap() {
 //show and hide the start party button
 function togglePartyButton() {
   if (waitingLobby) {
-    startPartyButton.style("z-index", "25")
+    startPartyButton.style("z-index", "25");
   }
   else {
-    startPartyButton.style("z-index", "-1")
+    startPartyButton.style("z-index", "-1");
   }
 }
 
@@ -936,7 +936,7 @@ function displayOthers() {
           lineCol = "red";
         }
 
-        currentMuiltIcon = info.Pin
+        currentMuiltIcon = info.Pin;
 
         //used to show the marks of other players
         muiltIcon = L.icon({
@@ -955,8 +955,8 @@ function displayOthers() {
           }
         ).addTo(map);
 
-        displayMarkers.push(muiltMarker)
-        displayMarkers.push(muiltAnswerLine)
+        displayMarkers.push(muiltMarker);
+        displayMarkers.push(muiltAnswerLine);
 
       }
     }
@@ -994,7 +994,7 @@ function checkPartyEnded() {
     clickedPoint = { lat: 0, lng: 0 };
 
 
-    mapChange()
+    mapChange();
   }
 }
 
@@ -1004,7 +1004,7 @@ function partyTimeChange() {
     if (setTypeDropDown.value() === "normal" && shared.normalGuessed) {
       if (timeLeft > timeAfterFirstGuess) {
         timeLeft = timeAfterFirstGuess;
-        time = millis()
+        time = millis();
       }
     }
   }
@@ -1014,7 +1014,7 @@ function partyTimeChange() {
 function forceLeaveEnd() {
   if (inParty && endScreen) {
     if (setTypeDropDown.value() === "normal" && shared.normalround === "ongoing") {
-      confirmed()
+      confirmed();
     }
   }
 }
@@ -1022,7 +1022,7 @@ function forceLeaveEnd() {
 //forces others in the party to confirm
 function forceConfirm() {
   if (setTypeDropDown.value() === "normal" && shared.normalConfirm === true && inParty && !endScreen) {
-    confirmed()
+    confirmed();
   }
 }
 
@@ -1047,16 +1047,16 @@ function joinWait() {
       shared.normalPlayers += 1;
     }
     else if (setTypeDropDown.value() === "blitz") {
-      currentParty = "blitz"
-      shared.blitzPlayers += 1
+      currentParty = "blitz";
+      shared.blitzPlayers += 1;
     }
     else if (setTypeDropDown.value() === "NMPZ") {
-      currentParty = "NMPZ"
-      shared.NMPZPlayers += 1
+      currentParty = "NMPZ";
+      shared.NMPZPlayers += 1;
     }
     else if (setTypeDropDown.value() === "blink") {
-      currentParty = "blink"
-      shared.blinkPlayers += 1
+      currentParty = "blink";
+      shared.blinkPlayers += 1;
     }
   }
 }
@@ -1095,16 +1095,16 @@ function joinParty() {
       covering = false;
     }
     else if (setTypeDropDown.value() === "blitz") {
-      currentParty = "blitz"
-      shared.blitzPlayers += 1
+      currentParty = "blitz";
+      shared.blitzPlayers += 1;
     }
     else if (setTypeDropDown.value() === "NMPZ") {
-      currentParty = "NMPZ"
-      shared.NMPZPlayers += 1
+      currentParty = "NMPZ";
+      shared.NMPZPlayers += 1;
     }
     else if (setTypeDropDown.value() === "blink") {
-      currentParty = "blink"
-      shared.blinkPlayers += 1
+      currentParty = "blink";
+      shared.blinkPlayers += 1;
     }
   }
 }
@@ -1215,7 +1215,7 @@ function rankModify() {
     nextBestBlink = "0";
   }
   else {
-    rank = "Coal"
+    rank = "Coal";
 
     currentPin = coalP;
     currentShield = coalS;
@@ -1355,17 +1355,17 @@ function fixsizes() {
   showGridDropDown.position(175, 30);
   heatMapDropDown.position(255, 30);
   heatMapType.position(335, 30);
-  Labels.position(175, 10)
+  Labels.position(175, 10);
 
   uploadData.position(255, 30);
   loadData.position(175, 30);
   dataType.position(335, 30);
 
-  let gridMapH = windowWidth / 3.2
-  let gridmapW = windowWidth / 2.25
+  let gridMapH = windowWidth / 3.2;
+  let gridmapW = windowWidth / 2.25;
 
-  gridMapID.position(windowWidth / 1.19 - gridmapW, windowHeight / 2.17 - windowWidth / 8)
-  gridMapID.size(gridmapW, gridMapH)
+  gridMapID.position(windowWidth / 1.19 - gridmapW, windowHeight / 2.17 - windowWidth / 8);
+  gridMapID.size(gridmapW, gridMapH);
 
   dataTransScreen.size(windowWidth / 1.5, windowWidth / 3.25);
   dataTransScreen.position(windowWidth / 6.5, windowHeight / 2.25 - windowWidth / 8);
@@ -1375,7 +1375,7 @@ function fixsizes() {
 
   DataShowButton.position(10, bannerHeight + shieldSize + 55);
 
-  griddedMap.invalidateSize()
+  griddedMap.invalidateSize();
 
   let showRankPosY = windowHeight / 2 - windowWidth / 8;
 
@@ -1396,7 +1396,7 @@ function displayGrid() {
   if (!showGrid) {
     showGridScreen.style("z-index", "20");
     showGridScreen.style("opacity", "1");
-    gridMapID.show()
+    gridMapID.show();
     showGridDropDown.style("z-index", "21");
     showGridDropDown.style("opacity", "1");
     heatMapDropDown.style("z-index", "21");
@@ -1409,7 +1409,7 @@ function displayGrid() {
     resetGridView();
     showGridScreen.style("z-index", "-1");
     showGridScreen.style("opacity", "0");
-    gridMapID.hide()
+    gridMapID.hide();
     showGridDropDown.style("z-index", "-1");
     showGridDropDown.style("opacity", "0");
     heatMapDropDown.style("z-index", "-1");
@@ -1458,7 +1458,7 @@ function bannerTextChange() {
       }
     }
     else if (viewing) {
-      banner.html("Viewing Mode")
+      banner.html("Viewing Mode");
     }
     else {
       if (setTypeDropDown.value() === "normal") {
@@ -1492,9 +1492,9 @@ function timeDrain() {
       //be forced to confirm the guess and set the state
       if (inParty) {
         if (shared.normalround === "ongoing") {
-          shared.normalround = "over"
+          shared.normalround = "over";
         }
-        confirmed()
+        confirmed();
       }
 
       else {
@@ -1561,9 +1561,9 @@ function confirmed() {
   //exit the viewing mode
   if (viewing) {
     viewing = false;
-    mapID.show()
-    mapChange()
-    return
+    mapID.show();
+    mapChange();
+    return;
   }
 
   if (mapShowing && !waitingLobby) {
@@ -1605,20 +1605,20 @@ function confirmed() {
                 lat: clickedPoint.lat,
                 lng: clickedPoint.lng,
                 Pin: currentPin,
-              })
+              });
             }
 
-            lockedIn = true
-            shared.normalround = "over"
+            lockedIn = true;
+            shared.normalround = "over";
 
-            afterGuess()
+            afterGuess();
           }
         }
       }
       //escape the end screen when inside of a party
       else {
         for (let item of displayMarkers) {
-          item.remove()
+          item.remove();
         }
         preChangeClickedLength = 0;
         shared.normalClickedPositions = [];
@@ -1711,11 +1711,11 @@ function afterGuess() {
 
   //determine location for calculations
   if (!inParty) {
-    calcLocation = randomlocation
+    calcLocation = randomlocation;
   }
   else {
     if (setTypeDropDown.value() === "normal") {
-      calcLocation = shared.normalMap
+      calcLocation = shared.normalMap;
     }
   }
 
@@ -1728,23 +1728,22 @@ function afterGuess() {
   totalDistance = point1.distanceTo(point2);
 
   //add stats
-  totalGuesses += 1
-  console.log("added")
+  totalGuesses += 1;
 
   //determine which color stat to add
-    if (totalDistance <= ultraDis) {
-      totalGold += 1
-    }
-    else if (totalDistance <= superDis) {
-      totalPurple += 1
-    }
-    else if (totalDistance <= correctDis) {
-      totalGreen += 1
-    }
+  if (totalDistance <= ultraDis) {
+    totalGold += 1;
+  }
+  else if (totalDistance <= superDis) {
+    totalPurple += 1;
+  }
+  else if (totalDistance <= correctDis) {
+    totalGreen += 1;
+  }
 
 
   //add grid stats
-  addGridStats(clickedPoint, calcLocation, totalDistance)
+  addGridStats(clickedPoint, calcLocation, totalDistance);
 
   //do the heat calculations
   findHeatValues();
@@ -1855,19 +1854,19 @@ function afterGuess() {
   let lineCol = "black";
   if (totalDistance <= ultraDis) {
     lineCol = "orange";
-    currentBannerColor = bannerOrange
+    currentBannerColor = bannerOrange;
   }
   else if (totalDistance <= superDis) {
     lineCol = "purple";
-    currentBannerColor = bannerPurple
+    currentBannerColor = bannerPurple;
   }
   else if (totalDistance <= correctDis) {
     lineCol = "green";
-    currentBannerColor = bannerGreen
+    currentBannerColor = bannerGreen;
   }
   else if (totalDistance >= wrongDis) {
     lineCol = "red";
-    currentBannerColor = bannerRed
+    currentBannerColor = bannerRed;
   }
 
   //show a line from the clicked point to the answer
@@ -1971,13 +1970,14 @@ function saveProgress() {
 //the basic idea is that the map will be divided into many grids to serve many purposes
 // - players can see how much the 2d map is stretched (places like Greenland look massive but are not actually)
 // - stats will be saved to each grid showing players their best and worst areas
+// - has a heat map so that players can see 
 
 
 //grid system for map
 const GRID_LENGTH = 15;
 let gridOpacity = 0.5;
 let gridWeight = 1;
-let mapGrid = []
+let mapGrid = [];
 let basicGridInfo = {
   answerAmount: 0,
   correctAmount: 0,
@@ -1988,7 +1988,7 @@ let basicGridInfo = {
   correctPercent: 0,
 
   pastGuesses: []
-}
+};
 
 let currentgrid;
 
@@ -1997,6 +1997,7 @@ let shownPastGuesses = [];
 
 //heat map stats
 let greenSquares = [];
+let midSquares = [];
 let redSquares = [];
 
 function addGrid() {
@@ -2004,15 +2005,15 @@ function addGrid() {
   if (localStorage.getItem("griddedmap") === null) {
 
     //lng
-    let rows = 360 / GRID_LENGTH
+    let rows = 360 / GRID_LENGTH;
 
     //lat
-    let cols = 180 / GRID_LENGTH
+    let cols = 180 / GRID_LENGTH;
 
     for (let c = 0; c < cols; c++) {
-      mapGrid.push([])
+      mapGrid.push([]);
       for (let r = 0; r < rows; r++) {
-        mapGrid[c].push(structuredClone(basicGridInfo))
+        mapGrid[c].push(structuredClone(basicGridInfo));
       }
     }
   }
@@ -2048,28 +2049,28 @@ function addGrid() {
   //function to determine the current grid
   function onGridMapClick(e) {
     if (selectSquare !== undefined) {
-      selectSquare.remove()
+      selectSquare.remove();
     }
 
     let lat = e.latlng.lat;
     let lng = e.latlng.lng;
 
-    let currentCol = Math.floor((lat + 90) / GRID_LENGTH)
-    let currentRow = Math.floor((lng + 180) / GRID_LENGTH)
+    let currentCol = Math.floor((lat + 90) / GRID_LENGTH);
+    let currentRow = Math.floor((lng + 180) / GRID_LENGTH);
 
-    currentgrid = mapGrid[currentCol][currentRow]
+    currentgrid = mapGrid[currentCol][currentRow];
 
     //if the player presses outside of the gridded map
     if (currentgrid === undefined) {
-      currentgrid = "none"
+      currentgrid = "none";
     }
 
     //create a select square
     selectSquare = L.polygon([
-    [((currentCol) * GRID_LENGTH) - 90, ((currentRow) * GRID_LENGTH) - 180],
-    [((currentCol) * GRID_LENGTH) - 90, ((currentRow + 1) * GRID_LENGTH) - 180],
-    [((currentCol + 1) * GRID_LENGTH) - 90, ((currentRow + 1) * GRID_LENGTH) - 180],
-    [((currentCol + 1) * GRID_LENGTH) - 90, ((currentRow) * GRID_LENGTH) - 180]
+      [currentCol * GRID_LENGTH - 90, currentRow * GRID_LENGTH - 180],
+      [currentCol * GRID_LENGTH - 90, (currentRow + 1) * GRID_LENGTH - 180],
+      [(currentCol + 1) * GRID_LENGTH - 90, (currentRow + 1) * GRID_LENGTH - 180],
+      [(currentCol + 1) * GRID_LENGTH - 90, currentRow * GRID_LENGTH - 180]
     ], {
       color: "rgb(187, 196, 74)",
       weight: 1,
@@ -2081,7 +2082,7 @@ function addGrid() {
 
     //remove all guesses that had been there before
     for (let item of shownPastGuesses) {
-      item.remove()
+      item.remove();
     }
     shownPastGuesses = [];
 
@@ -2103,7 +2104,7 @@ function addGrid() {
         //hide the map grid page
         showGridScreen.style("z-index", "-1");
         showGridScreen.style("opacity", "0");
-        gridMapID.hide()
+        gridMapID.hide();
         showGridDropDown.style("z-index", "-1");
         showGridDropDown.style("opacity", "0");
         heatMapDropDown.style("z-index", "-1");
@@ -2115,19 +2116,19 @@ function addGrid() {
         showGrid = false;
 
         //make sure the player cannot access map
-        mapID.hide()
+        mapID.hide();
         hideMapButton.attribute("disabled", "");
 
         //show the previous location
-        newlat = info.answerLat
-        newlng = info.answerLng
+        newlat = info.answerLat;
+        newlng = info.answerLng;
         switching = true;
       });
 
       //place all marks in list for later removal
-      shownPastGuesses.push(gridAnswerMark)
-      shownPastGuesses.push(gridClickedMark)
-      shownPastGuesses.push(gridAnswerLine)
+      shownPastGuesses.push(gridAnswerMark);
+      shownPastGuesses.push(gridClickedMark);
+      shownPastGuesses.push(gridAnswerLine);
     }
   }
 
@@ -2137,45 +2138,45 @@ function addGrid() {
 function addGridStats(clicked, answer, totaldis) {
 
   //find which grid the answer is in
-  let ansLat = answer.lat
-  let ansLng = answer.lng
+  let ansLat = answer.lat;
+  let ansLng = answer.lng;
 
-  let answerCol = Math.floor((ansLat + 90) / GRID_LENGTH)
-  let answerRow = Math.floor((ansLng + 180) / GRID_LENGTH)
+  let answerCol = Math.floor((ansLat + 90) / GRID_LENGTH);
+  let answerRow = Math.floor((ansLng + 180) / GRID_LENGTH);
 
   //find whcih grid the guess was in
-  let clickLat = clicked.lat
-  let clickLng = clicked.lng
+  let clickLat = clicked.lat;
+  let clickLng = clicked.lng;
 
-  let clickedCol = Math.floor((clickLat + 90) / GRID_LENGTH)
-  let clickedRow = Math.floor((clickLng + 180) / GRID_LENGTH)
+  let clickedCol = Math.floor((clickLat + 90) / GRID_LENGTH);
+  let clickedRow = Math.floor((clickLng + 180) / GRID_LENGTH);
 
   //add to the amount of times the answer has been in that grid
-  mapGrid[answerCol][answerRow].answerAmount += 1
+  mapGrid[answerCol][answerRow].answerAmount += 1;
 
   //add if the player guessed in the same grid as answer
   if (clickedCol === answerCol && clickedRow === answerRow) {
-    mapGrid[answerCol][answerRow].correctAmount += 1
+    mapGrid[answerCol][answerRow].correctAmount += 1;
   }
   //add if player gets wrong
   else {
-    mapGrid[answerCol][answerRow].wrongAmount += 1
+    mapGrid[answerCol][answerRow].wrongAmount += 1;
   }
 
   //add to the amount of times the player has guessed this grid
-  mapGrid[clickedCol][clickedRow].guessedAmount += 1
+  mapGrid[clickedCol][clickedRow].guessedAmount += 1;
 
   //find the average distance of all guesses when the answer was this grid
-  let guessAmount = mapGrid[answerCol][answerRow].answerAmount
+  let guessAmount = mapGrid[answerCol][answerRow].answerAmount;
   if (guessAmount === 1) {
-    mapGrid[answerCol][answerRow].averageDistance = totaldis
+    mapGrid[answerCol][answerRow].averageDistance = totaldis;
   }
   else {
-    mapGrid[answerCol][answerRow].averageDistance = ((guessAmount - 1) * mapGrid[answerCol][answerRow].averageDistance + totaldis) / guessAmount
+    mapGrid[answerCol][answerRow].averageDistance = ((guessAmount - 1) * mapGrid[answerCol][answerRow].averageDistance + totaldis) / guessAmount;
   }
 
   //find the percent of getting the grid correct
-  mapGrid[answerCol][answerRow].correctPercent = round((mapGrid[answerCol][answerRow].correctAmount / guessAmount) * 100)
+  mapGrid[answerCol][answerRow].correctPercent = round(mapGrid[answerCol][answerRow].correctAmount / guessAmount * 100);
 
   //save the guess to the grid
 
@@ -2200,22 +2201,26 @@ function addGridStats(clicked, answer, totaldis) {
     answerLat: ansLat,
     answerLng: ansLng,
     lineColor: lineCol
-  })
-
+  });
 }
 
 //get values for the heat map
 function findHeatValues() {
   //remove all squares and reset the array
   for (let item of greenSquares) {
-    item.remove()
+    item.remove();
   }
-  greenSquares = []
+  greenSquares = [];
+
+  for (let item of midSquares) {
+    item.remove();
+  }
+  midSquares = [];
 
   for (let item of redSquares) {
-    item.remove()
+    item.remove();
   }
-  redSquares = []
+  redSquares = [];
   
   if (heatMapType.value() !== "") {
 
@@ -2224,71 +2229,96 @@ function findHeatValues() {
       //go through each grid
       for (let col = 0; col < mapGrid.length;  col++) {
         for (let row = 0; row < mapGrid[col].length; row++) {
-          let checkGrid = mapGrid[col][row]
+          let checkGrid = mapGrid[col][row];
 
           //if the "correct" heat map is selected
           if (heatMapDropDown.value() === "correct") {
             //make green squares if the pass req
-            if (checkGrid.answerAmount !== 0 && checkGrid.correctAmount >= heatMapType.value()) {
-              addGreen(col, row)
+            if (checkGrid.correctAmount > heatMapType.value()) {
+              addGreen(col, row);
             }
 
             //this is for creating red squares
-            if (checkGrid.answerAmount !== 0 && checkGrid.correctAmount < heatMapType.value()) {
-              addRed(col, row)
+            else if (checkGrid.correctAmount < heatMapType.value()) {
+              addRed(col, row);
+            }
+
+            //if the value equals
+            else {
+              addOrange(col, row);
             }
           }
 
           //if the "answer" heat map is selected
-          if (heatMapDropDown.value() === "answer") {
+          else if (heatMapDropDown.value() === "answer") {
             //make green squares if the pass req
-            if (checkGrid.answerAmount !== 0 && checkGrid.answerAmount >= heatMapType.value()) {
-              addGreen(col, row)
+            if (checkGrid.answerAmount > heatMapType.value()) {
+              addGreen(col, row);
+            }
+        
+            //this is for creating red squares
+            else if (checkGrid.answerAmount < heatMapType.value()) {
+              addRed(col, row);
             }
 
-            //this is for creating red squares
-            if (checkGrid.answerAmount !== 0 && checkGrid.answerAmount < heatMapType.value()) {
-              addRed(col, row)
+            //if the value equals
+            else {
+              addOrange(col, row);
             }
           }
 
           //if the "guessed" heat map is selected
-          if (heatMapDropDown.value() === "guessed") {
+          else if (heatMapDropDown.value() === "guessed") {
             //make green squares if the pass req
-            if (checkGrid.guessedAmount >= heatMapType.value()) {
-              addGreen(col, row)
+            if (checkGrid.guessedAmount > heatMapType.value()) {
+              addGreen(col, row);
             }
 
             //this is for creating red squares
-            if (checkGrid.guessedAmount < heatMapType.value()) {
-              addRed(col, row)
+            else if (checkGrid.guessedAmount < heatMapType.value()) {
+              addRed(col, row);
+            }
+
+            //if the value equals
+            else {
+              addOrange(col, row);
             }
           }
 
           //if the "percent" heat map is selected
-          if (heatMapDropDown.value() === "percent") {
+          else if (heatMapDropDown.value() === "percent") {
             //make green squares if the pass req
-            if (checkGrid.answerAmount !== 0 && (checkGrid.correctAmount / checkGrid.answerAmount) * 100 >= heatMapType.value()) {
-              addGreen(col, row)
+            if (checkGrid.correctAmount / checkGrid.answerAmount * 100 > heatMapType.value()) {
+              addGreen(col, row);
             }
 
             //this is for creating red squares
-            if (checkGrid.answerAmount !== 0 && (checkGrid.correctAmount / checkGrid.answerAmount) * 100 < heatMapType.value()) {
-              addRed(col, row)
+            else if (checkGrid.correctAmount / checkGrid.answerAmount * 100 < heatMapType.value() || checkGrid.correctAmount === 0) {
+              addRed(col, row);
+            }
+
+            //if the value equals
+            else {
+              addOrange(col, row);
             }
           }
 
           //if the "distance" heat map is selected
           //dividing the values by 1000 to simulate km
-          if (heatMapDropDown.value() === "distance") {
-            //make green squares if the pass req
-            if (checkGrid.answerAmount !== 0 && checkGrid.averageDistance / 1000 <= heatMapType.value()) {
-              addGreen(col, row)
+          else if (heatMapDropDown.value() === "distance") {
+            //make green squares if it passes the requirement and there has been a guess on the grid
+            if (checkGrid.averageDistance / 1000 < heatMapType.value() && checkGrid.answerAmount >= 1) {
+              addGreen(col, row);
             }
 
             //this is for creating red squares
-            if (checkGrid.answerAmount !== 0 && checkGrid.averageDistance / 1000 > heatMapType.value()) {
-              addRed(col, row)
+            else if (checkGrid.averageDistance / 1000 > heatMapType.value() || checkGrid.answerAmount === 0) {
+              addRed(col, row);
+            }
+
+            //if the value equals
+            else {
+              addOrange(col, row);
             }
           }
 
@@ -2303,11 +2333,12 @@ function addGreen(col, row) {
   //add the heat maps
   //create a heat map green square
   rightSquare = L.polygon([
-  [((col) * GRID_LENGTH) - 90, ((row) * GRID_LENGTH) - 180],
-  [((col) * GRID_LENGTH) - 90, ((row + 1) * GRID_LENGTH) - 180],
-  [((col + 1) * GRID_LENGTH) - 90, ((row + 1) * GRID_LENGTH) - 180],
-  [((col + 1) * GRID_LENGTH) - 90, ((row) * GRID_LENGTH) - 180]
-  ], {
+    [col * GRID_LENGTH - 90, row * GRID_LENGTH - 180],
+    [col * GRID_LENGTH - 90, (row + 1) * GRID_LENGTH - 180],
+    [(col + 1) * GRID_LENGTH - 90, (row + 1) * GRID_LENGTH - 180],
+    [(col + 1) * GRID_LENGTH - 90, row * GRID_LENGTH - 180]
+  ], 
+  {
     color: "rgb(54, 202, 98)",
     weight: 1,
     opacity: 1,
@@ -2316,18 +2347,40 @@ function addGreen(col, row) {
     fillOpacity: 0.3
   }).addTo(griddedMap);
 
-  greenSquares.push(rightSquare)
+  greenSquares.push(rightSquare);
+}
+
+function addOrange(col, row) {
+  //add the heat maps
+  //create a heat map orange square
+  midSquare = L.polygon([
+    [col * GRID_LENGTH - 90, row * GRID_LENGTH - 180],
+    [col * GRID_LENGTH - 90, (row + 1) * GRID_LENGTH - 180],
+    [(col + 1) * GRID_LENGTH - 90, (row + 1) * GRID_LENGTH - 180],
+    [(col + 1) * GRID_LENGTH - 90, row * GRID_LENGTH - 180]
+  ], 
+  {
+    color: "rgb(216, 147, 19)",
+    weight: 1,
+    opacity: 1,
+
+    fillColor: "rgb(202, 145, 38)",
+    fillOpacity: 0.3
+  }).addTo(griddedMap);
+
+  midSquares.push(midSquare);
 }
 
 function addRed(col, row) {
   //add the heat maps
   //create a heat map red square
   wrongSquare = L.polygon([
-  [((col) * GRID_LENGTH) - 90, ((row) * GRID_LENGTH) - 180],
-  [((col) * GRID_LENGTH) - 90, ((row + 1) * GRID_LENGTH) - 180],
-  [((col + 1) * GRID_LENGTH) - 90, ((row + 1) * GRID_LENGTH) - 180],
-  [((col + 1) * GRID_LENGTH) - 90, ((row) * GRID_LENGTH) - 180]
-  ], {
+    [col * GRID_LENGTH - 90, row * GRID_LENGTH - 180],
+    [col * GRID_LENGTH - 90, (row + 1) * GRID_LENGTH - 180],
+    [(col + 1) * GRID_LENGTH - 90, (row + 1) * GRID_LENGTH - 180],
+    [(col + 1) * GRID_LENGTH - 90, row * GRID_LENGTH - 180]
+  ], 
+  {
     color: "rgb(255, 131, 131)",
     weight: 1,
     opacity: 1,
@@ -2336,5 +2389,5 @@ function addRed(col, row) {
     fillOpacity: 0.3
   }).addTo(griddedMap);
 
-  redSquares.push(wrongSquare)
+  redSquares.push(wrongSquare);
 }
