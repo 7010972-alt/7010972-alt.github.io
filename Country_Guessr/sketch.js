@@ -92,7 +92,7 @@ let goldP = "goldPin.png";
 let diamondP = "diamondPin.png";
 let obsidianP = "obsidianPin.png";
 let slimeP = "slimePin.png";
-let interP = "interPin.png";
+let interP = "interdimensionalPin.png";
 
 let currentPin = coalP;
 
@@ -123,6 +123,10 @@ let bestNMPZ = 0;
 let bestBlink = 0;
 
 //map variables
+let hintMode = false;
+let hintDiv = 1.5;
+let hintRadius = 15;
+
 let ultraDis = 50000; 
 let superDis = 250000;
 let correctDis = 1000000;
@@ -190,6 +194,7 @@ let DataShowButton;
 let loadData;
 let uploadData;
 let dataType;
+let hintButton;
 
 //set variables
 let blitzTime = 10;
@@ -250,6 +255,8 @@ let currentMuiltIcon = coalP;
 let preChangeClickedLength;
 let waitingLobby = false;
 let lobbyJoined = false;
+
+var hintcircle;
 
 function setup() {
   noCanvas();
@@ -417,6 +424,15 @@ function setup() {
   hideMapButton.style("z-index", "12");
 
   hideMapButton.mousePressed(hideMap);
+
+  //button to toggle hint mode
+  hintButton = createButton("Hint Mode");
+  hintButton.size(60, 50);
+  hintButton.style("position", "absolute");
+  hintButton.style("z-index", "12");
+  hintButton.style("background-color", "rgb(255, 79, 79)")
+
+  hintButton.mousePressed(toggleHint);
 
   //button to start a set
   startSetButton = createButton("Start Set");
@@ -623,6 +639,34 @@ function draw() {
   labelConfigure();
   showButtonLock();
   dataInfo();
+  //hintMove();
+}
+
+function toggleHint() {
+  hintMode = !hintMode
+
+  if (hintMode) {
+    //change to green
+    hintButton.style("background-color", "rgb(94, 255, 0)")
+
+    //create the hint circle
+    hintcircle = L.circle([0, 0], {
+      color: 'rgb(94, 255, 0)',
+      opacity: 0.5,
+      fillColor: 'rgb(94, 255, 0)',
+      fillOpacity: 0.2,
+      //lat to meters conversion
+      radius: hintRadius * 111139
+    }).addTo(map);
+  }
+  else {
+    //make red
+    hintButton.style("background-color", "rgb(255, 79, 79)")
+
+    hintcircle.remove()
+  }
+
+  mapChange();
 }
 
 function resetGridView() {
@@ -1142,11 +1186,13 @@ function lockStartJoin() {
     joinButton.attribute("disabled", "");
     startSetButton.attribute("disabled", "");
     setTypeDropDown.attribute("disabled", "");
+    hintButton.attribute("disabled", "");
   }
   else {
     joinButton.removeAttribute("disabled");
     startSetButton.removeAttribute("disabled");
     setTypeDropDown.removeAttribute("disabled");
+    hintButton.removeAttribute("disabled");
   }
 }
 
@@ -1340,6 +1386,8 @@ function fixsizes() {
 
   confirmButton.position(windowWidth - 67, windowHeight - 250);
   hideMapButton.position(windowWidth - 67, windowHeight - 310);
+  hintButton.position(windowWidth - 67, windowHeight - 120);
+
   startSetButton.position(10, 10);
   joinButton.position(90, 10);
 
@@ -1548,6 +1596,13 @@ function nextmap() {
       randomlocation = random(currentLocations);
       newlat = randomlocation.lat;
       newlng = randomlocation.lng;
+      if (hintMode) {
+        let randHintLat = Math.random() * ((randomlocation.lat + hintRadius) - (randomlocation.lat - hintRadius)) + (randomlocation.lat - hintRadius);
+        let randHintLng = Math.random() * ((randomlocation.lng + hintRadius) - (randomlocation.lng - hintRadius)) + (randomlocation.lng - hintRadius);
+        console.log(randHintLat)
+        console.log(randHintLng)
+        hintcircle.setLatLng([randHintLat, randHintLng]);
+      }
     }
     
     street.attribute(
@@ -1762,6 +1817,11 @@ function afterGuess() {
   //exponential points
   //got this equation from geoguessr
   points = Math.round(5000 * Math.exp(-10 * totalDistance / worldMapSize));
+
+  //if hintmode is active then divide by the divisor
+  if (hintMode) {
+    points = Math.round(points / hintDiv);
+  }
 
   //set distance text
   let measurement = "m";
