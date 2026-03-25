@@ -124,7 +124,9 @@ let bestBlink = 0;
 
 //map variables
 let hintMode = false;
-let hintDiv = 1.5;
+let zoomOutAfterGuess = false;
+let zoomOutPadding = 7.5;
+let hintDiv = 0.333;
 let hintRadius = 15;
 
 let ultraDis = 50000; 
@@ -195,6 +197,7 @@ let loadData;
 let uploadData;
 let dataType;
 let hintButton;
+let zoomButton;
 
 //set variables
 let blitzTime = 10;
@@ -434,6 +437,15 @@ function setup() {
 
   hintButton.mousePressed(toggleHint);
 
+  //button to toggle zooming out after guesses
+  zoomButton = createButton("Zoom Out");
+  zoomButton.size(60, 50);
+  zoomButton.style("position", "absolute");
+  zoomButton.style("z-index", "12");
+  zoomButton.style("background-color", "rgb(255, 79, 79)")
+
+  zoomButton.mousePressed(toggleZoom);
+
   //button to start a set
   startSetButton = createButton("Start Set");
   startSetButton.size(80, 30);
@@ -640,6 +652,22 @@ function draw() {
   showButtonLock();
   dataInfo();
   //hintMove();
+}
+
+function toggleZoom() {
+  zoomOutAfterGuess = !zoomOutAfterGuess
+
+  //make the zoom padding change so after each guess it will be more zoomed out
+  if (zoomOutAfterGuess) {
+    //change to green
+    zoomButton.style("background-color", "rgb(94, 255, 0)")
+    answerPadding = answerPadding * zoomOutPadding;
+  }
+  else {
+    //make red
+    zoomButton.style("background-color", "rgb(255, 79, 79)")
+    answerPadding = answerPadding / zoomOutPadding;
+  }
 }
 
 function toggleHint() {
@@ -1187,12 +1215,14 @@ function lockStartJoin() {
     startSetButton.attribute("disabled", "");
     setTypeDropDown.attribute("disabled", "");
     hintButton.attribute("disabled", "");
+    zoomButton.attribute("disabled", "");
   }
   else {
     joinButton.removeAttribute("disabled");
     startSetButton.removeAttribute("disabled");
     setTypeDropDown.removeAttribute("disabled");
     hintButton.removeAttribute("disabled");
+    zoomButton.removeAttribute("disabled");
   }
 }
 
@@ -1386,7 +1416,9 @@ function fixsizes() {
 
   confirmButton.position(windowWidth - 67, windowHeight - 250);
   hideMapButton.position(windowWidth - 67, windowHeight - 310);
-  hintButton.position(windowWidth - 67, windowHeight - 120);
+  hintButton.position(windowWidth - 67, windowHeight - 130);
+  zoomButton.position(windowWidth - 67, windowHeight - 70);
+
 
   startSetButton.position(10, 10);
   joinButton.position(90, 10);
@@ -1479,6 +1511,7 @@ function displayGrid() {
 
 //shows the info for rank up
 function showRank() {
+  bestSet = 22845
   if (!showingRankInfo) {
     showRankScreen.style("z-index", "20");
     showRankScreen.style("opacity", "1");
@@ -1562,10 +1595,16 @@ function timeDrain() {
   }
 }
 
+//starts a set
 function startSet() {
   if (!setActive) {
     setActive = true;
     curretnRoundNumber = 1;
+
+    //do not allow hint mode on NMPZ, Blitz, or Blink
+    if (hintMode && (setTypeDropDown.value() === "blitz" || setTypeDropDown.value() === "NMPZ" || setTypeDropDown.value() === "blink")) {
+      toggleHint();
+    }
     mapChange();
   }
 }
@@ -1598,13 +1637,13 @@ function nextmap() {
       newlng = randomlocation.lng;
       if (hintMode) {
 
-        //make sure the random range can only be inside of the circle
-        let randomLatRadius = Math.random(-15, 15);
-        let randHintLat = randomlocation.lat + randomLatRadius;
+        //this keeps the guess inside of the circle as it generates an angle in radians
+        //and then finds how much of each lat and lng have to be shifted
+        let angle = Math.random() * Math.PI * 2;
+        let distance = Math.sqrt(Math.random()) * hintRadius;
 
-        let randomLngRadius = Math.random(-15, 15);
-        let randHintLng = randomlocation.lng + randomLngRadius;
-
+        let randHintLat = randomlocation.lat + Math.cos(angle) * distance;
+        let randHintLng = randomlocation.lng + Math.sin(angle) * distance;
 
         console.log(randHintLat)
         console.log(randHintLng)
@@ -1821,14 +1860,15 @@ function afterGuess() {
 
   endScreen = true;
 
+  //if hintmode is on then make it harder to earn points by shrinking the map size
+  let mapSize = worldMapSize;
+  if (hintMode) {
+    mapSize = worldMapSize * hintDiv
+  }
+
   //exponential points
   //got this equation from geoguessr
-  points = Math.round(5000 * Math.exp(-10 * totalDistance / worldMapSize));
-
-  //if hintmode is active then divide by the divisor
-  if (hintMode) {
-    points = Math.round(points / hintDiv);
-  }
+  points = Math.round(5000 * Math.exp(-10 * totalDistance / mapSize));
 
   //set distance text
   let measurement = "m";
@@ -1961,9 +2001,8 @@ function adjustAfterGuess() {
     [clickedPoint.lat, clickedPoint.lng]
   );
   
-
   //leaflit feautre to make the map fit 2 coordinates 
-  map.fitBounds(bounds, { padding: [answerPadding, answerPadding] });
+  map.fitBounds(bounds, {padding: [answerPadding, answerPadding]});
 }
 
 //stands for No Pan, Move, or Zoom
