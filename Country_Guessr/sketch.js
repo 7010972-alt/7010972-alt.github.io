@@ -279,11 +279,20 @@ function setup() {
   map = L.map("map").setView([0, 0], 1);
 
   //pasted from leaflet
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  // L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  //   maxZoom: 19,
+  //   minZoom: 1,
+  //   attribution: "&copy; OpenStreetMap contributors"
+  // }).addTo(map);
+
+  //all English
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd',
     maxZoom: 19,
     minZoom: 1,
-    attribution: "&copy; OpenStreetMap contributors"
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
   }).addTo(map);
+
 
   mapID = select("#map");
 
@@ -1999,6 +2008,7 @@ let shownPastGuesses = [];
 let greenSquares = [];
 let midSquares = [];
 let redSquares = [];
+let heatSquareOpacity = 0.5;
 
 function addGrid() {
   //create a new grid if the player does not have one already
@@ -2344,7 +2354,7 @@ function addGreen(col, row) {
     opacity: 1,
 
     fillColor: "green",
-    fillOpacity: 0.3
+    fillOpacity: heatSquareOpacity
   }).addTo(griddedMap);
 
   greenSquares.push(rightSquare);
@@ -2360,12 +2370,12 @@ function addOrange(col, row) {
     [(col + 1) * GRID_LENGTH - 90, row * GRID_LENGTH - 180]
   ], 
   {
-    color: "rgb(216, 147, 19)",
+    color: "rgb(189, 151, 80)",
     weight: 1,
     opacity: 1,
 
     fillColor: "rgb(202, 145, 38)",
-    fillOpacity: 0.3
+    fillOpacity: heatSquareOpacity
   }).addTo(griddedMap);
 
   midSquares.push(midSquare);
@@ -2386,7 +2396,7 @@ function addRed(col, row) {
     opacity: 1,
 
     fillColor: "rgb(255, 131, 131)",
-    fillOpacity: 0.3
+    fillOpacity: heatSquareOpacity
   }).addTo(griddedMap);
 
   redSquares.push(wrongSquare);
