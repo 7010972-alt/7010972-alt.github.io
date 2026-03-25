@@ -1597,8 +1597,15 @@ function nextmap() {
       newlat = randomlocation.lat;
       newlng = randomlocation.lng;
       if (hintMode) {
-        let randHintLat = Math.random() * ((randomlocation.lat + hintRadius) - (randomlocation.lat - hintRadius)) + (randomlocation.lat - hintRadius);
-        let randHintLng = Math.random() * ((randomlocation.lng + hintRadius) - (randomlocation.lng - hintRadius)) + (randomlocation.lng - hintRadius);
+
+        //make sure the random range can only be inside of the circle
+        let randomLatRadius = Math.random(-15, 15);
+        let randHintLat = randomlocation.lat + randomLatRadius;
+
+        let randomLngRadius = Math.random(-15, 15);
+        let randHintLng = randomlocation.lng + randomLngRadius;
+
+
         console.log(randHintLat)
         console.log(randHintLng)
         hintcircle.setLatLng([randHintLat, randHintLng]);

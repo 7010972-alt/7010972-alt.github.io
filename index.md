@@ -9,6 +9,7 @@
 - ["grid demo"](grid)
 - ["rectangular grid"](rect-grid)
 - ["game of Life"](game-of-life)
+- [Character in Grid](character)
 
 ## Assignments
 - [square grower](interactive-scene)
