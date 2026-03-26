@@ -1250,10 +1250,10 @@ function rankModify() {
     currentPin = interP;
     currentShield = interS;
 
-    nextBestSet = "25000";
-    nextBestBlitz = "25000";
-    nextBestNMPZ = "25000";
-    nextBestBlink = "25000";
+    nextBestSet = "22500";
+    nextBestBlitz = "21500";
+    nextBestNMPZ = "21000";
+    nextBestBlink = "20000";
   }
   else if (bestSet > 20000 && bestBlitz > 19000 && bestNMPZ > 18000 && bestBlink > 17000) {
     rank = "Slime";
