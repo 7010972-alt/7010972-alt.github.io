@@ -1527,7 +1527,6 @@ function displayGrid() {
 
 //shows the info for rank up
 function showRank() {
-  bestSet = 22845
   if (!showingRankInfo) {
     showRankScreen.style("z-index", "20");
     showRankScreen.style("opacity", "1");
