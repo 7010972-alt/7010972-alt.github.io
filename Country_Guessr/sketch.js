@@ -651,7 +651,16 @@ function draw() {
   labelConfigure();
   showButtonLock();
   dataInfo();
-  //hintMove();
+  setButtonText();
+}
+
+function setButtonText() {
+  if (setActive) {
+    startSetButton.html("Reset Set")
+  }
+  else {
+    startSetButton.html("Start Set")
+  }
 }
 
 function toggleZoom() {
@@ -736,7 +745,7 @@ function dataInfo() {
 
 //conditions when some buttons need to be disabled
 function showButtonLock() {
-  if (viewing) {
+  if (viewing || setActive || inParty) {
     showGridButton.attribute("disabled", "");
     showRankButton.attribute("disabled", "");
     DataShowButton.attribute("disabled", "");
@@ -1212,10 +1221,17 @@ function partyChange(place, type) {
 function lockStartJoin() {
   if (inParty || setActive || endScreen || viewing) {
     joinButton.attribute("disabled", "");
-    startSetButton.attribute("disabled", "");
     setTypeDropDown.attribute("disabled", "");
     hintButton.attribute("disabled", "");
     zoomButton.attribute("disabled", "");
+
+    //keep the reset option open while a set is active
+    if (!setActive || endScreen) {
+      startSetButton.attribute("disabled", "");
+    }
+    else if (setActive && !endScreen) {
+      startSetButton.removeAttribute("disabled");
+    }
   }
   else {
     joinButton.removeAttribute("disabled");
@@ -1596,6 +1612,8 @@ function timeDrain() {
 
 //starts a set
 function startSet() {
+
+  //this runs to start a set
   if (!setActive) {
     setActive = true;
     curretnRoundNumber = 1;
@@ -1604,6 +1622,17 @@ function startSet() {
     if (hintMode && (setTypeDropDown.value() === "blitz" || setTypeDropDown.value() === "NMPZ" || setTypeDropDown.value() === "blink")) {
       toggleHint();
     }
+    mapChange();
+  }
+
+  //this runs when you need to reset a set
+  else {
+    curretnRoundNumber = 1;
+    totalSetPoints = 0;
+    setLocations = [];
+    setMarkers = [];
+    setClickedPoints = [];
+    setLineColors = [];
     mapChange();
   }
 }
