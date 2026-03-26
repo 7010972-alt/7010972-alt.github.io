@@ -108,6 +108,9 @@ let answerIcon = L.icon({
 });
 
 //game variables
+var gridAnswerMarker;
+let gridMode = false;
+let gridShown = false;
 let viewing = false;
 let allowGuess = true;
 let timeAfterFirstGuess = 16;
@@ -193,6 +196,7 @@ let heatMapDropDown;
 let heatMapType;
 let Labels;
 let DataShowButton;
+let gridModeButton;
 let loadData;
 let uploadData;
 let dataType;
@@ -311,16 +315,25 @@ function setup() {
 
   //when the map is clicked
   function onMapClick(e) {
-    if (endScreen === false && !lockedIn) {
-      let lat = e.latlng.lat;
-      let lng = e.latlng.lng;
+    let lat = e.latlng.lat;
+    let lng = e.latlng.lng;
+    //what runs normally 
+    if (!gridMode) {
 
-      marker.setLatLng([lat, lng]);
-      
-      clickedPoint = {
-        lat: lat,
-        lng: lng,
-      };
+      //when screen is clicked then move the marker to the clicked location and set the clicked coords
+      if (endScreen === false && !lockedIn) {
+        marker.setLatLng([lat, lng]);
+        
+        clickedPoint = {
+          lat: lat,
+          lng: lng,
+        };
+      }
+    }
+
+    //runs while grid mode is on
+    else {
+      gridModeClick(lat, lng);
     }
   }
 
@@ -433,7 +446,7 @@ function setup() {
   hintButton.size(60, 50);
   hintButton.style("position", "absolute");
   hintButton.style("z-index", "12");
-  hintButton.style("background-color", "rgb(255, 79, 79)")
+  hintButton.style("background-color", "rgb(255, 79, 79)");
 
   hintButton.mousePressed(toggleHint);
 
@@ -442,7 +455,7 @@ function setup() {
   zoomButton.size(60, 50);
   zoomButton.style("position", "absolute");
   zoomButton.style("z-index", "12");
-  zoomButton.style("background-color", "rgb(255, 79, 79)")
+  zoomButton.style("background-color", "rgb(255, 79, 79)");
 
   zoomButton.mousePressed(toggleZoom);
 
@@ -560,12 +573,20 @@ function setup() {
   showGridButton.mousePressed(displayGrid);
 
   //button to open the datat transfer screen
-  DataShowButton = createButton("Data Ex.");
+  DataShowButton = createButton("Data Fuse");
   DataShowButton.size(shieldSize, 20);
   DataShowButton.style("position", "absolute");
   DataShowButton.style("z-index", "21");
 
   DataShowButton.mousePressed(ShowDataScreen);
+
+  //button to enter grid guessing mode
+  gridModeButton = createButton("Grid Mode");
+  gridModeButton.size(shieldSize, 20);
+  gridModeButton.style("position", "absolute");
+  gridModeButton.style("z-index", "21");
+
+  gridModeButton.mousePressed(enterGridMode);
 
 
   //create cover
@@ -656,35 +677,35 @@ function draw() {
 
 function setButtonText() {
   if (setActive) {
-    startSetButton.html("Reset Set")
+    startSetButton.html("Reset Set");
   }
   else {
-    startSetButton.html("Start Set")
+    startSetButton.html("Start Set");
   }
 }
 
 function toggleZoom() {
-  zoomOutAfterGuess = !zoomOutAfterGuess
+  zoomOutAfterGuess = !zoomOutAfterGuess;
 
   //make the zoom padding change so after each guess it will be more zoomed out
   if (zoomOutAfterGuess) {
     //change to green
-    zoomButton.style("background-color", "rgb(94, 255, 0)")
+    zoomButton.style("background-color", "rgb(94, 255, 0)");
     answerPadding = answerPadding * zoomOutPadding;
   }
   else {
     //make red
-    zoomButton.style("background-color", "rgb(255, 79, 79)")
+    zoomButton.style("background-color", "rgb(255, 79, 79)");
     answerPadding = answerPadding / zoomOutPadding;
   }
 }
 
 function toggleHint() {
-  hintMode = !hintMode
+  hintMode = !hintMode;
 
   if (hintMode) {
     //change to green
-    hintButton.style("background-color", "rgb(94, 255, 0)")
+    hintButton.style("background-color", "rgb(94, 255, 0)");
 
     //create the hint circle
     hintcircle = L.circle([0, 0], {
@@ -698,9 +719,9 @@ function toggleHint() {
   }
   else {
     //make red
-    hintButton.style("background-color", "rgb(255, 79, 79)")
+    hintButton.style("background-color", "rgb(255, 79, 79)");
 
-    hintcircle.remove()
+    hintcircle.remove();
   }
 
   mapChange();
@@ -1479,6 +1500,8 @@ function fixsizes() {
   dataTransScreen.style("padding-top", windowWidth / 60 + "px");
 
   DataShowButton.position(10, bannerHeight + shieldSize + 55);
+  gridModeButton.position(10, bannerHeight + shieldSize + 80);
+
 
   griddedMap.invalidateSize();
 
@@ -1673,8 +1696,8 @@ function nextmap() {
         let randHintLat = randomlocation.lat + Math.cos(angle) * distance;
         let randHintLng = randomlocation.lng + Math.sin(angle) * distance;
 
-        console.log(randHintLat)
-        console.log(randHintLng)
+        console.log(randHintLat);
+        console.log(randHintLng);
         hintcircle.setLatLng([randHintLat, randHintLng]);
       }
     }
@@ -1816,7 +1839,10 @@ function leaveMap() {
 
   endScreen = false;
   answermarker.remove();
-  answerLine.remove();
+  if (!gridMode) {
+    answerLine.remove();
+  }
+  
   map.setView([0, 0], 1);
 
   //change map size back to original
@@ -1842,149 +1868,178 @@ function afterGuess() {
   allowGuess = false;
   setTimeout(() => {
     allowGuess = true;
-  }, 1);
-
+  }, 500);
 
   covering = false;
+  calcLocation = randomlocation;
 
-  //determine location for calculations
-  if (!inParty) {
-    calcLocation = randomlocation;
-  }
-  else {
-    if (setTypeDropDown.value() === "normal") {
-      calcLocation = shared.normalMap;
+  //run if the grid mode is off
+  if (!gridMode) {
+    //determine location for calculations
+    if (!inParty) {
+      calcLocation = randomlocation;
     }
-  }
-
-
-  //find meters
+    else {
+      if (setTypeDropDown.value() === "normal") {
+        calcLocation = shared.normalMap;
+      }
+    }
   
-  let point1 = L.latLng(calcLocation.lat, calcLocation.lng);
-  let point2 = L.latLng(clickedPoint.lat, clickedPoint.lng);
-
-  totalDistance = point1.distanceTo(point2);
-
-  //add stats
-  totalGuesses += 1;
-
-  //determine which color stat to add
-  if (totalDistance <= ultraDis) {
-    totalGold += 1;
+    //find meters
+    
+    let point1 = L.latLng(calcLocation.lat, calcLocation.lng);
+    let point2 = L.latLng(clickedPoint.lat, clickedPoint.lng);
+  
+    totalDistance = point1.distanceTo(point2);
+  
+    //add stats
+    totalGuesses += 1;
+  
+    //determine which color stat to add
+    if (totalDistance <= ultraDis) {
+      totalGold += 1;
+    }
+    else if (totalDistance <= superDis) {
+      totalPurple += 1;
+    }
+    else if (totalDistance <= correctDis) {
+      totalGreen += 1;
+    }
+  
+  
+    //add grid stats
+    addGridStats(clickedPoint, calcLocation, totalDistance);
+  
+    //do the heat calculations
+    findHeatValues();
+  
+    //if hintmode is on then make it harder to earn points by shrinking the map size
+    let mapSize = worldMapSize;
+    if (hintMode) {
+      mapSize = worldMapSize * hintDiv;
+    }
+  
+    //exponential points
+    //got this equation from geoguessr
+    points = Math.round(5000 * Math.exp(-10 * totalDistance / mapSize));
+  
+    //set distance text
+    let measurement = "m";
+    let displayAmount = totalDistance;
+    if (totalDistance > 1000) {
+      measurement = "km";
+      displayAmount = displayAmount / 1000;
+    }
+  
+    //text after guess
+    banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points);
+  
+    //if this is during a set
+    if (setActive) {
+      //add points
+      totalSetPoints += points;
+      if (curretnRoundNumber < maxRounds) {
+        curretnRoundNumber += 1;
+        setLocations.push([calcLocation.lat, calcLocation.lng]);
+        setClickedPoints.push([clickedPoint.lat, clickedPoint.lng]);
+  
+        //save line colors
+        let lineCol = "black";
+        if (totalDistance <= ultraDis) {
+          lineCol = "orange";
+          currentBannerColor = bannerOrange;
+        }
+        else if (totalDistance <= superDis) {
+          lineCol = "purple";
+          currentBannerColor = bannerPurple;
+        }
+        else if (totalDistance <= correctDis) {
+          lineCol = "green";
+          currentBannerColor = bannerGreen;
+        }
+        else if (totalDistance >= wrongDis) {
+          lineCol = "red";
+          currentBannerColor = bannerRed;
+        }
+  
+        setLineColors.push(lineCol);
+      }
+      //end set and reset all variables
+      else {
+        //show the previous guesses, the idea is that the final guess will be shown normally so all 5 guesses will be shown
+        for (i = 0; i < maxRounds - 1; i++) {
+          let setAnswerMarker = L.marker([setLocations[i][0], setLocations[i][1]], {icon: answerIcon}).addTo(map);
+          let setClickedMarker = L.marker([setClickedPoints[i][0], setClickedPoints[i][1]], {icon: markerIcon}).addTo(map);
+          let setAnswerLine = L.polyline([[setLocations[i][0], setLocations[i][1]],[setClickedPoints[i][0], setClickedPoints[i][1]]], {
+            color: setLineColors[i],
+            opacity: 0.7
+          }).addTo(map);
+  
+          setMarkers.push(setAnswerMarker);
+          setMarkers.push(setClickedMarker);
+          setMarkers.push(setAnswerLine);
+        }
+        
+        if (setTypeDropDown.value() === "normal") {
+          if (bestSet < totalSetPoints) {
+            bestSet = totalSetPoints;
+          }
+        }
+        else if (setTypeDropDown.value() === "blitz") {
+          if (bestBlitz < totalSetPoints) {
+            bestBlitz = totalSetPoints;
+          }
+        }
+        else if (setTypeDropDown.value() === "NMPZ") {
+          if (bestNMPZ < totalSetPoints) {
+            bestNMPZ = totalSetPoints;
+          }
+        }
+        else if (setTypeDropDown.value() === "blink") {
+          if (bestBlink < totalSetPoints) {
+            bestBlink = totalSetPoints;
+          }
+        }
+  
+        banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points + " | Round Overall: " + totalSetPoints);
+        setActive = false;
+        curretnRoundNumber = 1;
+        totalSetPoints = 0;
+        setLocations = [];
+        setClickedPoints = [];
+        setLineColors = [];
+      }
+    }
+  
+    //set line colors
+    let lineCol = "black";
+    if (totalDistance <= ultraDis) {
+      lineCol = "orange";
+      currentBannerColor = bannerOrange;
+    }
+    else if (totalDistance <= superDis) {
+      lineCol = "purple";
+      currentBannerColor = bannerPurple;
+    }
+    else if (totalDistance <= correctDis) {
+      lineCol = "green";
+      currentBannerColor = bannerGreen;
+    }
+    else if (totalDistance >= wrongDis) {
+      lineCol = "red";
+      currentBannerColor = bannerRed;
+    }
+  
+    //show a line from the clicked point to the answer
+    answerLine = L.polyline([[calcLocation.lat, calcLocation.lng],[clickedPoint.lat, clickedPoint.lng]], {
+      color: lineCol,
+      opacity: 0.7
+    }).addTo(map);
+  
+    adjustAfterGuess();
   }
-  else if (totalDistance <= superDis) {
-    totalPurple += 1;
-  }
-  else if (totalDistance <= correctDis) {
-    totalGreen += 1;
-  }
-
-
-  //add grid stats
-  addGridStats(clickedPoint, calcLocation, totalDistance);
-
-  //do the heat calculations
-  findHeatValues();
 
   endScreen = true;
-
-  //if hintmode is on then make it harder to earn points by shrinking the map size
-  let mapSize = worldMapSize;
-  if (hintMode) {
-    mapSize = worldMapSize * hintDiv
-  }
-
-  //exponential points
-  //got this equation from geoguessr
-  points = Math.round(5000 * Math.exp(-10 * totalDistance / mapSize));
-
-  //set distance text
-  let measurement = "m";
-  let displayAmount = totalDistance;
-  if (totalDistance > 1000) {
-    measurement = "km";
-    displayAmount = displayAmount / 1000;
-  }
-
-  //text after guess
-  banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points);
-
-  //if this is during a set
-  if (setActive) {
-    //add points
-    totalSetPoints += points;
-    if (curretnRoundNumber < maxRounds) {
-      curretnRoundNumber += 1;
-      setLocations.push([calcLocation.lat, calcLocation.lng]);
-      setClickedPoints.push([clickedPoint.lat, clickedPoint.lng]);
-
-      //save line colors
-      let lineCol = "black";
-      if (totalDistance <= ultraDis) {
-        lineCol = "orange";
-        currentBannerColor = bannerOrange;
-      }
-      else if (totalDistance <= superDis) {
-        lineCol = "purple";
-        currentBannerColor = bannerPurple;
-      }
-      else if (totalDistance <= correctDis) {
-        lineCol = "green";
-        currentBannerColor = bannerGreen;
-      }
-      else if (totalDistance >= wrongDis) {
-        lineCol = "red";
-        currentBannerColor = bannerRed;
-      }
-
-      setLineColors.push(lineCol);
-    }
-    //end set and reset all variables
-    else {
-      //show the previous guesses, the idea is that the final guess will be shown normally so all 5 guesses will be shown
-      for (i = 0; i < maxRounds - 1; i++) {
-        let setAnswerMarker = L.marker([setLocations[i][0], setLocations[i][1]], {icon: answerIcon}).addTo(map);
-        let setClickedMarker = L.marker([setClickedPoints[i][0], setClickedPoints[i][1]], {icon: markerIcon}).addTo(map);
-        let setAnswerLine = L.polyline([[setLocations[i][0], setLocations[i][1]],[setClickedPoints[i][0], setClickedPoints[i][1]]], {
-          color: setLineColors[i],
-          opacity: 0.7
-        }).addTo(map);
-
-        setMarkers.push(setAnswerMarker);
-        setMarkers.push(setClickedMarker);
-        setMarkers.push(setAnswerLine);
-      }
-      
-      if (setTypeDropDown.value() === "normal") {
-        if (bestSet < totalSetPoints) {
-          bestSet = totalSetPoints;
-        }
-      }
-      else if (setTypeDropDown.value() === "blitz") {
-        if (bestBlitz < totalSetPoints) {
-          bestBlitz = totalSetPoints;
-        }
-      }
-      else if (setTypeDropDown.value() === "NMPZ") {
-        if (bestNMPZ < totalSetPoints) {
-          bestNMPZ = totalSetPoints;
-        }
-      }
-      else if (setTypeDropDown.value() === "blink") {
-        if (bestBlink < totalSetPoints) {
-          bestBlink = totalSetPoints;
-        }
-      }
-
-      banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points + " | Round Overall: " + totalSetPoints);
-      setActive = false;
-      curretnRoundNumber = 1;
-      totalSetPoints = 0;
-      setLocations = [];
-      setClickedPoints = [];
-      setLineColors = [];
-    }
-  }
 
   //fill screen with map
   mapID.style("bottom", "0px");
@@ -1994,32 +2049,9 @@ function afterGuess() {
 
   answermarker = L.marker([calcLocation.lat, calcLocation.lng], {icon: answerIcon}).addTo(map);
 
-  //set line colors
-  let lineCol = "black";
-  if (totalDistance <= ultraDis) {
-    lineCol = "orange";
-    currentBannerColor = bannerOrange;
+  if (gridMode) {
+    gridModeSquareColChange();
   }
-  else if (totalDistance <= superDis) {
-    lineCol = "purple";
-    currentBannerColor = bannerPurple;
-  }
-  else if (totalDistance <= correctDis) {
-    lineCol = "green";
-    currentBannerColor = bannerGreen;
-  }
-  else if (totalDistance >= wrongDis) {
-    lineCol = "red";
-    currentBannerColor = bannerRed;
-  }
-
-  //show a line from the clicked point to the answer
-  answerLine = L.polyline([[calcLocation.lat, calcLocation.lng],[clickedPoint.lat, clickedPoint.lng]], {
-    color: lineCol,
-    opacity: 0.7
-  }).addTo(map);
-
-  adjustAfterGuess();
 }
 
 function adjustAfterGuess() {
@@ -2121,6 +2153,7 @@ const GRID_LENGTH = 15;
 let gridOpacity = 0.5;
 let gridWeight = 1;
 let mapGrid = [];
+let gridModeLines = [];
 let basicGridInfo = {
   answerAmount: 0,
   correctAmount: 0,
@@ -2134,8 +2167,12 @@ let basicGridInfo = {
 };
 
 let currentgrid;
+let currentGridMode;
+let currentGridX;
+let currentGridY;
 
 var selectSquare;
+var gridModeSquare;
 let shownPastGuesses = [];
 
 //heat map stats
@@ -2277,6 +2314,72 @@ function addGrid() {
   }
 
   griddedMap.on("click", onGridMapClick);
+}
+
+//sees what grid the player is clicking on the normal map
+function gridModeClick(lat, lng) {
+  if (!endScreen) {
+    if (gridModeSquare !== undefined) {
+      gridModeSquare.remove();
+    }
+  
+    //get the x and y needed to find the right tile
+    let currentCol = Math.floor((lat + 90) / GRID_LENGTH);
+    let currentRow = Math.floor((lng + 180) / GRID_LENGTH);
+
+    //set globals
+    currentGridX = Math.floor((lat + 90) / GRID_LENGTH);
+    currentGridY = Math.floor((lng + 180) / GRID_LENGTH);
+  
+    currentGridMode = mapGrid[currentCol][currentRow];
+  
+    //if the player presses outside of the gridded map
+    if (currentGridMode === undefined) {
+      currentGridMode = "none";
+    }
+  
+    //create a select square
+    gridModeSquare = L.polygon([
+      [currentCol * GRID_LENGTH - 90, currentRow * GRID_LENGTH - 180],
+      [currentCol * GRID_LENGTH - 90, (currentRow + 1) * GRID_LENGTH - 180],
+      [(currentCol + 1) * GRID_LENGTH - 90, (currentRow + 1) * GRID_LENGTH - 180],
+      [(currentCol + 1) * GRID_LENGTH - 90, currentRow * GRID_LENGTH - 180]
+    ], {
+      color: "rgb(187, 196, 74)",
+      weight: 1,
+      opacity: 1,
+  
+      fillColor: "yellow",
+      fillOpacity: 0.3
+    }).addTo(map);
+  }
+}
+
+//change the color of the square after a guess based on how they did
+function gridModeSquareColChange() {
+  if (gridModeSquare !== undefined) {
+    gridModeSquare.remove();
+  }
+
+  let answerY = Math.floor((randomlocation.lat + 90) / GRID_LENGTH);
+  let answerX = Math.floor((randomlocation.lng + 180) / GRID_LENGTH);
+
+  if (currentGridX === answerX && currentGridY === answerY) {
+    //create a select square
+    gridModeSquare = L.polygon([
+      [currentCol * GRID_LENGTH - 90, currentRow * GRID_LENGTH - 180],
+      [currentCol * GRID_LENGTH - 90, (currentRow + 1) * GRID_LENGTH - 180],
+      [(currentCol + 1) * GRID_LENGTH - 90, (currentRow + 1) * GRID_LENGTH - 180],
+      [(currentCol + 1) * GRID_LENGTH - 90, currentRow * GRID_LENGTH - 180]
+    ], {
+      color: "rgb(122, 255, 95)",
+      weight: 1,
+      opacity: 1,
+  
+      fillColor: "rgb(122, 255, 95)",
+      fillOpacity: 0.3
+    }).addTo(map);
+  }
 }
 
 function addGridStats(clicked, answer, totaldis) {
@@ -2534,4 +2637,48 @@ function addRed(col, row) {
   }).addTo(griddedMap);
 
   redSquares.push(wrongSquare);
+}
+
+//create the grid for grid mode on the normal map
+function enterGridMode() {
+  gridMode = !gridMode;
+
+  //run if the grid mode is turned on
+  if (gridMode) {
+    mapChange();
+    //create the grid pattern on the map, I mad all values in the for loop positive so it is easier to create the grid
+    //latitidue is 180 tall
+    for (let lat = 0; lat <= 180; lat += GRID_LENGTH) {
+      let gridModeLine = L.polyline(
+        [[lat - 90, -180], [lat - 90, 180]],
+        {
+          color: "black",
+          opacity: gridOpacity,
+          weight: gridWeight
+        }
+      ).addTo(map);
+      gridModeLines.push(gridModeLine);
+    }
+
+    //longitude is 360 long
+    for (let lng = 0; lng <= 360; lng += GRID_LENGTH) {
+      let gridModeLine = L.polyline(
+        [[-90, lng - 180], [90, lng - 180]],
+        {
+          color: "black",
+          opacity: gridOpacity,
+          weight: gridWeight
+        }
+      ).addTo(map);
+      gridModeLines.push(gridModeLine);
+    }
+  }
+
+  //grid mode is turned off
+  else {
+    mapChange();
+    for (let item of gridModeLines) {
+      item.remove();
+    }
+  }
 }
