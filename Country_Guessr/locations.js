@@ -167217,6 +167217,7 @@ window.allCountries = [
   uganda,
   uganda,
   uganda,
+  uganda,
   rwanda,
   rwanda,
   namibia,
@@ -167252,10 +167253,8 @@ window.allCountries = [
 
   //double
   kazakhstan,
-  kazakhstan,
   kyrgyzstan,
   kyrgyzstan,
-  mongolia,
   mongolia,
   bhutan,
   bhutan,
