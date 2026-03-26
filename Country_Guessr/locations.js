@@ -167217,7 +167217,6 @@ window.allCountries = [
   uganda,
   uganda,
   uganda,
-  uganda,
   rwanda,
   rwanda,
   namibia,

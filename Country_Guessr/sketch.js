@@ -1527,6 +1527,7 @@ function displayGrid() {
 
 //shows the info for rank up
 function showRank() {
+  bestNMPZ = 23267
   if (!showingRankInfo) {
     showRankScreen.style("z-index", "20");
     showRankScreen.style("opacity", "1");
