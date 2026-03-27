@@ -1296,6 +1296,7 @@ function lockStartJoin() {
     setTypeDropDown.attribute("disabled", "");
     hintButton.attribute("disabled", "");
     zoomButton.attribute("disabled", "");
+    gridModeButton.attribute("disabled", "");
 
     //keep the reset option open while a set is active
     if (!setActive || endScreen) {
@@ -1311,6 +1312,7 @@ function lockStartJoin() {
     setTypeDropDown.removeAttribute("disabled");
     hintButton.removeAttribute("disabled");
     zoomButton.removeAttribute("disabled");
+    gridModeButton.removeAttribute("disabled");
   }
 }
 
