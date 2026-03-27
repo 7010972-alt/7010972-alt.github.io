@@ -63,6 +63,8 @@ let nextBestSet = 2500;
 let nextBestBlitz = 0;
 let nextBestNMPZ = 0;
 let nextBestBlink = 0;
+let nextBestBlur = 0;
+let nextMaxStreak = 0;
 
 //rank sields
 let shieldSize = 80;
@@ -108,6 +110,8 @@ let answerIcon = L.icon({
 });
 
 //game variables
+let gridStreak = 0
+let gridMaxStreak = 0
 var gridAnswerMarker;
 let gridMode = false;
 let gridShown = false;
@@ -124,6 +128,7 @@ let bestSet = 0;
 let bestBlitz = 0;
 let bestNMPZ = 0;
 let bestBlink = 0;
+let bestBlur = 0;
 
 //map variables
 let hintMode = false;
@@ -223,6 +228,11 @@ let time = 0;
 //black cover
 let cover;
 let covering = false;
+
+//blur cover
+let blurCover;
+let blurCovering = false;
+let blurAmount = 25
 
 //blink cover
 let blink = false;
@@ -379,6 +389,16 @@ function setup() {
   if (localStorage.getItem("BestBlink") !== null) {
     bestBlink = Number(localStorage.getItem("BestBlink"));
   }
+  if (localStorage.getItem("BestBlur") !== null) {
+    bestBlur = Number(localStorage.getItem("BestBlur"));
+  }
+
+  if (localStorage.getItem("streak") !== null) {
+    gridStreak = Number(localStorage.getItem("streak"));
+  }
+  if (localStorage.getItem("maxstreak") !== null) {
+    gridMaxStreak = Number(localStorage.getItem("maxstreak"));
+  }
 
   //load saved stats
   if (localStorage.getItem("totalguesses") !== null) {
@@ -491,6 +511,8 @@ function setup() {
   setTypeDropDown.option("Blitz", "blitz");
   setTypeDropDown.option("NMPZ", "NMPZ");
   setTypeDropDown.option("Blink", "blink");
+  setTypeDropDown.option("Blur", "blur");
+
 
   //dropdown menu to select what type of info you want to see
   showGridDropDown = createSelect();
@@ -585,6 +607,7 @@ function setup() {
   gridModeButton.size(shieldSize, 20);
   gridModeButton.style("position", "absolute");
   gridModeButton.style("z-index", "21");
+  gridModeButton.style("background-color", "red")
 
   gridModeButton.mousePressed(enterGridMode);
 
@@ -601,6 +624,15 @@ function setup() {
 
   cover.style("font-size", "50px");
   cover.style("color", "white");
+
+  //create blur effect
+  blurCover = createDiv();
+  blurCover.style("background", "rgba(255, 255, 255, 0)");
+  blurCover.style("backdrop-filter", `blur(${blurAmount}px)`);
+  blurCover.style("-webkit-backdrop-filter", `blur(${blurAmount}px)`);
+  blurCover.style("z-index", "1");
+
+
 
   //create rank info
   showRankScreen = createDiv();
@@ -656,6 +688,7 @@ function draw() {
   timeDrain();
   lockStartJoin();
   NMPZ();
+  activateBlur();
   covertoggle();
   blinkToggle();
   rankModify();
@@ -817,11 +850,16 @@ function dataUpload() {
     }
 
     shared.transfers[dataType.value().toLowerCase()] = {
-    //best sets
+      //best sets
       bestSet: bestSet,
       bestBlitz: bestBlitz,
       bestNMPZ: bestNMPZ,
       bestBlink: bestBlink,
+      bestBlur: bestBlur,
+
+      //streak values
+      gridStreak: gridStreak,
+      gridMaxStreak: gridMaxStreak,
 
       //global stats
       totalGuesses: totalGuesses,
@@ -876,6 +914,19 @@ function dataLoad() {
 
     if (bestBlink <= shared.transfers[dataType.value().toLowerCase()].bestBlink) {
       bestBlink = shared.transfers[dataType.value().toLowerCase()].bestBlink;
+    }
+
+    if (bestBlur <= shared.transfers[dataType.value().toLowerCase()].bestBlur) {
+      bestBlur = shared.transfers[dataType.value().toLowerCase()].bestBlur;
+    }
+
+    //load the streak values if they are higher
+    if (gridMaxStreak <= shared.transfers[dataType.value().toLowerCase()].gridMaxStreak) {
+      gridMaxStreak = shared.transfers[dataType.value().toLowerCase()].gridMaxStreak;
+    }
+
+    if (gridStreak <= shared.transfers[dataType.value().toLowerCase()].gridStreak) {
+      gridStreak = shared.transfers[dataType.value().toLowerCase()].gridStreak;
     }
 
     //load total stats
@@ -1240,7 +1291,7 @@ function partyChange(place, type) {
 
 //I wanted the player to not be able to join parties or sets or change the dropdown value when they are in either one
 function lockStartJoin() {
-  if (inParty || setActive || endScreen || viewing) {
+  if (inParty || setActive || endScreen || viewing || gridMode) {
     joinButton.attribute("disabled", "");
     setTypeDropDown.attribute("disabled", "");
     hintButton.attribute("disabled", "");
@@ -1266,7 +1317,7 @@ function lockStartJoin() {
 
 //this changes the ranks based on how the players best scores are
 function rankModify() {
-  if (bestSet > 22500 && bestBlitz > 21500 && bestNMPZ > 21000 && bestBlink > 20000) {
+  if (bestSet >= 22500 && bestBlitz >= 21500 && bestNMPZ >= 21000 && bestBlink >= 20000 && bestBlur >= 15000 && gridMaxStreak >= 50) {
     rank = "Inter-Dimensional";
     currentPin = interP;
     currentShield = interS;
@@ -1275,8 +1326,10 @@ function rankModify() {
     nextBestBlitz = "21500";
     nextBestNMPZ = "21000";
     nextBestBlink = "20000";
+    nextBestBlur = "15000";
+    nextMaxStreak = "50";
   }
-  else if (bestSet > 20000 && bestBlitz > 19000 && bestNMPZ > 18000 && bestBlink > 17000) {
+  else if (bestSet >= 20000 && bestBlitz >= 19000 && bestNMPZ >= 18000 && bestBlink >= 17000 && bestBlur >= 10000 && gridMaxStreak >= 25) {
     rank = "Slime";
     currentPin = slimeP;
     currentShield = slimeS;
@@ -1285,8 +1338,10 @@ function rankModify() {
     nextBestBlitz = "21500";
     nextBestNMPZ = "21000";
     nextBestBlink = "20000";
+    nextBestBlur = "15000";
+    nextMaxStreak = "50";
   }
-  else if (bestSet > 17500 && bestBlitz > 15000 && bestNMPZ > 12500) {
+  else if (bestSet >= 17500 && bestBlitz >= 15000 && bestNMPZ >= 12500 && gridMaxStreak >= 10) {
     rank = "Obsidian";
     currentPin = obsidianP;
     currentShield = obsidianS;
@@ -1295,8 +1350,10 @@ function rankModify() {
     nextBestBlitz = "19000";
     nextBestNMPZ = "18000";
     nextBestBlink = "17000";
+    nextBestBlur = "10000";
+    nextMaxStreak = "25";
   }
-  else if (bestSet > 15000 && bestBlitz > 10000 && bestNMPZ > 7500) {
+  else if (bestSet >= 12500 && bestBlitz >= 10000 && bestNMPZ >= 7500 && gridMaxStreak >= 5) {
     rank = "Diamond";
     currentPin = diamondP;
     currentShield = diamondS;
@@ -1305,28 +1362,34 @@ function rankModify() {
     nextBestBlitz = "15000";
     nextBestNMPZ = "12500";
     nextBestBlink = "0";
+    nextBestBlur = "0";
+    nextMaxStreak = "10";
   }
-  else if (bestSet > 10000 && bestBlitz > 5000) {
+  else if (bestSet >= 7500 && bestBlitz >= 5000 && gridMaxStreak >= 1) {
     rank = "Gold";
     currentPin = goldP;
     currentShield = goldS;
 
-    nextBestSet = "15000";
+    nextBestSet = "12500";
     nextBestBlitz = "10000";
     nextBestNMPZ = "7500";
     nextBestBlink = "0";
+    nextBestBlur = "0";
+    nextMaxStreak = "5";
   }
-  else if (bestSet > 5000) {
+  else if (bestSet >= 5000) {
     rank = "Silver";
     currentPin = silverP;
     currentShield = silverS;
 
-    nextBestSet = "10000";
+    nextBestSet = "7500";
     nextBestBlitz = "5000";
     nextBestNMPZ = "0";
     nextBestBlink = "0";
+    nextBestBlur = "0";
+    nextMaxStreak = "1";
   }
-  else if (bestSet > 2500) {
+  else if (bestSet >= 2500) {
     rank = "Bronze";
     currentPin = bronzeP;
     currentShield = bronzeS;
@@ -1335,6 +1398,8 @@ function rankModify() {
     nextBestBlitz = "0";
     nextBestNMPZ = "0";
     nextBestBlink = "0";
+    nextBestBlur = "0";
+    nextMaxStreak = "0";
   }
   else {
     rank = "Coal";
@@ -1348,6 +1413,9 @@ function rankModify() {
   let blitzCol = "red";
   let NMPZCol = "red";
   let blinkCol = "red";
+  let blurCol = "red";
+
+  let gridMaxCol = "red"
 
   if (bestSet >= nextBestSet) {
     normCol = "green";
@@ -1361,6 +1429,12 @@ function rankModify() {
   if (bestBlink >= nextBestBlink) {
     blinkCol = "green";
   }
+  if (bestBlur >= nextBestBlur) {
+    blurCol = "green";
+  }
+  if (gridMaxStreak >= nextMaxStreak) {
+    gridMaxCol = "green";
+  }
 
   //change rank info screen so they know the req
   showRankScreen.html(
@@ -1370,7 +1444,9 @@ function rankModify() {
     `<span style="color:${normCol};">${"Normal: " + bestSet + "/" + nextBestSet}</span><br>` +
     `<span style="color:${blitzCol};">${"Blitz: " + bestBlitz + "/" + nextBestBlitz}</span><br>` +
     `<span style="color:${NMPZCol};">${"NMPZ: " + bestNMPZ + "/" + nextBestNMPZ}</span><br>` +
-    `<span style="color:${blinkCol};">${"Blink: " + bestBlink + "/" + nextBestBlink}</span>`
+    `<span style="color:${blinkCol};">${"Blink: " + bestBlink + "/" + nextBestBlink}</span><br>` +
+    `<span style="color:${blurCol};">${"Blur: " + bestBlur + "/" + nextBestBlur}</span><br>` + 
+    `<span style="color:${gridMaxCol};">${"Grid Streak: " + gridMaxStreak + "/" + nextMaxStreak}</span>`
   );
 
 
@@ -1448,6 +1524,9 @@ function fixsizes() {
   cover.size(windowWidth, windowHeight);
   cover.position(0,0);
 
+  blurCover.size(windowWidth, windowHeight);
+  blurCover.position(0,0);
+
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor;
   banner.style("font-size", `${textsize}px`);
 
@@ -1466,11 +1545,11 @@ function fixsizes() {
 
   //change sizes of the rank info in relation to the screensizes
   showRankButton.position(10, bannerHeight + shieldSize + 5);
-  showRankScreen.size(windowWidth / 2, windowWidth / 4);
+  showRankScreen.size(windowWidth / 2, windowWidth / 3.75);
   showRankScreen.position(windowWidth / 4, windowHeight / 2 - windowWidth / 8);
   showRankScreen.style("font-size", windowWidth / 40 + "px");
   showRankScreen.style("padding-left", windowWidth / 40 + "px");
-  showRankScreen.style("padding-top", windowWidth / 20 + "px");
+  showRankScreen.style("padding-top", windowWidth / 50 + "px");
 
   showGridButton.position(10, bannerHeight + shieldSize + 30);
   showGridScreen.size(windowWidth / 1.5, windowWidth / 3.25);
@@ -1580,6 +1659,9 @@ function bannerTextChange() {
     if (setActive) {
       banner.html("Round: " + curretnRoundNumber + "/" + maxRounds + " | Time Left: " + timeLeft);
     }
+    else if (gridMode) {
+      banner.html("Streak: " + gridStreak + " | Max: " + gridMaxStreak);
+    }
     else if (inParty) {
       if (setTypeDropDown.value() === "normal") {
         banner.html("Round: " + shared.normalRoundNumber + "/" + maxPartyRoundNumber + " | Time Left: " + timeLeft);
@@ -1600,6 +1682,9 @@ function bannerTextChange() {
       }
       else if (setTypeDropDown.value() === "blink") {
         banner.html("Best Blink Set: " + bestBlink.toLocaleString());
+      }
+      else if (setTypeDropDown.value() === "blur") {
+        banner.html("Best Blur Set: " + bestBlur.toLocaleString());
       }
     }
   }
@@ -1696,8 +1781,6 @@ function nextmap() {
         let randHintLat = randomlocation.lat + Math.cos(angle) * distance;
         let randHintLng = randomlocation.lng + Math.sin(angle) * distance;
 
-        console.log(randHintLat);
-        console.log(randHintLng);
         hintcircle.setLatLng([randHintLat, randHintLng]);
       }
     }
@@ -1856,6 +1939,14 @@ function leaveMap() {
   for (let item of setMarkers) {
     item.remove();
   }
+
+  for (let item of gridModeSquares) {
+    item.remove()
+  }
+
+  if (gridMode) {
+    resetSelect();
+  }
 }
 
 
@@ -2000,6 +2091,11 @@ function afterGuess() {
             bestBlink = totalSetPoints;
           }
         }
+        else if (setTypeDropDown.value() === "blur") {
+          if (bestBlur < totalSetPoints) {
+            bestBlur = totalSetPoints;
+          }
+        }
   
         banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points + " | Round Overall: " + totalSetPoints);
         setActive = false;
@@ -2076,6 +2172,16 @@ function NMPZ() {
   }
 }
 
+//will create the blur effect
+function activateBlur() {
+  if (setActive && setTypeDropDown.value() === "blur") {
+    blurCover.style("z-index", "1");
+  }
+  else {
+    blurCover.style("z-index", "-1");
+  }
+}
+
 function changeMapSize() {
   //make sure they are not on phone
   mapID.mouseOver(() => {
@@ -2131,6 +2237,11 @@ function saveProgress() {
   localStorage.setItem("BestBlitz", bestBlitz);
   localStorage.setItem("BestNMPZ", bestNMPZ);
   localStorage.setItem("BestBlink", bestBlink);
+  localStorage.setItem("BestBlur", bestBlur);
+
+  localStorage.setItem("streak", gridStreak);
+  localStorage.setItem("maxstreak", gridMaxStreak);
+
 
   //stats
   localStorage.setItem("totalguesses", totalGuesses);
@@ -2150,6 +2261,10 @@ function saveProgress() {
 
 //grid system for map
 const GRID_LENGTH = 15;
+const GRID_MODE_LENGTH = 10;
+
+let cols;
+let rows;
 let gridOpacity = 0.5;
 let gridWeight = 1;
 let mapGrid = [];
@@ -2167,12 +2282,12 @@ let basicGridInfo = {
 };
 
 let currentgrid;
-let currentGridMode;
 let currentGridX;
 let currentGridY;
 
 var selectSquare;
 var gridModeSquare;
+let gridModeSquares = [];
 let shownPastGuesses = [];
 
 //heat map stats
@@ -2186,10 +2301,10 @@ function addGrid() {
   if (localStorage.getItem("griddedmap") === null) {
 
     //lng
-    let rows = 360 / GRID_LENGTH;
+    rows = 360 / GRID_LENGTH;
 
     //lat
-    let cols = 180 / GRID_LENGTH;
+    cols = 180 / GRID_LENGTH;
 
     for (let c = 0; c < cols; c++) {
       mapGrid.push([]);
@@ -2319,66 +2434,48 @@ function addGrid() {
 //sees what grid the player is clicking on the normal map
 function gridModeClick(lat, lng) {
   if (!endScreen) {
-    if (gridModeSquare !== undefined) {
-      gridModeSquare.remove();
+    for (let item of gridModeSquares) {
+      item.remove()
     }
   
     //get the x and y needed to find the right tile
-    let currentCol = Math.floor((lat + 90) / GRID_LENGTH);
-    let currentRow = Math.floor((lng + 180) / GRID_LENGTH);
+    let currentCol = Math.floor((lat + 90) / GRID_MODE_LENGTH);
+    let currentRow = Math.floor((lng + 180) / GRID_MODE_LENGTH);
 
     //set globals
-    currentGridX = Math.floor((lat + 90) / GRID_LENGTH);
-    currentGridY = Math.floor((lng + 180) / GRID_LENGTH);
+    currentGridY = Math.floor((lat + 90) / GRID_MODE_LENGTH);
+    currentGridX = Math.floor((lng + 180) / GRID_MODE_LENGTH);
+
+    //create surrounding squares
+    //basically make a 9 by 9 pattern
+    for (let x = -1; x <= 1; x++) {
+      for (let y = -1; y <= 1; y++) {
+        let fillCol = "rgb(249, 255, 158)"
+        if (x === 0 && y === 0) {
+          fillCol = "yellow"
+        }
+
+
+        if (currentCol + y >= 0 && currentCol + y < (180 / GRID_MODE_LENGTH) && currentRow + x >= 0 && currentRow + x < (360 / GRID_MODE_LENGTH)) {
+          //create a select square
+          let surroundSquare = L.polygon([
+            [(currentCol + y) * GRID_MODE_LENGTH - 90, (currentRow + x) * GRID_MODE_LENGTH - 180],
+            [(currentCol + y) * GRID_MODE_LENGTH - 90, ((currentRow + x) + 1) * GRID_MODE_LENGTH - 180],
+            [((currentCol + y) + 1) * GRID_MODE_LENGTH - 90, ((currentRow + x) + 1) * GRID_MODE_LENGTH - 180],
+            [((currentCol + y) + 1) * GRID_MODE_LENGTH - 90, (currentRow + x) * GRID_MODE_LENGTH - 180]
+          ], {
+            color: "rgb(246, 252, 160)",
+            weight: 1,
+            opacity: 1,
+        
+            fillColor: fillCol,
+            fillOpacity: 0.3
+          }).addTo(map);
   
-    currentGridMode = mapGrid[currentCol][currentRow];
-  
-    //if the player presses outside of the gridded map
-    if (currentGridMode === undefined) {
-      currentGridMode = "none";
+          gridModeSquares.push(surroundSquare)
+        }
+      }
     }
-  
-    //create a select square
-    gridModeSquare = L.polygon([
-      [currentCol * GRID_LENGTH - 90, currentRow * GRID_LENGTH - 180],
-      [currentCol * GRID_LENGTH - 90, (currentRow + 1) * GRID_LENGTH - 180],
-      [(currentCol + 1) * GRID_LENGTH - 90, (currentRow + 1) * GRID_LENGTH - 180],
-      [(currentCol + 1) * GRID_LENGTH - 90, currentRow * GRID_LENGTH - 180]
-    ], {
-      color: "rgb(187, 196, 74)",
-      weight: 1,
-      opacity: 1,
-  
-      fillColor: "yellow",
-      fillOpacity: 0.3
-    }).addTo(map);
-  }
-}
-
-//change the color of the square after a guess based on how they did
-function gridModeSquareColChange() {
-  if (gridModeSquare !== undefined) {
-    gridModeSquare.remove();
-  }
-
-  let answerY = Math.floor((randomlocation.lat + 90) / GRID_LENGTH);
-  let answerX = Math.floor((randomlocation.lng + 180) / GRID_LENGTH);
-
-  if (currentGridX === answerX && currentGridY === answerY) {
-    //create a select square
-    gridModeSquare = L.polygon([
-      [currentCol * GRID_LENGTH - 90, currentRow * GRID_LENGTH - 180],
-      [currentCol * GRID_LENGTH - 90, (currentRow + 1) * GRID_LENGTH - 180],
-      [(currentCol + 1) * GRID_LENGTH - 90, (currentRow + 1) * GRID_LENGTH - 180],
-      [(currentCol + 1) * GRID_LENGTH - 90, currentRow * GRID_LENGTH - 180]
-    ], {
-      color: "rgb(122, 255, 95)",
-      weight: 1,
-      opacity: 1,
-  
-      fillColor: "rgb(122, 255, 95)",
-      fillOpacity: 0.3
-    }).addTo(map);
   }
 }
 
@@ -2645,10 +2742,15 @@ function enterGridMode() {
 
   //run if the grid mode is turned on
   if (gridMode) {
+    //turn off hint mode if it is on
+    if (hintMode) {
+      toggleHint();
+    }
+
     mapChange();
     //create the grid pattern on the map, I mad all values in the for loop positive so it is easier to create the grid
     //latitidue is 180 tall
-    for (let lat = 0; lat <= 180; lat += GRID_LENGTH) {
+    for (let lat = 0; lat <= 180; lat += GRID_MODE_LENGTH) {
       let gridModeLine = L.polyline(
         [[lat - 90, -180], [lat - 90, 180]],
         {
@@ -2661,7 +2763,7 @@ function enterGridMode() {
     }
 
     //longitude is 360 long
-    for (let lng = 0; lng <= 360; lng += GRID_LENGTH) {
+    for (let lng = 0; lng <= 360; lng += GRID_MODE_LENGTH) {
       let gridModeLine = L.polyline(
         [[-90, lng - 180], [90, lng - 180]],
         {
@@ -2672,6 +2774,10 @@ function enterGridMode() {
       ).addTo(map);
       gridModeLines.push(gridModeLine);
     }
+
+    gridModeButton.style("background-color", "green")
+
+    resetSelect();
   }
 
   //grid mode is turned off
@@ -2679,6 +2785,105 @@ function enterGridMode() {
     mapChange();
     for (let item of gridModeLines) {
       item.remove();
+    }
+
+    gridModeButton.style("background-color", "red")
+  }
+}
+
+//change the color of the square after a guess based on how they did
+function gridModeSquareColChange() {
+
+  let answerY = Math.floor((randomlocation.lat + 90) / GRID_MODE_LENGTH);
+  let answerX = Math.floor((randomlocation.lng + 180) / GRID_MODE_LENGTH);
+
+  //if the guess is in the middle square
+  if (currentGridX === answerX && currentGridY === answerY) {
+    for (let item of gridModeSquares) {
+      item.setStyle({
+        color: "green",
+        fillColor: "green"
+      });
+    }
+
+    gridStreak += 5
+
+    if (gridStreak > gridMaxStreak) {
+      gridMaxStreak = gridStreak;
+    }
+  }
+
+  //if the guess is in the surrounding squares
+  else if (currentGridX - 1 <= answerX && currentGridX + 1 >= answerX && currentGridY - 1 <= answerY && currentGridY + 1 >= answerY) {
+    for (let item of gridModeSquares) {
+      item.setStyle({
+        color: "orange",
+        fillColor: "orange"
+      });
+    }
+
+    gridStreak += 1
+
+    if (gridStreak > gridMaxStreak) {
+      gridMaxStreak = gridStreak;
+    }
+  }
+
+  //if the guess was missed
+  else {
+    for (let item of gridModeSquares) {
+      item.setStyle({
+        color: "red",
+        fillColor: "red"
+      });
+    }
+
+    if (gridStreak > gridMaxStreak) {
+      gridMaxStreak = gridStreak;
+    }
+
+    gridStreak = 0
+  }
+
+  //update banner text
+  banner.html("Streak: " + gridStreak + " | Max: " + gridMaxStreak);
+}
+
+//this resets the select square in grid mode
+function resetSelect() {
+
+  //move the selected square into the center of the map
+  currentGridY = 9
+  currentGridX = 17
+
+  //create surrounding squares
+  //basically make a 9 by 9 pattern
+  for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+      let fillCol = "rgb(249, 255, 158)"
+      if (x === 0 && y === 0) {
+        fillCol = "yellow"
+      }
+
+
+      if (currentGridY + y >= 0 && currentGridY + y < (180 / GRID_MODE_LENGTH) && currentGridX + x >= 0 && currentGridX + x < (360 / GRID_MODE_LENGTH)) {
+        //create a select square
+        let surroundSquare = L.polygon([
+          [(currentGridY + y) * GRID_MODE_LENGTH - 90, (currentGridX + x) * GRID_MODE_LENGTH - 180],
+          [(currentGridY + y) * GRID_MODE_LENGTH - 90, ((currentGridX + x) + 1) * GRID_MODE_LENGTH - 180],
+          [((currentGridY + y) + 1) * GRID_MODE_LENGTH - 90, ((currentGridX + x) + 1) * GRID_MODE_LENGTH - 180],
+          [((currentGridY + y) + 1) * GRID_MODE_LENGTH - 90, (currentGridX + x) * GRID_MODE_LENGTH - 180]
+        ], {
+          color: "rgb(246, 252, 160)",
+          weight: 1,
+          opacity: 1,
+      
+          fillColor: fillCol,
+          fillOpacity: 0.3
+        }).addTo(map);
+
+        gridModeSquares.push(surroundSquare)
+      }
     }
   }
 }
