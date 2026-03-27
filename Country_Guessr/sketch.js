@@ -110,8 +110,8 @@ let answerIcon = L.icon({
 });
 
 //game variables
-let gridStreak = 0
-let gridMaxStreak = 0
+let gridStreak = 0;
+let gridMaxStreak = 0;
 var gridAnswerMarker;
 let gridMode = false;
 let gridShown = false;
@@ -232,7 +232,7 @@ let covering = false;
 //blur cover
 let blurCover;
 let blurCovering = false;
-let blurAmount = 25
+let blurAmount = 20;
 
 //blink cover
 let blink = false;
@@ -607,7 +607,7 @@ function setup() {
   gridModeButton.size(shieldSize, 20);
   gridModeButton.style("position", "absolute");
   gridModeButton.style("z-index", "21");
-  gridModeButton.style("background-color", "red")
+  gridModeButton.style("background-color", "red");
 
   gridModeButton.mousePressed(enterGridMode);
 
@@ -889,7 +889,7 @@ function dataUpload() {
     //reset the grid
     mapGrid = [];
     saveProgress();
-    localStorage.removeItem("griddedmap");
+    localStorage.removeItem("savedMap");
 
     addGrid();
   }
@@ -1298,6 +1298,10 @@ function lockStartJoin() {
     zoomButton.attribute("disabled", "");
     gridModeButton.attribute("disabled", "");
 
+    if (gridMode) {
+      gridModeButton.removeAttribute("disabled");
+    }
+
     //keep the reset option open while a set is active
     if (!setActive || endScreen) {
       startSetButton.attribute("disabled", "");
@@ -1417,7 +1421,7 @@ function rankModify() {
   let blinkCol = "red";
   let blurCol = "red";
 
-  let gridMaxCol = "red"
+  let gridMaxCol = "red";
 
   if (bestSet >= nextBestSet) {
     normCol = "green";
@@ -1943,7 +1947,7 @@ function leaveMap() {
   }
 
   for (let item of gridModeSquares) {
-    item.remove()
+    item.remove();
   }
 
   if (gridMode) {
@@ -2002,6 +2006,7 @@ function afterGuess() {
   
     //add grid stats
     addGridStats(clickedPoint, calcLocation, totalDistance);
+
   
     //do the heat calculations
     findHeatValues();
@@ -2250,7 +2255,7 @@ function saveProgress() {
   localStorage.setItem("totalgreen", totalGreen);
   localStorage.setItem("totalpurple", totalPurple);
   localStorage.setItem("totalgold", totalGold);
-  localStorage.setItem("griddedmap", JSON.stringify(mapGrid));
+  localStorage.setItem("savedMap", JSON.stringify(mapGrid));
 }
 
 
@@ -2300,7 +2305,7 @@ let heatSquareOpacity = 0.5;
 
 function addGrid() {
   //create a new grid if the player does not have one already
-  if (localStorage.getItem("griddedmap") === null) {
+  if (localStorage.getItem("savedMap") === null) {
 
     //lng
     rows = 360 / GRID_LENGTH;
@@ -2316,7 +2321,7 @@ function addGrid() {
     }
   }
   else {
-    mapGrid = JSON.parse(localStorage.getItem("griddedmap"));
+    mapGrid = JSON.parse(localStorage.getItem("savedMap"));
   }
 
   //create the grid pattern on the map, I mad all values in the for loop positive so it is easier to create the grid
@@ -2437,7 +2442,7 @@ function addGrid() {
 function gridModeClick(lat, lng) {
   if (!endScreen) {
     for (let item of gridModeSquares) {
-      item.remove()
+      item.remove();
     }
   
     //get the x and y needed to find the right tile
@@ -2448,36 +2453,7 @@ function gridModeClick(lat, lng) {
     currentGridY = Math.floor((lat + 90) / GRID_MODE_LENGTH);
     currentGridX = Math.floor((lng + 180) / GRID_MODE_LENGTH);
 
-    //create surrounding squares
-    //basically make a 9 by 9 pattern
-    for (let x = -1; x <= 1; x++) {
-      for (let y = -1; y <= 1; y++) {
-        let fillCol = "rgb(249, 255, 158)"
-        if (x === 0 && y === 0) {
-          fillCol = "yellow"
-        }
-
-
-        if (currentCol + y >= 0 && currentCol + y < (180 / GRID_MODE_LENGTH) && currentRow + x >= 0 && currentRow + x < (360 / GRID_MODE_LENGTH)) {
-          //create a select square
-          let surroundSquare = L.polygon([
-            [(currentCol + y) * GRID_MODE_LENGTH - 90, (currentRow + x) * GRID_MODE_LENGTH - 180],
-            [(currentCol + y) * GRID_MODE_LENGTH - 90, ((currentRow + x) + 1) * GRID_MODE_LENGTH - 180],
-            [((currentCol + y) + 1) * GRID_MODE_LENGTH - 90, ((currentRow + x) + 1) * GRID_MODE_LENGTH - 180],
-            [((currentCol + y) + 1) * GRID_MODE_LENGTH - 90, (currentRow + x) * GRID_MODE_LENGTH - 180]
-          ], {
-            color: "rgb(246, 252, 160)",
-            weight: 1,
-            opacity: 1,
-        
-            fillColor: fillCol,
-            fillOpacity: 0.3
-          }).addTo(map);
-  
-          gridModeSquares.push(surroundSquare)
-        }
-      }
-    }
+    create3X3();
   }
 }
 
@@ -2496,6 +2472,13 @@ function addGridStats(clicked, answer, totaldis) {
 
   let clickedCol = Math.floor((clickLat + 90) / GRID_LENGTH);
   let clickedRow = Math.floor((clickLng + 180) / GRID_LENGTH);
+
+  let type = "none";
+
+  //add the type of guess that they were in
+  if (setActive) {
+    type = setTypeDropDown.value();
+  }
 
   //add to the amount of times the answer has been in that grid
   mapGrid[answerCol][answerRow].answerAmount += 1;
@@ -2542,12 +2525,15 @@ function addGridStats(clicked, answer, totaldis) {
   }
 
   mapGrid[answerCol][answerRow].pastGuesses.push({
+    roundType: type,
     clickedLat: clickLat,
     clickedLng: clickLng,
     answerLat: ansLat,
     answerLng: ansLng,
     lineColor: lineCol
   });
+
+  console.log(mapGrid[answerCol][answerRow]);
 }
 
 //get values for the heat map
@@ -2777,19 +2763,23 @@ function enterGridMode() {
       gridModeLines.push(gridModeLine);
     }
 
-    gridModeButton.style("background-color", "green")
+    gridModeButton.style("background-color", "green");
 
     resetSelect();
   }
 
   //grid mode is turned off
   else {
+    //remove the grid from the map
+    for (let item of gridModeSquares) {
+      item.remove();
+    }
     mapChange();
     for (let item of gridModeLines) {
       item.remove();
     }
 
-    gridModeButton.style("background-color", "red")
+    gridModeButton.style("background-color", "red");
   }
 }
 
@@ -2808,7 +2798,7 @@ function gridModeSquareColChange() {
       });
     }
 
-    gridStreak += 5
+    gridStreak += 5;
 
     if (gridStreak > gridMaxStreak) {
       gridMaxStreak = gridStreak;
@@ -2824,7 +2814,7 @@ function gridModeSquareColChange() {
       });
     }
 
-    gridStreak += 1
+    gridStreak += 1;
 
     if (gridStreak > gridMaxStreak) {
       gridMaxStreak = gridStreak;
@@ -2844,7 +2834,7 @@ function gridModeSquareColChange() {
       gridMaxStreak = gridStreak;
     }
 
-    gridStreak = 0
+    gridStreak = 0;
   }
 
   //update banner text
@@ -2855,16 +2845,22 @@ function gridModeSquareColChange() {
 function resetSelect() {
 
   //move the selected square into the center of the map
-  currentGridY = 9
-  currentGridX = 17
+  currentGridY = 9;
+  currentGridX = 17;
 
+  create3X3();
+}
+
+function create3X3() {
   //create surrounding squares
-  //basically make a 9 by 9 pattern
+  //basically make a 3 by 3 pattern
   for (let x = -1; x <= 1; x++) {
     for (let y = -1; y <= 1; y++) {
-      let fillCol = "rgb(249, 255, 158)"
+      let fillCol = "rgb(249, 255, 158)";
+      let fillopac = 0.4;
       if (x === 0 && y === 0) {
-        fillCol = "yellow"
+        fillCol = "yellow";
+        fillopac = 0.7;
       }
 
 
@@ -2876,15 +2872,15 @@ function resetSelect() {
           [((currentGridY + y) + 1) * GRID_MODE_LENGTH - 90, ((currentGridX + x) + 1) * GRID_MODE_LENGTH - 180],
           [((currentGridY + y) + 1) * GRID_MODE_LENGTH - 90, (currentGridX + x) * GRID_MODE_LENGTH - 180]
         ], {
-          color: "rgb(246, 252, 160)",
+          color: "rgb(184, 181, 52)",
           weight: 1,
           opacity: 1,
       
           fillColor: fillCol,
-          fillOpacity: 0.3
+          fillOpacity: fillopac
         }).addTo(map);
 
-        gridModeSquares.push(surroundSquare)
+        gridModeSquares.push(surroundSquare);
       }
     }
   }
