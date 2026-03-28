@@ -101,15 +101,51 @@ let currentPin = coalP;
 //markers
 let answermarker;
 let marker;
+let greenAnswer = "green_marker.png"
+let yellowAnswer = "bolt_answer.png"
+let purpleanswer = "NMPZ_answer.png"
+let whiteanswer = "Blink_answer.png"
+let blackanswer = "Blur_answer.png"
 
 let answerIcon = L.icon({
-  iconUrl: 'green_marker.png',
+  iconUrl: greenAnswer,
 
-  iconSize: [30, 40], //size of the icon
-  iconAnchor: [15, 39], //point of the icon which will correspond to marker's location
+  iconSize: [28, 40], //size of the icon
+  iconAnchor: [14, 39], //point of the icon which will correspond to marker's location
 });
 
+let blitzAnswer = L.icon({
+  iconUrl: yellowAnswer,
+
+  iconSize: [60, 75], //size of the icon
+  iconAnchor: [27, 53], //point of the icon which will correspond to marker's location
+});
+
+let NMPZAnswer = L.icon({
+  iconUrl: purpleanswer,
+
+  iconSize: [50, 62], //size of the icon
+  iconAnchor: [25, 52], //point of the icon which will correspond to marker's location
+});
+
+let blinkAnswer = L.icon({
+  iconUrl: whiteanswer,
+
+  iconSize: [55, 65], //size of the icon
+  iconAnchor: [27.2, 54], //point of the icon which will correspond to marker's location
+});
+
+let blurAnswer = L.icon({
+  iconUrl: blackanswer,
+
+  iconSize: [55, 83], //size of the icon
+  iconAnchor: [27.5, 63], //point of the icon which will correspond to marker's location
+});
+
+let currentAnswerIcon = answerIcon
+
 //game variables
+let viewingNMPZ = false;
 let gridStreak = 0;
 let gridMaxStreak = 0;
 var gridAnswerMarker;
@@ -232,7 +268,7 @@ let covering = false;
 //blur cover
 let blurCover;
 let blurCovering = false;
-let blurAmount = 20;
+let blurAmount = 25;
 
 //blink cover
 let blink = false;
@@ -1795,6 +1831,11 @@ function nextmap() {
       "src",
       `https://www.google.com/maps?q=&layer=c&cbll=${newlat},${newlng}&cbp=11,0,0,0,0&output=svembed`
     );
+
+    //change the condition based on the type of guess that they had while viewing
+    if (viewingNMPZ) {
+      street.style("pointer-events", "none");
+    }
     switching = false;
   }
 }
@@ -1811,6 +1852,13 @@ function confirmed() {
   //exit the viewing mode
   if (viewing) {
     viewing = false;
+
+    //reset all the conditions that were set
+    street.style("pointer-events", "auto");
+    covering = false;
+    blurCover.style("z-index", "-1");
+    blink = false;
+
     mapID.show();
     mapChange();
     return;
@@ -1958,6 +2006,7 @@ function leaveMap() {
 
 //runs after the player has guessed
 function afterGuess() {
+  currentAnswerIcon = answerIcon;
 
   currentBannerColor = "rgb(177, 255, 151)";
 
@@ -2034,6 +2083,22 @@ function afterGuess() {
   
     //if this is during a set
     if (setActive) {
+
+      //have the right answer pin depending on game mode
+      if (setTypeDropDown.value() === "blitz") {
+        currentAnswerIcon = blitzAnswer;
+      }
+      else if (setTypeDropDown.value() === "NMPZ") {
+        currentAnswerIcon = NMPZAnswer;
+      }
+      else if (setTypeDropDown.value() === "blink") {
+        currentAnswerIcon = blinkAnswer;
+      }
+      else if (setTypeDropDown.value() === "blur") {
+        currentAnswerIcon = blurAnswer;
+      }
+
+
       //add points
       totalSetPoints += points;
       if (curretnRoundNumber < maxRounds) {
@@ -2066,7 +2131,7 @@ function afterGuess() {
       else {
         //show the previous guesses, the idea is that the final guess will be shown normally so all 5 guesses will be shown
         for (i = 0; i < maxRounds - 1; i++) {
-          let setAnswerMarker = L.marker([setLocations[i][0], setLocations[i][1]], {icon: answerIcon}).addTo(map);
+          let setAnswerMarker = L.marker([setLocations[i][0], setLocations[i][1]], {icon: currentAnswerIcon}).addTo(map);
           let setClickedMarker = L.marker([setClickedPoints[i][0], setClickedPoints[i][1]], {icon: markerIcon}).addTo(map);
           let setAnswerLine = L.polyline([[setLocations[i][0], setLocations[i][1]],[setClickedPoints[i][0], setClickedPoints[i][1]]], {
             color: setLineColors[i],
@@ -2150,7 +2215,7 @@ function afterGuess() {
   mapID.size(windowWidth, windowHeight - bannerHeight);
   map.invalidateSize();
 
-  answermarker = L.marker([calcLocation.lat, calcLocation.lng], {icon: answerIcon}).addTo(map);
+  answermarker = L.marker([calcLocation.lat, calcLocation.lng], {icon: currentAnswerIcon}).addTo(map);
 
   if (gridMode) {
     gridModeSquareColChange();
@@ -2174,7 +2239,7 @@ function NMPZ() {
   if (setActive && (setTypeDropDown.value() === "NMPZ" || setTypeDropDown.value() === "blink")) {
     street.style("pointer-events", "none");
   }
-  else {
+  else if (!viewing) {
     street.style("pointer-events", "auto");
   }
 }
@@ -2184,7 +2249,7 @@ function activateBlur() {
   if (setActive && setTypeDropDown.value() === "blur") {
     blurCover.style("z-index", "1");
   }
-  else {
+  else if (!viewing) {
     blurCover.style("z-index", "-1");
   }
 }
@@ -2227,13 +2292,17 @@ function mapChange() {
     }
   }
   if (setActive && setTypeDropDown.value() === "blink") {
-    blink = true;
-
-    //have to plus 1 because one second gets removed instantly
-    blinkCountdown = blinkMax + visibleTime;
-    covering = true;
-    cover.html(blinkCountdown);
+    runBlink();
   }
+}
+
+function runBlink() {
+  blink = true;
+
+  //have to plus 1 because one second gets removed instantly
+  blinkCountdown = blinkMax + visibleTime;
+  covering = true;
+  cover.html(blinkCountdown);
 }
 
 
@@ -2391,8 +2460,24 @@ function addGrid() {
 
     //show all guesses that were in that grid
     for (let info of currentgrid.pastGuesses) {
+      //display the icon based on the set that was played
+      let showIcon = answerIcon
+      if (info.roundType === "blitz") {
+        showIcon = blitzAnswer
+      }
+      else if (info.roundType === "NMPZ") {
+        showIcon = NMPZAnswer
+      }
+      else if (info.roundType === "blink") {
+        showIcon = blinkAnswer
+      }
+      else if (info.roundType === "blur") {
+        showIcon = blurAnswer
+      }
+
+
       //create all the parts
-      let gridAnswerMark = L.marker([info.answerLat, info.answerLng], {icon: answerIcon}).addTo(griddedMap);
+      let gridAnswerMark = L.marker([info.answerLat, info.answerLng], {icon: showIcon}).addTo(griddedMap);
       let gridClickedMark = L.marker([info.clickedLat, info.clickedLng], {icon: markerIcon}).addTo(griddedMap);
       let gridAnswerLine = L.polyline([[info.clickedLat, info.clickedLng],[info.answerLat, info.answerLng]], {
         color: info.lineColor,
@@ -2403,6 +2488,23 @@ function addGrid() {
       gridAnswerMark.on("click", function () {
         viewing = true;
         resetGridView();
+
+        //apply the NMPZ effect
+        if (info.roundType === "NMPZ" || info.roundType === "blink") {
+          viewingNMPZ = true;
+        }
+        else {
+          viewingNMPZ = false;
+        }
+
+        //apply the blur effect
+        if (info.roundType === "blur") {
+          blurCover.style("z-index", "1");
+        }
+        //apply the blink effect
+        else if (info.roundType === "blink") {
+          runBlink();
+        }
 
         //hide the map grid page
         showGridScreen.style("z-index", "-1");
@@ -2426,6 +2528,7 @@ function addGrid() {
         newlat = info.answerLat;
         newlng = info.answerLng;
         switching = true;
+
       });
 
       //place all marks in list for later removal
