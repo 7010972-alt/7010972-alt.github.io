@@ -23,23 +23,27 @@ function preload() {
   shared = partyLoadShared("shared", {
     transfers: {},
 
-    gameStarted: false,
-
-    normalPlayers: 0,
+    //variables for the normal party
     normalMap: "none",
     normalGuessed: false,
-    normalround: "ongoing",
-    normalTimeLeft: -1,
+    normalRound: "ongoing",
     normalTimeMax: 60,
-    normalConfirm: false,
     normalMapChanged: false,
     normalRoundNumber: 0,
     normalPartyEnded: false,
     normalClickedPositions: [],
     normalStarted: false,
 
-    blitzPlayers: 0,
-
+    //variables for the blitz party
+    blitzMap: "none",
+    blitzGuessed: false,
+    blitzRound: "ongoing",
+    blitzTimeMax: timeAfterFirstGuess,
+    blitzMapChanged: false,
+    blitzRoundNumber: 0,
+    blitzPartyEnded: false,
+    blitzClickedPositions: [],
+    blitzStarted: false,
 
     NMPZPlayers: 0,
     blinkPlayers: 0,
@@ -153,6 +157,7 @@ let gridMode = false;
 let gridShown = false;
 let viewing = false;
 let allowGuess = true;
+let allowConf = true;
 let timeAfterFirstGuess = 16;
 let calcLocation;
 let mapShowing = true;
@@ -300,14 +305,15 @@ let inParty = false;
 let currentParty;
 let lockedIn = false;
 
-let wasNormalGuessed = false;
 let maxPartyRoundNumber = 5;
 
 let displayMarkers = [];
-let currentMuiltIcon = coalP;
 let preChangeClickedLength;
 let waitingLobby = false;
 let lobbyJoined = false;
+
+let joinIn = false;
+let ended = false;
 
 var hintcircle;
 
@@ -338,18 +344,12 @@ function setup() {
   //leaflet map
   map = L.map("map").setView([0, 0], 1);
 
-  //pasted from leaflet
-  // L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  //   maxZoom: 19,
-  //   minZoom: 1,
-  //   attribution: "&copy; OpenStreetMap contributors"
-  // }).addTo(map);
-
   //all English
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     subdomains: 'abcd',
     maxZoom: 19,
     minZoom: 1,
+    noWrap: true,
     attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
   }).addTo(map);
 
@@ -361,8 +361,11 @@ function setup() {
 
   //when the map is clicked
   function onMapClick(e) {
-    let lat = e.latlng.lat;
-    let lng = e.latlng.lng;
+
+    let wrapped = map.wrapLatLng(e.latlng);
+
+    let lat = wrapped.lat;
+    let lng = wrapped.lng;
     //what runs normally 
     if (!gridMode) {
 
@@ -728,7 +731,6 @@ function draw() {
   covertoggle();
   blinkToggle();
   rankModify();
-  forceConfirm();
   forceLeaveEnd();
   checkPartyEnded();
   partyTimeChange();
@@ -742,6 +744,14 @@ function draw() {
   showButtonLock();
   dataInfo();
   setButtonText();
+  lockStartParty();
+}
+
+function closeHint() {
+  //turn off hint mode
+  if (hintMode) {
+    toggleHint();
+  }
 }
 
 function setButtonText() {
@@ -1089,7 +1099,7 @@ function bannerColChange() {
 
 //make sure that the map is open during parties and closed during viewing mode
 function lockMap() {
-  if (lockedIn || viewing) {
+  if (lockedIn || viewing || waitingLobby) {
     hideMapButton.attribute("disabled", "");
   }
   else {
@@ -1109,97 +1119,128 @@ function togglePartyButton() {
 
 //display the other players markers in the same party
 function displayOthers() {
-  if (inParty) {
-    if (setTypeDropDown.value() === "normal" && shared.normalround === "over" && preChangeClickedLength !== shared.normalClickedPositions.length) {
+  if (inParty && !waitingLobby) {
+    //goes through each saved location and places them on the map
+
+    //for normal mode
+    if (setTypeDropDown.value() === "normal" && shared.normalRound === "over" && preChangeClickedLength !== shared.normalClickedPositions.length) {
       preChangeClickedLength = shared.normalClickedPositions.length;
-      for (let info of shared.normalClickedPositions) {
-
-        //calculate distance so that line color can be changed
-        let point1 = L.latLng(shared.normalMap.lat, shared.normalMap.lng);
-        let point2 = L.latLng(info.lat, info.lng);
-
-        let distance = point1.distanceTo(point2);
-
-        let lineCol = "black";
-        if (distance <= ultraDis) {
-          lineCol = "orange";
-        }
-        else if (distance <= superDis) {
-          lineCol = "purple";
-        }
-        else if (distance <= correctDis) {
-          lineCol = "green";
-        }
-        else if (distance >= wrongDis) {
-          lineCol = "red";
-        }
-
-        currentMuiltIcon = info.Pin;
-
-        //used to show the marks of other players
-        muiltIcon = L.icon({
-          iconUrl: currentMuiltIcon,
-
-          iconSize: [40, 40],
-          iconAnchor: [20, 37],
-        });
-
-        let muiltMarker = L.marker([info.lat, info.lng], {icon: muiltIcon}).addTo(map);
-        let muiltAnswerLine = L.polyline(
-          [[info.lat, info.lng], [shared.normalMap.lat, shared.normalMap.lng]],
-          {
-            color: lineCol,
-            opacity: 0.7
-          }
-        ).addTo(map);
-
-        displayMarkers.push(muiltMarker);
-        displayMarkers.push(muiltAnswerLine);
-
-      }
+      showAllMarks(shared.normalClickedPositions, shared.normalMap)
     }
+
+    //for blitz mode
+    if (setTypeDropDown.value() === "blitz" && shared.blitzRound === "over" && preChangeClickedLength !== shared.blitzClickedPositions.length) {
+      preChangeClickedLength = shared.blitzClickedPositions.length;
+      showAllMarks(shared.blitzClickedPositions, shared.blitzMap)
+    }
+  }
+}
+
+function showAllMarks(marks, mapcoords) {
+  for (let info of marks) {
+
+    //calculate distance so that line color can be changed
+    let point1 = L.latLng(mapcoords.lat, mapcoords.lng);
+    let point2 = L.latLng(info.lat, info.lng);
+
+    let distance = point1.distanceTo(point2);
+
+    let lineCol = "black";
+    if (distance <= ultraDis) {
+      lineCol = "orange";
+    }
+    else if (distance <= superDis) {
+      lineCol = "purple";
+    }
+    else if (distance <= correctDis) {
+      lineCol = "green";
+    }
+    else if (distance >= wrongDis) {
+      lineCol = "red";
+    }
+
+    //used to show the marks of other players
+    let muiltIcon = L.icon({
+      iconUrl: info.Pin,
+
+      iconSize: [40, 40],
+      iconAnchor: [20, 37],
+    });
+
+    let muiltMarker = L.marker([info.lat, info.lng], {icon: muiltIcon}).addTo(map);
+    let muiltAnswerLine = L.polyline(
+      [[info.lat, info.lng], [mapcoords.lat, mapcoords.lng]],
+      {
+        color: lineCol,
+        opacity: 0.7
+      }
+    ).addTo(map);
+
+    displayMarkers.push(muiltMarker);
+    displayMarkers.push(muiltAnswerLine);
   }
 }
 
 //will kick everyone out of a party when all rounds are up and reset local varibales
 function checkPartyEnded() {
-  if (inParty && currentParty === "normal" && shared.normalPartyEnded && !waitingLobby) {
+  if (inParty && !waitingLobby) {
 
-    //local resets
-    currentParty = "none";
-    inParty = false;
-    waitingLobby = false;
-    lobbyJoined = false;
-    lockedIn = false;
-    endScreen = false;
-    covering = false;
-    timeLeft = 0;
-    preChangeClickedLength = 0;
-
-    for (let item of displayMarkers) {
-      item.remove();
+    //normal mode
+    if (currentParty === "normal" && shared.normalPartyEnded) {
+      resetLocals();
+      mapChange();
     }
-    displayMarkers = [];
 
-    //reset map
-    mapID.style("bottom", "20px");
-    mapID.style("right", "75px");
-    mapID.size(mapOriginalWidth, mapOriginalHeight);
-    map.invalidateSize();
-    map.setView([0, 0], 1);
+    //blitz mode
+    else if (currentParty === "blitz" && shared.blitzPartyEnded) {
+      resetLocals();
+      mapChange();
+    }
 
-    marker.setLatLng([0, 0]);
-    clickedPoint = { lat: 0, lng: 0 };
-
-
-    mapChange();
   }
+}
+
+//repetitive code
+function resetLocals() {
+  //local resets
+  currentParty = "none";
+  inParty = false;
+  waitingLobby = false;
+  lobbyJoined = false;
+  lockedIn = false;
+  endScreen = false;
+  covering = false;
+  timeLeft = 0;
+  preChangeClickedLength = 0;
+
+  for (let item of displayMarkers) {
+    item.remove();
+  }
+  displayMarkers = [];
+
+  //reset map
+  mapID.style("bottom", "20px");
+  mapID.style("right", "75px");
+  mapID.size(mapOriginalWidth, mapOriginalHeight);
+  map.invalidateSize();
+  map.setView([0, 0], 1);
+
+  marker.setLatLng([0, 0]);
+  clickedPoint = { lat: 0, lng: 0 };
 }
 
 // if someone has guessed then change everyone's time
 function partyTimeChange() {
   if (inParty) {
-    if (setTypeDropDown.value() === "normal" && shared.normalGuessed) {
+    //normal mode
+    if (currentParty === "normal" && shared.normalGuessed) {
+      if (timeLeft > timeAfterFirstGuess) {
+        timeLeft = timeAfterFirstGuess;
+        time = millis();
+      }
+    }
+    //blitz mode
+    else if (currentParty === "blitz" && shared.blitzGuessed) {
       if (timeLeft > timeAfterFirstGuess) {
         timeLeft = timeAfterFirstGuess;
         time = millis();
@@ -1211,16 +1252,16 @@ function partyTimeChange() {
 //force everyone in party to leave endscreen
 function forceLeaveEnd() {
   if (inParty && endScreen) {
-    if (setTypeDropDown.value() === "normal" && shared.normalround === "ongoing") {
+
+    //normal mode
+    if (currentParty === "normal" && shared.normalRound === "ongoing") {
       confirmed();
     }
-  }
-}
 
-//forces others in the party to confirm
-function forceConfirm() {
-  if (setTypeDropDown.value() === "normal" && shared.normalConfirm === true && inParty && !endScreen) {
-    confirmed();
+    //blitz mode
+    else if (currentParty === "blitz" && shared.blitzRound === "ongoing") {
+      confirmed();
+    }
   }
 }
 
@@ -1230,42 +1271,69 @@ function setPartyMap() {
     shared.normalMap = random(currentLocations);
     shared.normalRoundNumber = 1;
   }
+
+  if (shared.blitzMap === "none") {
+    shared.blitzMap = random(currentLocations);
+    shared.blitzRoundNumber = 1;
+  }
+}
+
+//disables the button to start a party if it is ongoing
+function lockStartParty() {
+  //normal
+  if (setTypeDropDown.value() === "normal" && shared.normalStarted) {
+    startPartyButton.attribute("disabled", "");
+  }
+
+  //blitz
+  else if (setTypeDropDown.value() === "blitz" && shared.blitzStarted) {
+    startPartyButton.attribute("disabled", "");
+  }
+  //disable the button
+  else {
+    startPartyButton.removeAttribute("disabled");
+  }
 }
 
 //this runs when players first press join party
 //will send them to the waiting lobby of the chosen party
 function joinWait() {
   if (!inParty) {
+    //close the map
+    if (mapShowing) {
+      hideMap();
+    }
+
+
+    ended = false;
+    joinIn = false;
+
     inParty = true;
     waitingLobby = true;
     covering = true;
     if (setTypeDropDown.value() === "normal") {
-      shared.normalPartyEnded = true;
       currentParty = "normal";
-      shared.normalPlayers += 1;
     }
     else if (setTypeDropDown.value() === "blitz") {
       currentParty = "blitz";
-      shared.blitzPlayers += 1;
     }
     else if (setTypeDropDown.value() === "NMPZ") {
       currentParty = "NMPZ";
-      shared.NMPZPlayers += 1;
     }
     else if (setTypeDropDown.value() === "blink") {
       currentParty = "blink";
-      shared.blinkPlayers += 1;
     }
   }
 }
 
 //runs when the start party button is pressed and will lead to all players in the waiting lobby to join
 function joiningCheck() {
+
   if (setTypeDropDown.value() === "normal") {
     shared.normalStarted = true;
   }
   else if (setTypeDropDown.value() === "blitz") {
-
+    shared.blitzStarted = true;
   }
   else if (setTypeDropDown.value() === "NMPZ") {
 
@@ -1277,33 +1345,104 @@ function joiningCheck() {
 
 //checks if the conditions are met and places the player into a party
 function joinParty() {
-  if (!lobbyJoined) {
-    if (setTypeDropDown.value() === "normal" && shared.normalStarted) {
-      
-      setPartyMap();
-      if (shared.normalPartyEnded) {
-        shared.normalPartyEnded = false;
-        timeLeft = 0;
-      }
-      partyChange(shared.normalMap, "normal");
 
-      //goes into all of them
-      lobbyJoined = true;
-      waitingLobby = false;
-      covering = false;
+  if (!lobbyJoined) {
+
+    //normal mode
+    if (setTypeDropDown.value() === "normal") {
+
+      //just a check to make the player stay in the lobby until the next round starts
+      if (shared.normalRound === "over") {
+        ended = true;
+      }
+
+      if (ended && shared.normalRound === "ongoing") {
+        joinIn = true;
+      }
+
+      //let the first player to start the round
+      if (!shared.normalStarted) {
+        ended = true;
+        joinIn = true;
+      }
+
+      //this is what happens when they join the part
+      if (shared.normalStarted && currentParty === "normal" && joinIn) {
+
+        partyJoin();
+        closeHint();
+  
+        setPartyMap();
+        if (shared.normalPartyEnded) {
+          shared.normalPartyEnded = false;
+          timeLeft = 0;
+        }
+  
+        partyChange(shared.normalMap, "normal");
+  
+        //set variables
+        lobbyJoined = true;
+        waitingLobby = false;
+        covering = false;
+      }
     }
+
+    //blitz mode
     else if (setTypeDropDown.value() === "blitz") {
-      currentParty = "blitz";
-      shared.blitzPlayers += 1;
+      //just a check to make the player stay in the lobby until the next round starts
+      if (shared.blitzRound === "over") {
+        ended = true;
+      }
+
+      if (ended && shared.blitzRound === "ongoing") {
+        joinIn = true;
+      }
+
+      //let the first player to start the round
+      if (!shared.blitzStarted) {
+        ended = true;
+        joinIn = true;
+      }
+
+      //this is what happens when they join the part
+      if (shared.blitzStarted && currentParty === "blitz" && joinIn) {
+
+        partyJoin();
+        closeHint();
+  
+        setPartyMap();
+        if (shared.blitzPartyEnded) {
+          shared.blitzPartyEnded = false;
+          timeLeft = 0;
+        }
+  
+        partyChange(shared.blitzMap, "blitz");
+  
+        //set variables
+        lobbyJoined = true;
+        waitingLobby = false;
+        covering = false;
+      }
     }
+
     else if (setTypeDropDown.value() === "NMPZ") {
-      currentParty = "NMPZ";
-      shared.NMPZPlayers += 1;
+
     }
     else if (setTypeDropDown.value() === "blink") {
-      currentParty = "blink";
-      shared.blinkPlayers += 1;
+
     }
+  }
+}
+
+//repetitive code
+function partyJoin() {
+  //reset the 2 variables
+  ended = false;
+  joinIn = false;
+
+  //make sure the map is opened
+  if (!mapShowing) {
+    hideMap();
   }
 }
 
@@ -1321,8 +1460,9 @@ function partyChange(place, type) {
   if (type === "normal") {
     timeLeft = shared.normalTimeMax;
   }
-
-  //shared.normalClickedPositions = []
+  else if (type === "blitz") {
+    timeLeft = shared.blitzTimeMax
+  }
 }
 
 //I wanted the player to not be able to join parties or sets or change the dropdown value when they are in either one
@@ -1705,8 +1845,15 @@ function bannerTextChange() {
       banner.html("Streak: " + gridStreak + " | Max: " + gridMaxStreak);
     }
     else if (inParty) {
+
+      //change text for normal mode
       if (setTypeDropDown.value() === "normal") {
         banner.html("Round: " + shared.normalRoundNumber + "/" + maxPartyRoundNumber + " | Time Left: " + timeLeft);
+      }
+
+      //change text for blitz mode
+      if (setTypeDropDown.value() === "blitz") {
+        banner.html("Round: " + shared.blitzRoundNumber + "/" + maxPartyRoundNumber + " | Time Left: " + timeLeft);
       }
     }
     else if (viewing) {
@@ -1746,9 +1893,21 @@ function timeDrain() {
       //if time ends and you are in a party
       //be forced to confirm the guess and set the state
       if (inParty) {
-        if (shared.normalround === "ongoing") {
-          shared.normalround = "over";
+
+        //normal
+        if (currentParty === "normal" && shared.normalRound === "ongoing") {
+          shared.normalRound = "over";
         }
+        //blitz
+        else if (currentParty === "blitz" && shared.blitzRound === "ongoing") {
+          shared.blitzRound = "over";
+        }
+
+        //force map open
+        if (!mapShowing) {
+          hideMap();
+        }
+
         confirmed();
       }
 
@@ -1868,100 +2027,170 @@ function confirmed() {
     //if you are in a party
     if (inParty) {
       if (!endScreen) {
-        //if they are in the normal party
-        if (setTypeDropDown.value() === "normal") {
-          //if in normal party and round is ongoing
-          if (shared.normalround === "ongoing" && timeLeft > 0) {
+        if (allowConf) {
 
-            //make the marks show for other players when you put in a guess
-            if (!lockedIn) {
-              shared.normalClickedPositions.push({
-                lat: clickedPoint.lat,
-                lng: clickedPoint.lng,
-                Pin: currentPin,
-              });
+          //normal mode
+          if (currentParty === "normal") {
+            //if in normal party and round is ongoing
+            if (shared.normalRound === "ongoing" && timeLeft >= 0) {
+
+              //make the marks show for other players when you put in a guess
+              if (!lockedIn) {
+                shared.normalClickedPositions.push({
+                  lat: clickedPoint.lat,
+                  lng: clickedPoint.lng,
+                  Pin: currentPin,
+                });
+              }
+
+              //if someone has guessed then trigger the time limit
+
+              //normal
+              if (shared.normalGuessed === false && timeLeft > timeAfterFirstGuess) {
+                shared.normalGuessed = true;
+              }
+              lockedIn = true;
             }
-
-
-            lockedIn = true;
-
-            //if someone has guessed then trigger the time limit
-            if (shared.normalGuessed === false && timeLeft > timeAfterFirstGuess) {
-              shared.normalGuessed = true;
-
-              //reset some variables
+            //going into the end of a normal party round
+            else {
+              //add the clicked location to the liist holding all the players clicked locations
+              if (!lockedIn) {
+  
+                shared.normalClickedPositions.push({
+                  lat: clickedPoint.lat,
+                  lng: clickedPoint.lng,
+                  Pin: currentPin,
+                });
+              }
+  
+              lockedIn = true;
+  
+              //set party variables
+              shared.normalRound = "over";
               shared.normalMapChanged = false;
-              shared.normalConfirm = false;
+  
+              afterGuess();
             }
           }
 
-          //going into the end of a party round
-          else {
-            //add the clicked location to the liist holding all the players clicked locations
-            if (!lockedIn) {
-              shared.normalClickedPositions.push({
-                lat: clickedPoint.lat,
-                lng: clickedPoint.lng,
-                Pin: currentPin,
-              });
+
+          //blitz mode
+          else if (currentParty === "blitz") {
+            //if in blitz party and round is ongoing
+            if (shared.blitzRound === "ongoing" && timeLeft >= 0) {
+
+              //make the marks show for other players when you put in a guess
+              if (!lockedIn) {
+                shared.blitzClickedPositions.push({
+                  lat: clickedPoint.lat,
+                  lng: clickedPoint.lng,
+                  Pin: currentPin,
+                });
+              }
+
+              //if someone has guessed then trigger the time limit
+
+              //blitz
+              if (shared.blitzGuessed === false && timeLeft > timeAfterFirstGuess) {
+                shared.blitzGuessed = true;
+              }
+              lockedIn = true;
             }
-
-            lockedIn = true;
-            shared.normalround = "over";
-
-            afterGuess();
+            //going into the end of a party round
+            else {
+              //add the clicked location to the liist holding all the players clicked locations
+              if (!lockedIn) {
+  
+                //blitz
+                shared.blitzClickedPositions.push({
+                  lat: clickedPoint.lat,
+                  lng: clickedPoint.lng,
+                  Pin: currentPin,
+                });
+              }
+  
+              lockedIn = true;
+  
+              //set party variables
+              shared.blitzMapChanged = false;
+              shared.blitzRound = "over";
+  
+              afterGuess();
+            }
           }
+            
         }
       }
       //escape the end screen when inside of a party
       else {
-        for (let item of displayMarkers) {
-          item.remove();
-        }
-        preChangeClickedLength = 0;
-        shared.normalClickedPositions = [];
-        displayMarkers = [];
-        
-        //variables that reset from only 1 player
-        if (!shared.normalMapChanged) {
-          if (currentParty === "normal") {
-            shared.normalMapChanged = true;
-            shared.normalMap = random(currentLocations);
-            shared.normalRoundNumber += 1;
+        if (endScreen === true && allowGuess) {
+          for (let item of displayMarkers) {
+            item.remove();
           }
+          preChangeClickedLength = 0;
+          displayMarkers = [];
+          lockedIn = false;
+          
+          //normal mode
+
+          if (currentParty === "normal") {
+            shared.normalClickedPositions = [];
+
+            if (!shared.normalMapChanged) {
+              shared.normalMapChanged = true;
+              shared.normalMap = random(currentLocations);
+              shared.normalRoundNumber += 1;
+            }
+
+            //end the party
+            if (shared.normalRoundNumber > maxPartyRoundNumber) {
+              shared.normalRoundNumber = 1;
+              shared.normalStarted = false;
+              shared.normalPartyEnded = true;
+            }
+            else {
+              shared.normalGuessed = false;
+              shared.normalRound = "ongoing";
+              partyChange(shared.normalMap, "normal");
+            }
+          }
+
+          //blitz mode
+
+          else if (currentParty === "blitz") {
+            shared.blitzClickedPositions = [];
+
+            if (!shared.blitzMapChanged) {
+              shared.blitzMapChanged = true;
+              shared.blitzMap = random(currentLocations);
+              shared.blitzRoundNumber += 1;
+            }
+
+            //end the party
+            if (shared.blitzRoundNumber > maxPartyRoundNumber) {
+              shared.blitzRoundNumber = 1;
+              shared.blitzStarted = false;
+              shared.blitzPartyEnded = true;
+            }
+            else {
+              shared.blitzGuessed = false;
+              shared.blitzRound = "ongoing";
+              partyChange(shared.blitzMap, "blitz");
+            }
+          }
+  
+
+          leaveMap();
         }
-
-        if (shared.normalround === "over") {
-          shared.normalround = "ongoing";
-        }
-
-        //make others leave end screen
-        shared.normalEndScreenLeave = true;
-
-        //reset all values and end the party round if it was the last round
-        if (shared.normalRoundNumber > maxPartyRoundNumber) {
-          shared.normalRoundNumber = 1;
-          shared.normalStarted = false;
-          shared.normalPartyEnded = true;
-        }
-
-        //reset values
-        shared.normalGuessed = false;
-        shared.normalConfirm = false;
-        shared.normalround = "ongoing";
-        shared.forceConfirm = false;
-        lockedIn = false;
-        partyChange(shared.normalMap, "normal");
-
-        leaveMap();
       }
-
     }
 
     //what normally runs when you are not in a party
     else {
       if (!endScreen) {
-        afterGuess();
+        if (allowConf) {
+          afterGuess();
+        }
       }
       else if (endScreen === true && allowGuess) {
         mapChange();
@@ -1973,6 +2202,12 @@ function confirmed() {
 
 //makes you leave the endscreen and removes markers also reverts map back
 function leaveMap() {
+
+  //make so that they cannot spam rounds
+  allowConf = false;
+  setTimeout(() => {
+    allowConf = true;
+  }, 1000);
 
   endScreen = false;
   answermarker.remove();
@@ -2014,7 +2249,7 @@ function afterGuess() {
   allowGuess = false;
   setTimeout(() => {
     allowGuess = true;
-  }, 500);
+  }, 1000);
 
   covering = false;
   calcLocation = randomlocation;
@@ -2026,8 +2261,11 @@ function afterGuess() {
       calcLocation = randomlocation;
     }
     else {
-      if (setTypeDropDown.value() === "normal") {
+      if (currentParty === "normal") {
         calcLocation = shared.normalMap;
+      }
+      else if (currentParty === "blitz") {
+        calcLocation = shared.blitzMap;
       }
     }
   
@@ -2636,7 +2874,6 @@ function addGridStats(clicked, answer, totaldis) {
     lineColor: lineCol
   });
 
-  console.log(mapGrid[answerCol][answerRow]);
 }
 
 //get values for the heat map
