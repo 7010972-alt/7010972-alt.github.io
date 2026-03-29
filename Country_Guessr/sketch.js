@@ -38,7 +38,7 @@ function preload() {
     blitzMap: "none",
     blitzGuessed: false,
     blitzRound: "ongoing",
-    blitzTimeMax: 60,
+    blitzTimeMax: timeAfterFirstGuess,
     blitzMapChanged: false,
     blitzRoundNumber: 0,
     blitzPartyEnded: false,
@@ -555,7 +555,7 @@ function setup() {
 
   startSetButton.mousePressed(startSet);
 
-  //button to start a set
+  //button to enter the waiting lobby
   joinButton = createButton("Join Party");
   joinButton.size(80, 30);
   joinButton.style("position", "absolute");
@@ -1456,27 +1456,49 @@ function joinWait() {
       hideMap();
     }
 
-
     ended = false;
     joinIn = false;
 
     inParty = true;
     waitingLobby = true;
     covering = true;
+
+    cover.html(`Start Party`)
+
     if (setTypeDropDown.value() === "normal") {
       currentParty = "normal";
+
+      if (shared.normalStarted) {
+        cover.html(`waiting...`)
+      }
     }
     else if (setTypeDropDown.value() === "blitz") {
       currentParty = "blitz";
+
+      if (shared.blitzStarted) {
+        cover.html(`waiting...`)
+      }
     }
     else if (setTypeDropDown.value() === "NMPZ") {
       currentParty = "NMPZ";
+
+      if (shared.NMPZStarted) {
+        cover.html(`waiting...`)
+      }
     }
     else if (setTypeDropDown.value() === "blink") {
       currentParty = "blink";
+
+      if (shared.blinkStarted) {
+        cover.html(`waiting...`)
+      }
     }
     else if (setTypeDropDown.value() === "blur") {
       currentParty = "blur";
+
+      if (shared.blurStarted) {
+        cover.html(`waiting...`)
+      }
     }
   }
 }
@@ -2056,8 +2078,8 @@ function fixsizes() {
   allShieldsDisplay.size(windowWidth / 4, windowWidth / 6);
 
   //always have start party button in the middle of the screen
-  startPartyButton.position(windowWidth / 2, windowHeight / 2);
-   
+  startPartyButton.position(windowWidth / 2 - 40, windowHeight / 1.2);
+  
 }
 
 //shows the grids
