@@ -38,16 +38,45 @@ function preload() {
     blitzMap: "none",
     blitzGuessed: false,
     blitzRound: "ongoing",
-    blitzTimeMax: timeAfterFirstGuess,
+    blitzTimeMax: 60,
     blitzMapChanged: false,
     blitzRoundNumber: 0,
     blitzPartyEnded: false,
     blitzClickedPositions: [],
     blitzStarted: false,
 
-    NMPZPlayers: 0,
-    blinkPlayers: 0,
+    //variables for the NMPZ party
+    NMPZMap: "none",
+    NMPZGuessed: false,
+    NMPZRound: "ongoing",
+    NMPZTimeMax: 60,
+    NMPZMapChanged: false,
+    NMPZRoundNumber: 0,
+    NMPZPartyEnded: false,
+    NMPZClickedPositions: [],
+    NMPZStarted: false,
 
+    //variables for the blink party
+    blinkMap: "none",
+    blinkGuessed: false,
+    blinkRound: "ongoing",
+    blinkTimeMax: 60,
+    blinkMapChanged: false,
+    blinkRoundNumber: 0,
+    blinkPartyEnded: false,
+    blinkClickedPositions: [],
+    blinkStarted: false,
+
+    //variables for the blur party
+    blurMap: "none",
+    blurGuessed: false,
+    blurRound: "ongoing",
+    blurTimeMax: 60,
+    blurMapChanged: false,
+    blurRoundNumber: 0,
+    blurPartyEnded: false,
+    blurClickedPositions: [],
+    blurStarted: false,
   });
 }
 
@@ -158,7 +187,7 @@ let gridShown = false;
 let viewing = false;
 let allowGuess = true;
 let allowConf = true;
-let timeAfterFirstGuess = 16;
+let timeAfterFirstGuess = 3;
 let calcLocation;
 let mapShowing = true;
 let winStreak = 0;
@@ -670,6 +699,7 @@ function setup() {
   blurCover.style("backdrop-filter", `blur(${blurAmount}px)`);
   blurCover.style("-webkit-backdrop-filter", `blur(${blurAmount}px)`);
   blurCover.style("z-index", "1");
+  blurCover.style("pointer-events", "none");
 
 
 
@@ -745,6 +775,25 @@ function draw() {
   dataInfo();
   setButtonText();
   lockStartParty();
+}
+
+//make sure the answer party pin matches the gamemode
+function setPartyAnswerPins() {
+  if (currentParty === "normal") {
+    currentAnswerIcon = answerIcon
+  }
+  else if (currentParty === "blitz") {
+    currentAnswerIcon = blitzAnswer
+  }
+  else if (currentParty === "NMPZ") {
+    currentAnswerIcon = NMPZAnswer
+  }
+  else if (currentParty === "blink") {
+    currentAnswerIcon = blinkAnswer
+  }
+  else if (currentParty === "blur") {
+    currentAnswerIcon = blurAnswer
+  }
 }
 
 function closeHint() {
@@ -1129,9 +1178,27 @@ function displayOthers() {
     }
 
     //for blitz mode
-    if (setTypeDropDown.value() === "blitz" && shared.blitzRound === "over" && preChangeClickedLength !== shared.blitzClickedPositions.length) {
+    else if (setTypeDropDown.value() === "blitz" && shared.blitzRound === "over" && preChangeClickedLength !== shared.blitzClickedPositions.length) {
       preChangeClickedLength = shared.blitzClickedPositions.length;
       showAllMarks(shared.blitzClickedPositions, shared.blitzMap)
+    }
+
+    //for NMPZ mode
+    else if (setTypeDropDown.value() === "NMPZ" && shared.NMPZRound === "over" && preChangeClickedLength !== shared.NMPZClickedPositions.length) {
+      preChangeClickedLength = shared.NMPZClickedPositions.length;
+      showAllMarks(shared.NMPZClickedPositions, shared.NMPZMap)
+    }
+
+    //for blink mode
+    else if (setTypeDropDown.value() === "blink" && shared.blinkRound === "over" && preChangeClickedLength !== shared.blinkClickedPositions.length) {
+      preChangeClickedLength = shared.blinkClickedPositions.length;
+      showAllMarks(shared.blinkClickedPositions, shared.blinkMap)
+    }
+
+    //for blur mode
+    else if (setTypeDropDown.value() === "blur" && shared.blurRound === "over" && preChangeClickedLength !== shared.blurClickedPositions.length) {
+      preChangeClickedLength = shared.blurClickedPositions.length;
+      showAllMarks(shared.blurClickedPositions, shared.blurMap)
     }
   }
 }
@@ -1197,12 +1264,31 @@ function checkPartyEnded() {
       mapChange();
     }
 
+    //NMPZ mode
+    else if (currentParty === "NMPZ" && shared.NMPZPartyEnded) {
+      resetLocals();
+      mapChange();
+    }
+
+    //blink mode
+    else if (currentParty === "blink" && shared.blinkPartyEnded) {
+      resetLocals();
+      mapChange();
+    }
+
+    //blur mode
+    else if (currentParty === "blur" && shared.blurPartyEnded) {
+      resetLocals();
+      mapChange();
+    }
+
   }
 }
 
 //repetitive code
 function resetLocals() {
   //local resets
+  currentAnswerIcon = answerIcon
   currentParty = "none";
   inParty = false;
   waitingLobby = false;
@@ -1246,6 +1332,27 @@ function partyTimeChange() {
         time = millis();
       }
     }
+    //NMPZ mode
+    else if (currentParty === "NMPZ" && shared.NMPZGuessed) {
+      if (timeLeft > timeAfterFirstGuess) {
+        timeLeft = timeAfterFirstGuess;
+        time = millis();
+      }
+    }
+    //blink mode
+    else if (currentParty === "blink" && shared.blinkGuessed) {
+      if (timeLeft > timeAfterFirstGuess) {
+        timeLeft = timeAfterFirstGuess;
+        time = millis();
+      }
+    }
+    //blur mode
+    else if (currentParty === "blur" && shared.blurGuessed) {
+      if (timeLeft > timeAfterFirstGuess) {
+        timeLeft = timeAfterFirstGuess;
+        time = millis();
+      }
+    }
   }
 }
 
@@ -1262,6 +1369,21 @@ function forceLeaveEnd() {
     else if (currentParty === "blitz" && shared.blitzRound === "ongoing") {
       confirmed();
     }
+
+    //NMPZ mode
+    else if (currentParty === "NMPZ" && shared.NMPZRound === "ongoing") {
+      confirmed();
+    }
+
+    //blink mode
+    else if (currentParty === "blink" && shared.blinkRound === "ongoing") {
+      confirmed();
+    }
+
+    //blur mode
+    else if (currentParty === "blur" && shared.blurRound === "ongoing") {
+      confirmed();
+    }
   }
 }
 
@@ -1276,6 +1398,21 @@ function setPartyMap() {
     shared.blitzMap = random(currentLocations);
     shared.blitzRoundNumber = 1;
   }
+
+  if (shared.NMPZMap === "none") {
+    shared.NMPZMap = random(currentLocations);
+    shared.NMPZRoundNumber = 1;
+  }
+
+  if (shared.blinkMap === "none") {
+    shared.blinkMap = random(currentLocations);
+    shared.blinkRoundNumber = 1;
+  }
+
+  if (shared.blurMap === "none") {
+    shared.blurMap = random(currentLocations);
+    shared.blurRoundNumber = 1;
+  }
 }
 
 //disables the button to start a party if it is ongoing
@@ -1287,6 +1424,21 @@ function lockStartParty() {
 
   //blitz
   else if (setTypeDropDown.value() === "blitz" && shared.blitzStarted) {
+    startPartyButton.attribute("disabled", "");
+  }
+
+  //NMPZ
+  else if (setTypeDropDown.value() === "NMPZ" && shared.NMPZStarted) {
+    startPartyButton.attribute("disabled", "");
+  }
+
+  //blink
+  else if (setTypeDropDown.value() === "blink" && shared.blinkStarted) {
+    startPartyButton.attribute("disabled", "");
+  }
+
+  //blur
+  else if (setTypeDropDown.value() === "blur" && shared.blurStarted) {
     startPartyButton.attribute("disabled", "");
   }
   //disable the button
@@ -1323,6 +1475,9 @@ function joinWait() {
     else if (setTypeDropDown.value() === "blink") {
       currentParty = "blink";
     }
+    else if (setTypeDropDown.value() === "blur") {
+      currentParty = "blur";
+    }
   }
 }
 
@@ -1336,10 +1491,13 @@ function joiningCheck() {
     shared.blitzStarted = true;
   }
   else if (setTypeDropDown.value() === "NMPZ") {
-
+    shared.NMPZStarted = true;
   }
   else if (setTypeDropDown.value() === "blink") {
-
+    shared.blinkStarted = true;
+  }
+  else if (setTypeDropDown.value() === "blur") {
+    shared.blurStarted = true;
   }
 }
 
@@ -1378,12 +1536,12 @@ function joinParty() {
           timeLeft = 0;
         }
   
-        partyChange(shared.normalMap, "normal");
-  
         //set variables
         lobbyJoined = true;
         waitingLobby = false;
         covering = false;
+
+        partyChange(shared.normalMap, "normal");
       }
     }
 
@@ -1415,21 +1573,131 @@ function joinParty() {
           shared.blitzPartyEnded = false;
           timeLeft = 0;
         }
-  
+        
+        //set variables
+        lobbyJoined = true;
+        waitingLobby = false;
+        covering = false;
+
         partyChange(shared.blitzMap, "blitz");
+      }
+    }
+
+    //NMPZ mode
+    else if (setTypeDropDown.value() === "NMPZ") {
+
+      //just a check to make the player stay in the lobby until the next round starts
+      if (shared.NMPZRound === "over") {
+        ended = true;
+      }
+
+      if (ended && shared.NMPZRound === "ongoing") {
+        joinIn = true;
+      }
+
+      //let the first player to start the round
+      if (!shared.NMPZStarted) {
+        ended = true;
+        joinIn = true;
+      }
+
+      //this is what happens when they join the part
+      if (shared.NMPZStarted && currentParty === "NMPZ" && joinIn) {
+
+        partyJoin();
+        closeHint();
+  
+        setPartyMap();
+        if (shared.NMPZPartyEnded) {
+          shared.NMPZPartyEnded = false;
+          timeLeft = 0;
+        }
+        
+        //set variables
+        lobbyJoined = true;
+        waitingLobby = false;
+        covering = false;
+
+        partyChange(shared.NMPZMap, "NMPZ");
+      }
+    }
+
+    //blink mode
+    else if (setTypeDropDown.value() === "blink") {
+
+      //just a check to make the player stay in the lobby until the next round starts
+      if (shared.blinkRound === "over") {
+        ended = true;
+      }
+
+      if (ended && shared.blinkRound === "ongoing") {
+        joinIn = true;
+      }
+
+      //let the first player to start the round
+      if (!shared.blinkStarted) {
+        ended = true;
+        joinIn = true;
+      }
+
+      //this is what happens when they join the part
+      if (shared.blinkStarted && currentParty === "blink" && joinIn) {
+
+        partyJoin();
+        closeHint();
+  
+        setPartyMap();
+        if (shared.blinkPartyEnded) {
+          shared.blinkPartyEnded = false;
+          timeLeft = 0;
+        }
   
         //set variables
         lobbyJoined = true;
         waitingLobby = false;
         covering = false;
+
+        partyChange(shared.blinkMap, "blink");
       }
     }
 
-    else if (setTypeDropDown.value() === "NMPZ") {
+    //blur mode
+    else if (setTypeDropDown.value() === "blur") {
 
-    }
-    else if (setTypeDropDown.value() === "blink") {
+      //just a check to make the player stay in the lobby until the next round starts
+      if (shared.blurRound === "over") {
+        ended = true;
+      }
 
+      if (ended && shared.blurRound === "ongoing") {
+        joinIn = true;
+      }
+
+      //let the first player to start the round
+      if (!shared.blurStarted) {
+        ended = true;
+        joinIn = true;
+      }
+
+      //this is what happens when they join the part
+      if (shared.blurStarted && currentParty === "blur" && joinIn) {
+
+        partyJoin();
+        closeHint();
+  
+        setPartyMap();
+        if (shared.blurPartyEnded) {
+          shared.blurPartyEnded = false;
+          timeLeft = 0;
+        }
+  
+        //set variables
+        lobbyJoined = true;
+        waitingLobby = false;
+        covering = false;
+
+        partyChange(shared.blurMap, "blur");
+      }
     }
   }
 }
@@ -1462,6 +1730,18 @@ function partyChange(place, type) {
   }
   else if (type === "blitz") {
     timeLeft = shared.blitzTimeMax
+  }
+  else if (type === "NMPZ") {
+    timeLeft = shared.NMPZTimeMax
+  }
+  else if (type === "blink") {
+    timeLeft = shared.blinkTimeMax
+
+    //blink might not be working
+    runBlink();
+  }
+  else if (type === "blur") {
+    timeLeft = shared.blurTimeMax
   }
 }
 
@@ -1836,6 +2116,7 @@ function showRank() {
   }
 }
 
+//changes what the banner at the top says
 function bannerTextChange() {
   if (!endScreen) {
     if (setActive) {
@@ -1852,8 +2133,23 @@ function bannerTextChange() {
       }
 
       //change text for blitz mode
-      if (setTypeDropDown.value() === "blitz") {
+      else if (setTypeDropDown.value() === "blitz") {
         banner.html("Round: " + shared.blitzRoundNumber + "/" + maxPartyRoundNumber + " | Time Left: " + timeLeft);
+      }
+
+      //change text for NMPZ mode
+      else if (setTypeDropDown.value() === "NMPZ") {
+        banner.html("Round: " + shared.NMPZRoundNumber + "/" + maxPartyRoundNumber + " | Time Left: " + timeLeft);
+      }
+
+      //change text for blink mode
+      else if (setTypeDropDown.value() === "blink") {
+        banner.html("Round: " + shared.blinkRoundNumber + "/" + maxPartyRoundNumber + " | Time Left: " + timeLeft);
+      }
+
+      //change text for blur mode
+      else if (setTypeDropDown.value() === "blur") {
+        banner.html("Round: " + shared.blurRoundNumber + "/" + maxPartyRoundNumber + " | Time Left: " + timeLeft);
       }
     }
     else if (viewing) {
@@ -1901,6 +2197,18 @@ function timeDrain() {
         //blitz
         else if (currentParty === "blitz" && shared.blitzRound === "ongoing") {
           shared.blitzRound = "over";
+        }
+        //NMPZ
+        else if (currentParty === "NMPZ" && shared.NMPZRound === "ongoing") {
+          shared.NMPZRound = "over";
+        }
+        //blink
+        else if (currentParty === "blink" && shared.blinkRound === "ongoing") {
+          shared.blinkRound = "over";
+        }
+        //blur
+        else if (currentParty === "blur" && shared.blurRound === "ongoing") {
+          shared.blurRound = "over";
         }
 
         //force map open
@@ -2007,6 +2315,8 @@ function setupMap() {
   }
 }
 
+//this handles submitting guesses and leaving the end screen after a guess
+//also displaying all the marks and setting values
 function confirmed() {
   //exit the viewing mode
   if (viewing) {
@@ -2118,6 +2428,141 @@ function confirmed() {
               afterGuess();
             }
           }
+
+          //NMPZ mode
+          else if (currentParty === "NMPZ") {
+            //if in NMPZ party and round is ongoing
+            if (shared.NMPZRound === "ongoing" && timeLeft >= 0) {
+
+              //make the marks show for other players when you put in a guess
+              if (!lockedIn) {
+                shared.NMPZClickedPositions.push({
+                  lat: clickedPoint.lat,
+                  lng: clickedPoint.lng,
+                  Pin: currentPin,
+                });
+              }
+
+              //if someone has guessed then trigger the time limit
+
+              //NMPZ
+              if (shared.NMPZGuessed === false && timeLeft > timeAfterFirstGuess) {
+                shared.NMPZGuessed = true;
+              }
+              lockedIn = true;
+            }
+            //going into the end of a party round
+            else {
+              //add the clicked location to the liist holding all the players clicked locations
+              if (!lockedIn) {
+  
+                //NMPZ
+                shared.NMPZClickedPositions.push({
+                  lat: clickedPoint.lat,
+                  lng: clickedPoint.lng,
+                  Pin: currentPin,
+                });
+              }
+  
+              lockedIn = true;
+  
+              //set party variables
+              shared.NMPZMapChanged = false;
+              shared.NMPZRound = "over";
+  
+              afterGuess();
+            }
+          }
+
+          //blink mode
+          else if (currentParty === "blink") {
+            //if in blink party and round is ongoing
+            if (shared.blinkRound === "ongoing" && timeLeft >= 0) {
+
+              //make the marks show for other players when you put in a guess
+              if (!lockedIn) {
+                shared.blinkClickedPositions.push({
+                  lat: clickedPoint.lat,
+                  lng: clickedPoint.lng,
+                  Pin: currentPin,
+                });
+              }
+
+              //if someone has guessed then trigger the time limit
+
+              //blink
+              if (shared.blinkGuessed === false && timeLeft > timeAfterFirstGuess) {
+                shared.blinkGuessed = true;
+              }
+              lockedIn = true;
+            }
+            //going into the end of a party round
+            else {
+              //add the clicked location to the liist holding all the players clicked locations
+              if (!lockedIn) {
+  
+                //blink
+                shared.blinkClickedPositions.push({
+                  lat: clickedPoint.lat,
+                  lng: clickedPoint.lng,
+                  Pin: currentPin,
+                });
+              }
+  
+              lockedIn = true;
+  
+              //set party variables
+              shared.blinkMapChanged = false;
+              shared.blinkRound = "over";
+  
+              afterGuess();
+            }
+          }
+
+          //blur mode
+          else if (currentParty === "blur") {
+            //if in blur party and round is ongoing
+            if (shared.blurRound === "ongoing" && timeLeft >= 0) {
+
+              //make the marks show for other players when you put in a guess
+              if (!lockedIn) {
+                shared.blurClickedPositions.push({
+                  lat: clickedPoint.lat,
+                  lng: clickedPoint.lng,
+                  Pin: currentPin,
+                });
+              }
+
+              //if someone has guessed then trigger the time limit
+
+              //blur
+              if (shared.blurGuessed === false && timeLeft > timeAfterFirstGuess) {
+                shared.blurGuessed = true;
+              }
+              lockedIn = true;
+            }
+            //going into the end of a party round
+            else {
+              //add the clicked location to the liist holding all the players clicked locations
+              if (!lockedIn) {
+  
+                //blur
+                shared.blurClickedPositions.push({
+                  lat: clickedPoint.lat,
+                  lng: clickedPoint.lng,
+                  Pin: currentPin,
+                });
+              }
+  
+              lockedIn = true;
+  
+              //set party variables
+              shared.blurMapChanged = false;
+              shared.blurRound = "over";
+  
+              afterGuess();
+            }
+          }
             
         }
       }
@@ -2176,6 +2621,78 @@ function confirmed() {
               shared.blitzGuessed = false;
               shared.blitzRound = "ongoing";
               partyChange(shared.blitzMap, "blitz");
+            }
+          }
+
+          //NMPZ mode
+
+          else if (currentParty === "NMPZ") {
+            shared.NMPZClickedPositions = [];
+
+            if (!shared.NMPZMapChanged) {
+              shared.NMPZMapChanged = true;
+              shared.NMPZMap = random(currentLocations);
+              shared.NMPZRoundNumber += 1;
+            }
+
+            //end the party
+            if (shared.NMPZRoundNumber > maxPartyRoundNumber) {
+              shared.NMPZRoundNumber = 1;
+              shared.NMPZStarted = false;
+              shared.NMPZPartyEnded = true;
+            }
+            else {
+              shared.NMPZGuessed = false;
+              shared.NMPZRound = "ongoing";
+              partyChange(shared.NMPZMap, "NMPZ");
+            }
+          }
+
+          //blink mode
+
+          else if (currentParty === "blink") {
+            shared.blinkClickedPositions = [];
+
+            if (!shared.blinkMapChanged) {
+              shared.blinkMapChanged = true;
+              shared.blinkMap = random(currentLocations);
+              shared.blinkRoundNumber += 1;
+            }
+
+            //end the party
+            if (shared.blinkRoundNumber > maxPartyRoundNumber) {
+              shared.blinkRoundNumber = 1;
+              shared.blinkStarted = false;
+              shared.blinkPartyEnded = true;
+            }
+            else {
+              shared.blinkGuessed = false;
+              shared.blinkRound = "ongoing";
+              partyChange(shared.blinkMap, "blink");
+            }
+          }
+
+          //blur mode
+
+          else if (currentParty === "blur") {
+            shared.blurClickedPositions = [];
+
+            if (!shared.blurMapChanged) {
+              shared.blurMapChanged = true;
+              shared.blurMap = random(currentLocations);
+              shared.blurRoundNumber += 1;
+            }
+
+            //end the party
+            if (shared.blurRoundNumber > maxPartyRoundNumber) {
+              shared.blurRoundNumber = 1;
+              shared.blurStarted = false;
+              shared.blurPartyEnded = true;
+            }
+            else {
+              shared.blurGuessed = false;
+              shared.blurRound = "ongoing";
+              partyChange(shared.blurMap, "blur");
             }
           }
   
@@ -2243,6 +2760,10 @@ function leaveMap() {
 function afterGuess() {
   currentAnswerIcon = answerIcon;
 
+  if (inParty) {
+    setPartyAnswerPins();
+  }
+
   currentBannerColor = "rgb(177, 255, 151)";
 
   //make so that they cannot spam rounds
@@ -2260,12 +2781,23 @@ function afterGuess() {
     if (!inParty) {
       calcLocation = randomlocation;
     }
+
+    //sets the calculation to the party they are in
     else {
       if (currentParty === "normal") {
         calcLocation = shared.normalMap;
       }
       else if (currentParty === "blitz") {
         calcLocation = shared.blitzMap;
+      }
+      else if (currentParty === "NMPZ") {
+        calcLocation = shared.NMPZMap;
+      }
+      else if (currentParty === "blink") {
+        calcLocation = shared.blinkMap;
+      }
+      else if (currentParty === "blur") {
+        calcLocation = shared.blurMap;
       }
     }
   
@@ -2471,10 +3003,9 @@ function adjustAfterGuess() {
   map.fitBounds(bounds, {padding: [answerPadding, answerPadding]});
 }
 
-//stands for No Pan, Move, or Zoom
-//also no moving allowed for blink
+//prevents the street view from being clicked
 function NMPZ() {
-  if (setActive && (setTypeDropDown.value() === "NMPZ" || setTypeDropDown.value() === "blink")) {
+  if ((setActive && (setTypeDropDown.value() === "NMPZ" || setTypeDropDown.value() === "blink")) || (inParty && !waitingLobby && (currentParty === "NMPZ" || currentParty === "blink"))) {
     street.style("pointer-events", "none");
   }
   else if (!viewing) {
@@ -2482,9 +3013,10 @@ function NMPZ() {
   }
 }
 
-//will create the blur effect
+
+//blur if in blur party or set
 function activateBlur() {
-  if (setActive && setTypeDropDown.value() === "blur") {
+  if ((setActive && setTypeDropDown.value() === "blur") || (inParty && !waitingLobby && currentParty === "blur")) {
     blurCover.style("z-index", "1");
   }
   else if (!viewing) {
