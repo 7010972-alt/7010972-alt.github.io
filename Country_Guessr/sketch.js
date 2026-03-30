@@ -193,7 +193,7 @@ let gridShown = false;
 let viewing = false;
 let allowGuess = true;
 let allowConf = true;
-let timeAfterFirstGuess = 2;
+let timeAfterFirstGuess = 11;
 let calcLocation;
 let mapShowing = true;
 let winStreak = 0;
