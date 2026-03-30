@@ -2913,7 +2913,7 @@ function leaveMap() {
   allowConf = false;
   setTimeout(() => {
     allowConf = true;
-  }, 1000);
+  }, 1500);
 
   endScreen = false;
 
