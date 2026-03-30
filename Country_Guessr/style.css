@@ -24,3 +24,17 @@ canvas {
   height: 100px;
   z-index: 25;
 }
+
+
+
+:root {
+  --bgCol: rgb(154, 255, 120);
+}
+
+.muiltPopup .leaflet-popup-content-wrapper {
+  background: var(--bgCol);
+}
+
+.muiltPopup .leaflet-popup-tip {
+  background: var(--bgCol);
+}

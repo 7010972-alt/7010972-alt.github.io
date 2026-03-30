@@ -14,6 +14,12 @@
 //set up p5 party
 let shared;
 
+//give each player their unique ID
+let myId = crypto.randomUUID();
+sessionStorage.setItem("partyPlayerId", myId);
+
+console.log(myId)
+
 function preload() {
   partyConnect(
     "wss://demoserver.p5party.org",
@@ -27,11 +33,11 @@ function preload() {
     normalMap: "none",
     normalGuessed: false,
     normalRound: "ongoing",
-    normalTimeMax: 60,
+    normalTimeMax: 61,
     normalMapChanged: false,
     normalRoundNumber: 0,
     normalPartyEnded: false,
-    normalClickedPositions: [],
+    normalClickedPositions: {},
     normalStarted: false,
 
     //variables for the blitz party
@@ -42,40 +48,40 @@ function preload() {
     blitzMapChanged: false,
     blitzRoundNumber: 0,
     blitzPartyEnded: false,
-    blitzClickedPositions: [],
+    blitzClickedPositions: {},
     blitzStarted: false,
 
     //variables for the NMPZ party
     NMPZMap: "none",
     NMPZGuessed: false,
     NMPZRound: "ongoing",
-    NMPZTimeMax: 60,
+    NMPZTimeMax: 61,
     NMPZMapChanged: false,
     NMPZRoundNumber: 0,
     NMPZPartyEnded: false,
-    NMPZClickedPositions: [],
+    NMPZClickedPositions: {},
     NMPZStarted: false,
 
     //variables for the blink party
     blinkMap: "none",
     blinkGuessed: false,
     blinkRound: "ongoing",
-    blinkTimeMax: 60,
+    blinkTimeMax: 61,
     blinkMapChanged: false,
     blinkRoundNumber: 0,
     blinkPartyEnded: false,
-    blinkClickedPositions: [],
+    blinkClickedPositions: {},
     blinkStarted: false,
 
     //variables for the blur party
     blurMap: "none",
     blurGuessed: false,
     blurRound: "ongoing",
-    blurTimeMax: 60,
+    blurTimeMax: 61,
     blurMapChanged: false,
     blurRoundNumber: 0,
     blurPartyEnded: false,
-    blurClickedPositions: [],
+    blurClickedPositions: {},
     blurStarted: false,
   });
 }
@@ -330,11 +336,12 @@ let dataTransScreen;
 let transferCode = "";
 
 //p5 party local variables
+let partyPoints = 0;
 let inParty = false;
 let currentParty;
 let lockedIn = false;
 
-let maxPartyRoundNumber = 5;
+let maxPartyRoundNumber = 2;
 
 let displayMarkers = [];
 let preChangeClickedLength;
@@ -407,7 +414,50 @@ function setup() {
           lng: lng,
         };
       }
+      if (inParty) {
+        if (currentParty === "normal") {
+          shared.normalClickedPositions[myId] = {
+            lat: clickedPoint.lat,
+            lng: clickedPoint.lng,
+            Pin: currentPin,
+            points: partyPoints
+          };
+        }
+        else if (currentParty === "blitz") {
+          shared.blitzClickedPositions[myId] = {
+            lat: clickedPoint.lat,
+            lng: clickedPoint.lng,
+            Pin: currentPin,
+            points: partyPoints
+          };
+        }
+        else if (currentParty === "NMPZ") {
+          shared.NMPZClickedPositions[myId] = {
+            lat: clickedPoint.lat,
+            lng: clickedPoint.lng,
+            Pin: currentPin,
+            points: partyPoints
+          };
+        }
+        else if (currentParty === "blink") {
+          shared.blinkClickedPositions[myId] = {
+            lat: clickedPoint.lat,
+            lng: clickedPoint.lng,
+            Pin: currentPin,
+            points: partyPoints
+          };
+        }
+        else if (currentParty === "blur") {
+          shared.blurClickedPositions[myId] = {
+            lat: clickedPoint.lat,
+            lng: clickedPoint.lng,
+            Pin: currentPin,
+            points: partyPoints
+          };
+        }
+      }
     }
+
 
     //runs while grid mode is on
     else {
@@ -701,8 +751,6 @@ function setup() {
   blurCover.style("z-index", "1");
   blurCover.style("pointer-events", "none");
 
-
-
   //create rank info
   showRankScreen = createDiv();
   showRankScreen.style("background", "rgb(154, 255, 120)");
@@ -775,6 +823,61 @@ function draw() {
   dataInfo();
   setButtonText();
   lockStartParty();
+  addPointParty();
+}
+
+//takes all the extra markers off of the map
+function clearMap() {
+  map.eachLayer(function(layer) {
+    if (!(layer instanceof L.TileLayer) && layer !== marker) {
+      map.removeLayer(layer);
+    }
+  });
+}
+
+function addPointParty() {
+  if (inParty && !waitingLobby) {
+    if (currentParty === "normal" && !(myId in shared.normalClickedPositions)) {
+      shared.normalClickedPositions[myId] = {
+        lat: clickedPoint.lat,
+        lng: clickedPoint.lng,
+        Pin: currentPin,
+        points: partyPoints
+      };
+    }
+    else if (currentParty === "blitz" && !(myId in shared.blitzClickedPositions)) {
+      shared.blitzClickedPositions[myId] = {
+        lat: clickedPoint.lat,
+        lng: clickedPoint.lng,
+        Pin: currentPin,
+        points: partyPoints
+      };
+    }
+    else if (currentParty === "NMPZ" && !(myId in shared.NMPZClickedPositions)) {
+      shared.NMPZClickedPositions[myId] = {
+        lat: clickedPoint.lat,
+        lng: clickedPoint.lng,
+        Pin: currentPin,
+        points: partyPoints
+      };
+    }
+    else if (currentParty === "blink" && !(myId in shared.blinkClickedPositions)) {
+      shared.blinkClickedPositions[myId] = {
+        lat: clickedPoint.lat,
+        lng: clickedPoint.lng,
+        Pin: currentPin,
+        points: partyPoints
+      };
+    }
+    else if (currentParty === "blur" && !(myId in shared.blurClickedPositions)) {
+      shared.blurClickedPositions[myId] = {
+        lat: clickedPoint.lat,
+        lng: clickedPoint.lng,
+        Pin: currentPin,
+        points: partyPoints
+      };
+    }
+  }
 }
 
 //make sure the answer party pin matches the gamemode
@@ -1168,49 +1271,62 @@ function togglePartyButton() {
 
 //display the other players markers in the same party
 function displayOthers() {
-  if (inParty && !waitingLobby) {
+  if (inParty && !waitingLobby && endScreen) {
     //goes through each saved location and places them on the map
 
     //for normal mode
-    if (setTypeDropDown.value() === "normal" && shared.normalRound === "over" && preChangeClickedLength !== shared.normalClickedPositions.length) {
-      preChangeClickedLength = shared.normalClickedPositions.length;
+    if (setTypeDropDown.value() === "normal" && shared.normalRound === "over" && preChangeClickedLength !== Object.keys(shared.normalClickedPositions).length) {
+      preChangeClickedLength = Object.keys(shared.normalClickedPositions).length
       showAllMarks(shared.normalClickedPositions, shared.normalMap)
     }
 
     //for blitz mode
-    else if (setTypeDropDown.value() === "blitz" && shared.blitzRound === "over" && preChangeClickedLength !== shared.blitzClickedPositions.length) {
-      preChangeClickedLength = shared.blitzClickedPositions.length;
+    else if (setTypeDropDown.value() === "blitz" && shared.blitzRound === "over" && preChangeClickedLength !== Object.keys(shared.blitzClickedPositions).length) {
+      preChangeClickedLength = Object.keys(shared.blitzClickedPositions).length;
       showAllMarks(shared.blitzClickedPositions, shared.blitzMap)
     }
 
     //for NMPZ mode
-    else if (setTypeDropDown.value() === "NMPZ" && shared.NMPZRound === "over" && preChangeClickedLength !== shared.NMPZClickedPositions.length) {
-      preChangeClickedLength = shared.NMPZClickedPositions.length;
+    else if (setTypeDropDown.value() === "NMPZ" && shared.NMPZRound === "over" && preChangeClickedLength !== Object.keys(shared.NMPZClickedPositions).length) {
+      preChangeClickedLength = Object.keys(shared.NMPZClickedPositions).length;
       showAllMarks(shared.NMPZClickedPositions, shared.NMPZMap)
     }
 
     //for blink mode
-    else if (setTypeDropDown.value() === "blink" && shared.blinkRound === "over" && preChangeClickedLength !== shared.blinkClickedPositions.length) {
-      preChangeClickedLength = shared.blinkClickedPositions.length;
+    else if (setTypeDropDown.value() === "blink" && shared.blinkRound === "over" && preChangeClickedLength !== Object.keys(shared.blinkClickedPositions).length) {
+      preChangeClickedLength = Object.keys(shared.blinkClickedPositions).length;
       showAllMarks(shared.blinkClickedPositions, shared.blinkMap)
     }
 
     //for blur mode
-    else if (setTypeDropDown.value() === "blur" && shared.blurRound === "over" && preChangeClickedLength !== shared.blurClickedPositions.length) {
-      preChangeClickedLength = shared.blurClickedPositions.length;
+    else if (setTypeDropDown.value() === "blur" && shared.blurRound === "over" && preChangeClickedLength !== Object.keys(shared.blurClickedPositions).length) {
+      preChangeClickedLength = Object.keys(shared.blurClickedPositions).length;
       showAllMarks(shared.blurClickedPositions, shared.blurMap)
     }
   }
 }
 
+//shows all the other players markers
 function showAllMarks(marks, mapcoords) {
-  for (let info of marks) {
+
+  //clear all markers
+  for (let item of displayMarkers) {
+    map.removeLayer(item);
+  }
+  displayMarkers = [];
+
+  //go through each marker and show it with stats
+  for (let info of Object.values(marks)) {
 
     //calculate distance so that line color can be changed
     let point1 = L.latLng(mapcoords.lat, mapcoords.lng);
     let point2 = L.latLng(info.lat, info.lng);
 
     let distance = point1.distanceTo(point2);
+
+    //calculate points to add to the display
+    let addPoints = Math.round(5000 * Math.exp(-10 * distance / worldMapSize));
+
 
     let lineCol = "black";
     if (distance <= ultraDis) {
@@ -1245,6 +1361,14 @@ function showAllMarks(marks, mapcoords) {
 
     displayMarkers.push(muiltMarker);
     displayMarkers.push(muiltAnswerLine);
+
+    //this part displays how well that player did
+    muiltMarker.bindPopup(`<b>Total Points: ${info.points + addPoints}</b><br>Distance: ${round(distance / 1000).toLocaleString()}km`, {
+      offset: [0, -32],
+      autoClose: false,
+      closeOnClick: false,
+      className: "muiltPopup"
+    }).openPopup();
   }
 }
 
@@ -1288,8 +1412,11 @@ function checkPartyEnded() {
 //repetitive code
 function resetLocals() {
   //local resets
+  partyPoints = 0;
   currentAnswerIcon = answerIcon
   currentParty = "none";
+  ended = false;
+  joinIn = false;
   inParty = false;
   waitingLobby = false;
   lobbyJoined = false;
@@ -1313,6 +1440,8 @@ function resetLocals() {
 
   marker.setLatLng([0, 0]);
   clickedPoint = { lat: 0, lng: 0 };
+
+  clearMap();
 }
 
 // if someone has guessed then change everyone's time
@@ -1507,18 +1636,23 @@ function joinWait() {
 function joiningCheck() {
 
   if (setTypeDropDown.value() === "normal") {
+    shared.normalRound = "ongoing"
     shared.normalStarted = true;
   }
   else if (setTypeDropDown.value() === "blitz") {
+    shared.blitzRound = "ongoing"
     shared.blitzStarted = true;
   }
   else if (setTypeDropDown.value() === "NMPZ") {
+    shared.NMPZRound = "ongoing"
     shared.NMPZStarted = true;
   }
   else if (setTypeDropDown.value() === "blink") {
+    shared.blinkRound = "ongoing"
     shared.blinkStarted = true;
   }
   else if (setTypeDropDown.value() === "blur") {
+    shared.blurRound = "ongoing"
     shared.blurStarted = true;
   }
 }
@@ -1765,6 +1899,12 @@ function partyChange(place, type) {
   else if (type === "blur") {
     timeLeft = shared.blurTimeMax
   }
+
+  marker.setLatLng([0, 0]);
+  clickedPoint = {
+    lat: 0,
+    lng: 0,
+  };
 }
 
 //I wanted the player to not be able to join parties or sets or change the dropdown value when they are in either one
@@ -2010,6 +2150,16 @@ function fixsizes() {
 
   blurCover.size(windowWidth, windowHeight);
   blurCover.position(0,0);
+
+  //create a mask hole infront of the compass during blur mode
+  let holeX = windowWidth - 34;
+  let holeY = windowHeight - 161;
+  let holeRadius = 24;
+
+  blurCover.style("mask-image", `radial-gradient(circle ${holeRadius}px at ${holeX}px ${holeY}px, transparent 0, transparent ${holeRadius}px, black ${holeRadius + 1}px)`);
+  blurCover.style("-webkit-mask-image", `radial-gradient(circle ${holeRadius}px at ${holeX}px ${holeY}px, transparent 0, transparent ${holeRadius}px, black ${holeRadius + 1}px)`);
+  blurCover.style("mask-repeat", "no-repeat");
+  blurCover.style("-webkit-mask-repeat", "no-repeat");
 
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor;
   banner.style("font-size", `${textsize}px`);
@@ -2281,6 +2431,9 @@ function keyPressed() {
   if (key === " ") {
     confirmed();
   }
+  if (key === "t") {
+    clearMap();
+  }
 }
 
 
@@ -2368,11 +2521,12 @@ function confirmed() {
 
               //make the marks show for other players when you put in a guess
               if (!lockedIn) {
-                shared.normalClickedPositions.push({
+                shared.normalClickedPositions[myId] = {
                   lat: clickedPoint.lat,
                   lng: clickedPoint.lng,
                   Pin: currentPin,
-                });
+                  points: partyPoints
+                };
               }
 
               //if someone has guessed then trigger the time limit
@@ -2385,15 +2539,6 @@ function confirmed() {
             }
             //going into the end of a normal party round
             else {
-              //add the clicked location to the liist holding all the players clicked locations
-              if (!lockedIn) {
-  
-                shared.normalClickedPositions.push({
-                  lat: clickedPoint.lat,
-                  lng: clickedPoint.lng,
-                  Pin: currentPin,
-                });
-              }
   
               lockedIn = true;
   
@@ -2413,11 +2558,12 @@ function confirmed() {
 
               //make the marks show for other players when you put in a guess
               if (!lockedIn) {
-                shared.blitzClickedPositions.push({
+                shared.blitzClickedPositions[myId] = {
                   lat: clickedPoint.lat,
                   lng: clickedPoint.lng,
                   Pin: currentPin,
-                });
+                  points: partyPoints
+                };
               }
 
               //if someone has guessed then trigger the time limit
@@ -2430,16 +2576,6 @@ function confirmed() {
             }
             //going into the end of a party round
             else {
-              //add the clicked location to the liist holding all the players clicked locations
-              if (!lockedIn) {
-  
-                //blitz
-                shared.blitzClickedPositions.push({
-                  lat: clickedPoint.lat,
-                  lng: clickedPoint.lng,
-                  Pin: currentPin,
-                });
-              }
   
               lockedIn = true;
   
@@ -2458,11 +2594,12 @@ function confirmed() {
 
               //make the marks show for other players when you put in a guess
               if (!lockedIn) {
-                shared.NMPZClickedPositions.push({
+                shared.NMPZClickedPositions[myId] = {
                   lat: clickedPoint.lat,
                   lng: clickedPoint.lng,
                   Pin: currentPin,
-                });
+                  points: partyPoints
+                };
               }
 
               //if someone has guessed then trigger the time limit
@@ -2475,16 +2612,6 @@ function confirmed() {
             }
             //going into the end of a party round
             else {
-              //add the clicked location to the liist holding all the players clicked locations
-              if (!lockedIn) {
-  
-                //NMPZ
-                shared.NMPZClickedPositions.push({
-                  lat: clickedPoint.lat,
-                  lng: clickedPoint.lng,
-                  Pin: currentPin,
-                });
-              }
   
               lockedIn = true;
   
@@ -2503,11 +2630,12 @@ function confirmed() {
 
               //make the marks show for other players when you put in a guess
               if (!lockedIn) {
-                shared.blinkClickedPositions.push({
+                shared.blinkClickedPositions[myId] = {
                   lat: clickedPoint.lat,
                   lng: clickedPoint.lng,
                   Pin: currentPin,
-                });
+                  points: partyPoints
+                };
               }
 
               //if someone has guessed then trigger the time limit
@@ -2520,16 +2648,6 @@ function confirmed() {
             }
             //going into the end of a party round
             else {
-              //add the clicked location to the liist holding all the players clicked locations
-              if (!lockedIn) {
-  
-                //blink
-                shared.blinkClickedPositions.push({
-                  lat: clickedPoint.lat,
-                  lng: clickedPoint.lng,
-                  Pin: currentPin,
-                });
-              }
   
               lockedIn = true;
   
@@ -2548,11 +2666,12 @@ function confirmed() {
 
               //make the marks show for other players when you put in a guess
               if (!lockedIn) {
-                shared.blurClickedPositions.push({
+                shared.blurClickedPositions[myId] = {
                   lat: clickedPoint.lat,
                   lng: clickedPoint.lng,
                   Pin: currentPin,
-                });
+                  points: partyPoints
+                };
               }
 
               //if someone has guessed then trigger the time limit
@@ -2565,16 +2684,6 @@ function confirmed() {
             }
             //going into the end of a party round
             else {
-              //add the clicked location to the liist holding all the players clicked locations
-              if (!lockedIn) {
-  
-                //blur
-                shared.blurClickedPositions.push({
-                  lat: clickedPoint.lat,
-                  lng: clickedPoint.lng,
-                  Pin: currentPin,
-                });
-              }
   
               lockedIn = true;
   
@@ -2585,7 +2694,6 @@ function confirmed() {
               afterGuess();
             }
           }
-            
         }
       }
       //escape the end screen when inside of a party
@@ -2601,7 +2709,7 @@ function confirmed() {
           //normal mode
 
           if (currentParty === "normal") {
-            shared.normalClickedPositions = [];
+            shared.normalClickedPositions = {};
 
             if (!shared.normalMapChanged) {
               shared.normalMapChanged = true;
@@ -2611,6 +2719,7 @@ function confirmed() {
 
             //end the party
             if (shared.normalRoundNumber > maxPartyRoundNumber) {
+              shared.normalGuessed = false;
               shared.normalRoundNumber = 1;
               shared.normalStarted = false;
               shared.normalPartyEnded = true;
@@ -2625,7 +2734,7 @@ function confirmed() {
           //blitz mode
 
           else if (currentParty === "blitz") {
-            shared.blitzClickedPositions = [];
+            shared.blitzClickedPositions = {};
 
             if (!shared.blitzMapChanged) {
               shared.blitzMapChanged = true;
@@ -2635,6 +2744,7 @@ function confirmed() {
 
             //end the party
             if (shared.blitzRoundNumber > maxPartyRoundNumber) {
+              shared.blitzGuessed = false;
               shared.blitzRoundNumber = 1;
               shared.blitzStarted = false;
               shared.blitzPartyEnded = true;
@@ -2649,7 +2759,7 @@ function confirmed() {
           //NMPZ mode
 
           else if (currentParty === "NMPZ") {
-            shared.NMPZClickedPositions = [];
+            shared.NMPZClickedPositions = {};
 
             if (!shared.NMPZMapChanged) {
               shared.NMPZMapChanged = true;
@@ -2659,6 +2769,7 @@ function confirmed() {
 
             //end the party
             if (shared.NMPZRoundNumber > maxPartyRoundNumber) {
+              shared.NMPZGuessed = false;
               shared.NMPZRoundNumber = 1;
               shared.NMPZStarted = false;
               shared.NMPZPartyEnded = true;
@@ -2673,7 +2784,7 @@ function confirmed() {
           //blink mode
 
           else if (currentParty === "blink") {
-            shared.blinkClickedPositions = [];
+            shared.blinkClickedPositions = {};
 
             if (!shared.blinkMapChanged) {
               shared.blinkMapChanged = true;
@@ -2683,6 +2794,7 @@ function confirmed() {
 
             //end the party
             if (shared.blinkRoundNumber > maxPartyRoundNumber) {
+              shared.blinkGuessed = false;
               shared.blinkRoundNumber = 1;
               shared.blinkStarted = false;
               shared.blinkPartyEnded = true;
@@ -2697,7 +2809,7 @@ function confirmed() {
           //blur mode
 
           else if (currentParty === "blur") {
-            shared.blurClickedPositions = [];
+            shared.blurClickedPositions = {};
 
             if (!shared.blurMapChanged) {
               shared.blurMapChanged = true;
@@ -2707,6 +2819,7 @@ function confirmed() {
 
             //end the party
             if (shared.blurRoundNumber > maxPartyRoundNumber) {
+              shared.blurGuessed = false;
               shared.blurRoundNumber = 1;
               shared.blurStarted = false;
               shared.blurPartyEnded = true;
@@ -2717,7 +2830,6 @@ function confirmed() {
               partyChange(shared.blurMap, "blur");
             }
           }
-  
 
           leaveMap();
         }
@@ -2749,6 +2861,14 @@ function leaveMap() {
   }, 1000);
 
   endScreen = false;
+
+  for (let item of displayMarkers) {
+    item.remove();
+  }
+  displayMarkers = [];
+  preChangeClickedLength = 0;
+
+
   answermarker.remove();
   if (!gridMode) {
     answerLine.remove();
@@ -2780,6 +2900,7 @@ function leaveMap() {
 
 //runs after the player has guessed
 function afterGuess() {
+
   currentAnswerIcon = answerIcon;
 
   if (inParty) {
@@ -2861,6 +2982,10 @@ function afterGuess() {
     //exponential points
     //got this equation from geoguessr
     points = Math.round(5000 * Math.exp(-10 * totalDistance / mapSize));
+
+    if (inParty) {
+      partyPoints += points
+    }
   
     //set distance text
     let measurement = "m";
