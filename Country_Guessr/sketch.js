@@ -193,7 +193,7 @@ let gridShown = false;
 let viewing = false;
 let allowGuess = true;
 let allowConf = true;
-let timeAfterFirstGuess = 3;
+let timeAfterFirstGuess = 16;
 let calcLocation;
 let mapShowing = true;
 let winStreak = 0;
@@ -341,7 +341,7 @@ let inParty = false;
 let currentParty;
 let lockedIn = false;
 
-let maxPartyRoundNumber = 2;
+let maxPartyRoundNumber = 5;
 
 let displayMarkers = [];
 let preChangeClickedLength;
