@@ -193,7 +193,7 @@ let gridShown = false;
 let viewing = false;
 let allowGuess = true;
 let allowConf = true;
-let timeAfterFirstGuess = 16;
+let timeAfterFirstGuess = 2;
 let calcLocation;
 let mapShowing = true;
 let winStreak = 0;
@@ -421,7 +421,8 @@ function setup() {
             lat: clickedPoint.lat,
             lng: clickedPoint.lng,
             Pin: currentPin,
-            points: partyPoints
+            points: partyPoints,
+            hintMode: hintMode
           };
         }
         else if (currentParty === "blitz") {
@@ -429,7 +430,8 @@ function setup() {
             lat: clickedPoint.lat,
             lng: clickedPoint.lng,
             Pin: currentPin,
-            points: partyPoints
+            points: partyPoints,
+            hintMode: hintMode
           };
         }
         else if (currentParty === "NMPZ") {
@@ -437,7 +439,8 @@ function setup() {
             lat: clickedPoint.lat,
             lng: clickedPoint.lng,
             Pin: currentPin,
-            points: partyPoints
+            points: partyPoints,
+            hintMode: hintMode
           };
         }
         else if (currentParty === "blink") {
@@ -445,7 +448,8 @@ function setup() {
             lat: clickedPoint.lat,
             lng: clickedPoint.lng,
             Pin: currentPin,
-            points: partyPoints
+            points: partyPoints,
+            hintMode: hintMode
           };
         }
         else if (currentParty === "blur") {
@@ -453,7 +457,8 @@ function setup() {
             lat: clickedPoint.lat,
             lng: clickedPoint.lng,
             Pin: currentPin,
-            points: partyPoints
+            points: partyPoints,
+            hintMode: hintMode
           };
         }
       }
@@ -852,7 +857,8 @@ function addPointParty() {
         lat: clickedPoint.lat,
         lng: clickedPoint.lng,
         Pin: currentPin,
-        points: partyPoints
+        points: partyPoints,
+        hintMode: hintMode
       };
     }
     else if (currentParty === "blitz" && !(myId in shared.blitzClickedPositions)) {
@@ -860,7 +866,8 @@ function addPointParty() {
         lat: clickedPoint.lat,
         lng: clickedPoint.lng,
         Pin: currentPin,
-        points: partyPoints
+        points: partyPoints,
+        hintMode: hintMode
       };
     }
     else if (currentParty === "NMPZ" && !(myId in shared.NMPZClickedPositions)) {
@@ -868,7 +875,8 @@ function addPointParty() {
         lat: clickedPoint.lat,
         lng: clickedPoint.lng,
         Pin: currentPin,
-        points: partyPoints
+        points: partyPoints,
+        hintMode: hintMode
       };
     }
     else if (currentParty === "blink" && !(myId in shared.blinkClickedPositions)) {
@@ -876,7 +884,8 @@ function addPointParty() {
         lat: clickedPoint.lat,
         lng: clickedPoint.lng,
         Pin: currentPin,
-        points: partyPoints
+        points: partyPoints,
+        hintMode: hintMode
       };
     }
     else if (currentParty === "blur" && !(myId in shared.blurClickedPositions)) {
@@ -884,7 +893,8 @@ function addPointParty() {
         lat: clickedPoint.lat,
         lng: clickedPoint.lng,
         Pin: currentPin,
-        points: partyPoints
+        points: partyPoints,
+        hintMode: hintMode
       };
     }
   }
@@ -1386,8 +1396,13 @@ function showAllMarks(marks, mapcoords) {
     displayMarkers.push(muiltMarker);
     displayMarkers.push(muiltAnswerLine);
 
+    let hintText = "Off"
+    if (info.hintMode) {
+      hintText = "On"
+    }
+
     //this part displays how well that player did
-    muiltMarker.bindPopup(`<b>Total Points: ${info.points + addPoints}</b><br>Distance: ${round(distance / 1000).toLocaleString()}km`, {
+    muiltMarker.bindPopup(`<b>Total Points: ${info.points + addPoints}</b><br>Distance: ${round(distance / 1000).toLocaleString()}km<br>Hint Mode: ${hintText}`, {
       offset: [0, -32],
       autoClose: false,
       closeOnClick: false,
@@ -1573,37 +1588,31 @@ function lockStartParty() {
   //normal
   if (setTypeDropDown.value() === "normal" && shared.normalStarted) {
     startPartyButton.attribute("disabled", "");
-    partyHintButton.attribute("disabled", "");
   }
 
   //blitz
   else if (setTypeDropDown.value() === "blitz" && shared.blitzStarted) {
     startPartyButton.attribute("disabled", "");
-    partyHintButton.attribute("disabled", "");
   }
 
   //NMPZ
   else if (setTypeDropDown.value() === "NMPZ" && shared.NMPZStarted) {
     startPartyButton.attribute("disabled", "");
-    partyHintButton.attribute("disabled", "");
   }
 
   //blink
   else if (setTypeDropDown.value() === "blink" && shared.blinkStarted) {
     startPartyButton.attribute("disabled", "");
-    partyHintButton.attribute("disabled", "");
   }
 
   //blur
   else if (setTypeDropDown.value() === "blur" && shared.blurStarted) {
     startPartyButton.attribute("disabled", "");
-    partyHintButton.attribute("disabled", "");
   }
 
   //disable the button
   else {
     startPartyButton.removeAttribute("disabled");
-    partyHintButton.attribute("disabled");
   }
 }
 
@@ -2566,7 +2575,8 @@ function confirmed() {
                   lat: clickedPoint.lat,
                   lng: clickedPoint.lng,
                   Pin: currentPin,
-                  points: partyPoints
+                  points: partyPoints,
+                  hintMode: hintMode
                 };
               }
 
@@ -2603,7 +2613,8 @@ function confirmed() {
                   lat: clickedPoint.lat,
                   lng: clickedPoint.lng,
                   Pin: currentPin,
-                  points: partyPoints
+                  points: partyPoints,
+                  hintMode: hintMode
                 };
               }
 
@@ -2639,7 +2650,8 @@ function confirmed() {
                   lat: clickedPoint.lat,
                   lng: clickedPoint.lng,
                   Pin: currentPin,
-                  points: partyPoints
+                  points: partyPoints,
+                  hintMode: hintMode
                 };
               }
 
@@ -2675,7 +2687,8 @@ function confirmed() {
                   lat: clickedPoint.lat,
                   lng: clickedPoint.lng,
                   Pin: currentPin,
-                  points: partyPoints
+                  points: partyPoints,
+                  hintMode: hintMode
                 };
               }
 
@@ -2711,7 +2724,8 @@ function confirmed() {
                   lat: clickedPoint.lat,
                   lng: clickedPoint.lng,
                   Pin: currentPin,
-                  points: partyPoints
+                  points: partyPoints,
+                  hintMode: hintMode
                 };
               }
 
