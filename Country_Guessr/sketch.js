@@ -271,6 +271,7 @@ let setTypeDropDown;
 let showRankButton;
 let joinButton;
 let startPartyButton;
+let partyHintButton;
 let showGridButton;
 let showGridDropDown;
 let heatMapDropDown;
@@ -615,11 +616,20 @@ function setup() {
 
   //button to start a party
   startPartyButton = createButton("Start Party");
-  startPartyButton.size(80, 30);
+  startPartyButton.size(100, 30);
   startPartyButton.style("position", "absolute");
   startPartyButton.style("z-index", "-1");
 
   startPartyButton.mousePressed(joiningCheck);
+
+  //button to turn on hint mode for party
+  partyHintButton = createButton("Party Hint");
+  partyHintButton.size(100, 30);
+  partyHintButton.style("position", "absolute");
+  partyHintButton.style("z-index", "-1");
+  partyHintButton.style("background-color", "rgb(255, 79, 79)");
+
+  partyHintButton.mousePressed(toggleHint);
 
   //dropdown menu to select set type
   setTypeDropDown = createSelect();
@@ -936,7 +946,12 @@ function toggleHint() {
 
   if (hintMode) {
     //change to green
-    hintButton.style("background-color", "rgb(94, 255, 0)");
+    if (!inParty) {
+      hintButton.style("background-color", "rgb(94, 255, 0)");
+    }
+    else {
+      partyHintButton.style("background-color", "rgb(94, 255, 0)");
+    }
 
     //create the hint circle
     hintcircle = L.circle([0, 0], {
@@ -950,12 +965,19 @@ function toggleHint() {
   }
   else {
     //make red
-    hintButton.style("background-color", "rgb(255, 79, 79)");
-
+    if (!inParty) {
+      hintButton.style("background-color", "rgb(255, 79, 79)");
+    }
+    else {
+      partyHintButton.style("background-color", "rgb(255, 79, 79)");
+    }
+    
     hintcircle.remove();
   }
 
-  mapChange();
+  if (!inParty) {
+    mapChange();
+  }
 }
 
 function resetGridView() {
@@ -1263,9 +1285,11 @@ function lockMap() {
 function togglePartyButton() {
   if (waitingLobby) {
     startPartyButton.style("z-index", "25");
+    partyHintButton.style("z-index", "25");
   }
   else {
     startPartyButton.style("z-index", "-1");
+    partyHintButton.style("z-index", "-1");
   }
 }
 
@@ -1549,30 +1573,37 @@ function lockStartParty() {
   //normal
   if (setTypeDropDown.value() === "normal" && shared.normalStarted) {
     startPartyButton.attribute("disabled", "");
+    partyHintButton.attribute("disabled", "");
   }
 
   //blitz
   else if (setTypeDropDown.value() === "blitz" && shared.blitzStarted) {
     startPartyButton.attribute("disabled", "");
+    partyHintButton.attribute("disabled", "");
   }
 
   //NMPZ
   else if (setTypeDropDown.value() === "NMPZ" && shared.NMPZStarted) {
     startPartyButton.attribute("disabled", "");
+    partyHintButton.attribute("disabled", "");
   }
 
   //blink
   else if (setTypeDropDown.value() === "blink" && shared.blinkStarted) {
     startPartyButton.attribute("disabled", "");
+    partyHintButton.attribute("disabled", "");
   }
 
   //blur
   else if (setTypeDropDown.value() === "blur" && shared.blurStarted) {
     startPartyButton.attribute("disabled", "");
+    partyHintButton.attribute("disabled", "");
   }
+
   //disable the button
   else {
     startPartyButton.removeAttribute("disabled");
+    partyHintButton.attribute("disabled");
   }
 }
 
@@ -1580,6 +1611,8 @@ function lockStartParty() {
 //will send them to the waiting lobby of the chosen party
 function joinWait() {
   if (!inParty) {
+    closeHint();
+
     //close the map
     if (mapShowing) {
       hideMap();
@@ -1684,7 +1717,6 @@ function joinParty() {
       if (shared.normalStarted && currentParty === "normal" && joinIn) {
 
         partyJoin();
-        closeHint();
   
         setPartyMap();
         if (shared.normalPartyEnded) {
@@ -1722,7 +1754,6 @@ function joinParty() {
       if (shared.blitzStarted && currentParty === "blitz" && joinIn) {
 
         partyJoin();
-        closeHint();
   
         setPartyMap();
         if (shared.blitzPartyEnded) {
@@ -1761,7 +1792,6 @@ function joinParty() {
       if (shared.NMPZStarted && currentParty === "NMPZ" && joinIn) {
 
         partyJoin();
-        closeHint();
   
         setPartyMap();
         if (shared.NMPZPartyEnded) {
@@ -1800,7 +1830,6 @@ function joinParty() {
       if (shared.blinkStarted && currentParty === "blink" && joinIn) {
 
         partyJoin();
-        closeHint();
   
         setPartyMap();
         if (shared.blinkPartyEnded) {
@@ -1905,6 +1934,19 @@ function partyChange(place, type) {
     lat: 0,
     lng: 0,
   };
+
+  //if hint mode is on then show the hint
+  if (hintMode) {
+    //this keeps the guess inside of the circle as it generates an angle in radians
+    //and then finds how much of each lat and lng have to be shifted
+    let angle = Math.random() * Math.PI * 2;
+    let distance = Math.sqrt(Math.random()) * hintRadius;
+
+    let randHintLat = newlat + Math.cos(angle) * distance;
+    let randHintLng = newlng + Math.sin(angle) * distance;
+
+    hintcircle.setLatLng([randHintLat, randHintLng]);
+  }
 }
 
 //I wanted the player to not be able to join parties or sets or change the dropdown value when they are in either one
@@ -2227,8 +2269,9 @@ function fixsizes() {
   allShieldsDisplay.position(windowWidth / 1.95, showRankPosY + windowHeight / 100);
   allShieldsDisplay.size(windowWidth / 4, windowWidth / 6);
 
-  //always have start party button in the middle of the screen
+  //always have start party button and the hint button in the middle of the screen
   startPartyButton.position(windowWidth / 2 - 40, windowHeight / 1.2);
+  partyHintButton.position(windowWidth / 2 - 40, windowHeight / 1.2 + 50);
   
 }
 
@@ -2347,6 +2390,7 @@ function bannerTextChange() {
   }
 }
 
+//makes the time go down during a party or a set
 function timeDrain() {
   if (!endScreen && !waitingLobby) {
     if ((setActive || inParty) && timeLeft >= 0 && Date.now() - time > 1000) {
@@ -2430,9 +2474,6 @@ function startSet() {
 function keyPressed() {
   if (key === " ") {
     confirmed();
-  }
-  if (key === "t") {
-    clearMap();
   }
 }
 
@@ -2965,7 +3006,6 @@ function afterGuess() {
       totalGreen += 1;
     }
   
-  
     //add grid stats
     addGridStats(clickedPoint, calcLocation, totalDistance);
 
@@ -2975,7 +3015,7 @@ function afterGuess() {
   
     //if hintmode is on then make it harder to earn points by shrinking the map size
     let mapSize = worldMapSize;
-    if (hintMode) {
+    if (hintMode && !inParty) {
       mapSize = worldMapSize * hintDiv;
     }
   
