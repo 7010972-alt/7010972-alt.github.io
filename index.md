@@ -10,6 +10,7 @@
 - ["rectangular grid"](rect-grid)
 - ["game of Life"](game-of-life)
 - [Character in Grid](character)
+- [Platformer](11-platformer-files)
 
 ## Assignments
 - [square grower](interactive-scene)
