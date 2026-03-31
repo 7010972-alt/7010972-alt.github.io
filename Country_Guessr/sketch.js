@@ -18,7 +18,7 @@ let shared;
 let myId = crypto.randomUUID();
 sessionStorage.setItem("partyPlayerId", myId);
 
-console.log(myId)
+console.log(myId);
 
 function preload() {
   partyConnect(
@@ -146,11 +146,11 @@ let currentPin = coalP;
 //markers
 let answermarker;
 let marker;
-let greenAnswer = "green_marker.png"
-let yellowAnswer = "bolt_answer.png"
-let purpleanswer = "NMPZ_answer.png"
-let whiteanswer = "Blink_answer.png"
-let blackanswer = "Blur_answer.png"
+let greenAnswer = "green_marker.png";
+let yellowAnswer = "bolt_answer.png";
+let purpleanswer = "NMPZ_answer.png";
+let whiteanswer = "Blink_answer.png";
+let blackanswer = "Blur_answer.png";
 
 let answerIcon = L.icon({
   iconUrl: greenAnswer,
@@ -187,7 +187,7 @@ let blurAnswer = L.icon({
   iconAnchor: [27.5, 63], //point of the icon which will correspond to marker's location
 });
 
-let currentAnswerIcon = answerIcon
+let currentAnswerIcon = answerIcon;
 
 //game variables
 let refreshactive = true;
@@ -195,7 +195,7 @@ let buttonsHidden = true;
 let viewingNMPZ = false;
 let gridStreak = 0;
 let gridMaxStreak = 0;
-var gridAnswerMarker;
+let gridAnswerMarker;
 let gridMode = false;
 let gridShown = false;
 let viewing = false;
@@ -254,7 +254,7 @@ let randomNames = [
   "Fork_Lifter",
   "Sock_Throw",
   "Tree_Hugger"
-]
+];
 
 //map variables
 let hintMode = false;
@@ -406,7 +406,7 @@ let pinsShown = false;
 let joinIn = false;
 let ended = false;
 
-var hintcircle;
+let hintcircle;
 
 //when the player leaves
 window.addEventListener("beforeunload", function() {
@@ -437,7 +437,7 @@ function setup() {
   noCanvas();
 
   //add to the players list
-  shared.players[myId] = true
+  shared.players[myId] = true;
 
   //add maps to a list
   setupMap();
@@ -798,7 +798,7 @@ function setup() {
   gridModeButton.style("z-index", "-1");
   gridModeButton.style("background-color", "red");
 
-  gridModeButton.mousePressed(enterGridMode)
+  gridModeButton.mousePressed(enterGridMode);
 
   //button to hide all of the buttons under the shield
   hideUnderButton = createButton("Show");
@@ -975,23 +975,23 @@ function nameCheck() {
 
 //hide all the buttons under the shield and move the hide button
 function hideUnderShield() {
-  buttonsHidden = !buttonsHidden
+  buttonsHidden = !buttonsHidden;
 
   if (buttonsHidden) {
-    hideUnderButton.html("Show")
-    showRankButton.style("z-index", "-1")
-    showGridButton.style("z-index", "-1")
-    DataShowButton.style("z-index", "-1")
-    gridModeButton.style("z-index", "-1")
-    hintButton.style("z-index", "-1")
+    hideUnderButton.html("Show");
+    showRankButton.style("z-index", "-1");
+    showGridButton.style("z-index", "-1");
+    DataShowButton.style("z-index", "-1");
+    gridModeButton.style("z-index", "-1");
+    hintButton.style("z-index", "-1");
   }
   else {
-    hideUnderButton.html("Hide")
-    showRankButton.style("z-index", "1")
-    showGridButton.style("z-index", "1")
-    DataShowButton.style("z-index", "1")
-    gridModeButton.style("z-index", "1")
-    hintButton.style("z-index", "1")
+    hideUnderButton.html("Hide");
+    showRankButton.style("z-index", "1");
+    showGridButton.style("z-index", "1");
+    DataShowButton.style("z-index", "1");
+    gridModeButton.style("z-index", "1");
+    hintButton.style("z-index", "1");
   }
 }
 
@@ -1062,19 +1062,19 @@ function addPointParty() {
 //make sure the answer party pin matches the gamemode
 function setPartyAnswerPins() {
   if (currentParty === "normal") {
-    currentAnswerIcon = answerIcon
+    currentAnswerIcon = answerIcon;
   }
   else if (currentParty === "blitz") {
-    currentAnswerIcon = blitzAnswer
+    currentAnswerIcon = blitzAnswer;
   }
   else if (currentParty === "NMPZ") {
-    currentAnswerIcon = NMPZAnswer
+    currentAnswerIcon = NMPZAnswer;
   }
   else if (currentParty === "blink") {
-    currentAnswerIcon = blinkAnswer
+    currentAnswerIcon = blinkAnswer;
   }
   else if (currentParty === "blur") {
-    currentAnswerIcon = blurAnswer
+    currentAnswerIcon = blurAnswer;
   }
 }
 
@@ -1455,32 +1455,32 @@ function displayOthers() {
 
     //for normal mode
     if (setTypeDropDown.value() === "normal" && shared.normalRound === "over" && !pinsShown) {
-      pinsShown = true
-      showAllMarks(shared.normalClickedPositions, shared.normalMap)
+      pinsShown = true;
+      showAllMarks(shared.normalClickedPositions, shared.normalMap);
     }
 
     //for blitz mode
     else if (setTypeDropDown.value() === "blitz" && shared.blitzRound === "over" && !pinsShown) {
-      pinsShown = true
-      showAllMarks(shared.blitzClickedPositions, shared.blitzMap)
+      pinsShown = true;
+      showAllMarks(shared.blitzClickedPositions, shared.blitzMap);
     }
 
     //for NMPZ mode
     else if (setTypeDropDown.value() === "NMPZ" && shared.NMPZRound === "over" && !pinsShown) {
-      pinsShown = true
-      showAllMarks(shared.NMPZClickedPositions, shared.NMPZMap)
+      pinsShown = true;
+      showAllMarks(shared.NMPZClickedPositions, shared.NMPZMap);
     }
 
     //for blink mode
     else if (setTypeDropDown.value() === "blink" && shared.blinkRound === "over" && !pinsShown) {
-      pinsShown = true
-      showAllMarks(shared.blinkClickedPositions, shared.blinkMap)
+      pinsShown = true;
+      showAllMarks(shared.blinkClickedPositions, shared.blinkMap);
     }
 
     //for blur mode
     else if (setTypeDropDown.value() === "blur" && shared.blurRound === "over" && !pinsShown) {
-      pinsShown = true
-      showAllMarks(shared.blurClickedPositions, shared.blurMap)
+      pinsShown = true;
+      showAllMarks(shared.blurClickedPositions, shared.blurMap);
     }
   }
 }
@@ -1541,9 +1541,9 @@ function showAllMarks(marks, mapcoords) {
     displayMarkers.push(muiltMarker);
     displayMarkers.push(muiltAnswerLine);
 
-    let hintText = "Off"
+    let hintText = "Off";
     if (info.hintMode) {
-      hintText = "On"
+      hintText = "On";
     }
 
     //this part displays how well that player did
@@ -1608,9 +1608,9 @@ function resetLocals() {
   //local resets
   pinsShown = false;
   partyPoints = 0;
-  currentAnswerIcon = answerIcon
+  currentAnswerIcon = answerIcon;
   currentParty = "none";
-  hintMode = false
+  hintMode = false;
   partyHintButton.style("background-color", "rgb(255, 79, 79)");  ended = false;
   joinIn = false;
   inParty = false;
@@ -1800,7 +1800,7 @@ function joinWait() {
         shared.normalStarted = false;
         shared.normalPartyEnded = true;
       }
-      shared.normalPlayers[myId] = true
+      shared.normalPlayers[myId] = true;
       currentParty = "normal";
     }
     else if (setTypeDropDown.value() === "blitz") {
@@ -1812,7 +1812,7 @@ function joinWait() {
         shared.blitzStarted = false;
         shared.blitzPartyEnded = true;
       }
-      shared.blitzPlayers[myId] = true
+      shared.blitzPlayers[myId] = true;
       currentParty = "blitz";
     }
     else if (setTypeDropDown.value() === "NMPZ") {
@@ -1824,7 +1824,7 @@ function joinWait() {
         shared.NMPZStarted = false;
         shared.NMPZPartyEnded = true;
       }
-      shared.NMPZPlayers[myId] = true
+      shared.NMPZPlayers[myId] = true;
       currentParty = "NMPZ";
     }
     else if (setTypeDropDown.value() === "blink") {
@@ -1836,7 +1836,7 @@ function joinWait() {
         shared.blinkStarted = false;
         shared.blinkPartyEnded = true;
       }
-      shared.blinkPlayers[myId] = true
+      shared.blinkPlayers[myId] = true;
       currentParty = "blink";
     }
     else if (setTypeDropDown.value() === "blur") {
@@ -1848,7 +1848,7 @@ function joinWait() {
         shared.blurStarted = false;
         shared.blurPartyEnded = true;
       }
-      shared.blurPlayers[myId] = true
+      shared.blurPlayers[myId] = true;
       currentParty = "blur";
     }
   }
@@ -1858,23 +1858,23 @@ function joinWait() {
 function joiningCheck() {
 
   if (setTypeDropDown.value() === "normal") {
-    shared.normalRound = "ongoing"
+    shared.normalRound = "ongoing";
     shared.normalStarted = true;
   }
   else if (setTypeDropDown.value() === "blitz") {
-    shared.blitzRound = "ongoing"
+    shared.blitzRound = "ongoing";
     shared.blitzStarted = true;
   }
   else if (setTypeDropDown.value() === "NMPZ") {
-    shared.NMPZRound = "ongoing"
+    shared.NMPZRound = "ongoing";
     shared.NMPZStarted = true;
   }
   else if (setTypeDropDown.value() === "blink") {
-    shared.blinkRound = "ongoing"
+    shared.blinkRound = "ongoing";
     shared.blinkStarted = true;
   }
   else if (setTypeDropDown.value() === "blur") {
-    shared.blurRound = "ongoing"
+    shared.blurRound = "ongoing";
     shared.blurStarted = true;
   }
 }
@@ -1890,11 +1890,11 @@ function joinParty() {
 
   //if it is green then it means that it is active or easy
   //red means not active or difficult
-  let lightGreen = "rgb(114, 245, 81)"
-  let lightRed = "rgb(255, 101, 101)"
-  let lightOrange = "rgb(238, 199, 69)"
+  let lightGreen = "rgb(114, 245, 81)";
+  let lightRed = "rgb(255, 101, 101)";
+  let lightOrange = "rgb(238, 199, 69)";
 
-  let playerCol = lightRed
+  let playerCol = lightRed;
 
 
   if (!lobbyJoined && inParty) {
@@ -1912,7 +1912,7 @@ function joinParty() {
           Players: ${Object.keys(shared.normalPlayers).length}<br>
           Round: ${shared.normalRoundNumber}<br>
           Guess: ${shared.normalRound}
-          `)
+          `);
       }
       else {
         cover.html(`
@@ -1920,7 +1920,7 @@ function joinParty() {
           <div style="color: ${lightGreen};">Difficulty: 3/10</div>
           <br>
           <div style="color: ${playerCol};">Players: ${Object.keys(shared.normalPlayers).length}</div>
-        `)
+        `);
       }
 
       //just a check to make the player stay in the lobby until the next round starts
@@ -1972,7 +1972,7 @@ function joinParty() {
           Players: ${Object.keys(shared.blitzPlayers).length}<br>
           Round: ${shared.blitzRoundNumber}<br>
           Guess: ${shared.blitzRound}
-        `)
+        `);
       }
       else {
         cover.html(`
@@ -1980,7 +1980,7 @@ function joinParty() {
           <div style="color: ${lightOrange};">Difficulty: 5/10</div>
           <br>
           <div style="color: ${playerCol};">Players: ${Object.keys(shared.blitzPlayers).length}</div>
-        `)
+        `);
       }
 
       //just a check to make the player stay in the lobby until the next round starts
@@ -2032,7 +2032,7 @@ function joinParty() {
           Players: ${Object.keys(shared.NMPZPlayers).length}<br>
           Round: ${shared.NMPZRoundNumber}<br>
           Guess: ${shared.NMPZRound}
-        `)
+        `);
       }
       else {
         cover.html(`
@@ -2040,7 +2040,7 @@ function joinParty() {
           <div style="color: ${lightOrange};">Difficulty: 7/10</div>
           <br>
           <div style="color: ${playerCol};">Players: ${Object.keys(shared.NMPZPlayers).length}</div>
-        `)
+        `);
       }
 
       //just a check to make the player stay in the lobby until the next round starts
@@ -2092,7 +2092,7 @@ function joinParty() {
           Players: ${Object.keys(shared.blinkPlayers).length}<br>
           Round: ${shared.blinkRoundNumber}<br>
           Guess: ${shared.blinkRound}
-        `)
+        `);
       }
       else {
         cover.html(`
@@ -2100,7 +2100,7 @@ function joinParty() {
           <div style="color: ${lightRed};">Difficulty: 8/10</div>
           <br>
           <div style="color: ${playerCol};">Players: ${Object.keys(shared.blinkPlayers).length}</div>
-        `)
+        `);
       }
 
       //just a check to make the player stay in the lobby until the next round starts
@@ -2152,7 +2152,7 @@ function joinParty() {
           Players: ${Object.keys(shared.blurPlayers).length}<br>
           Round: ${shared.blurRoundNumber}<br>
           Guess: ${shared.blurRound}
-        `)
+        `);
       }
       else {
         cover.html(`
@@ -2160,7 +2160,7 @@ function joinParty() {
           <div style="color: ${lightRed};">Difficulty: 9/10</div>
           <br>
           <div style="color: ${playerCol};">Players: ${Object.keys(shared.blurPlayers).length}</div>
-        `)
+        `);
       }
 
       //just a check to make the player stay in the lobby until the next round starts
@@ -2228,19 +2228,19 @@ function partyChange(place, type) {
     timeLeft = shared.normalTimeMax;
   }
   else if (type === "blitz") {
-    timeLeft = shared.blitzTimeMax
+    timeLeft = shared.blitzTimeMax;
   }
   else if (type === "NMPZ") {
-    timeLeft = shared.NMPZTimeMax
+    timeLeft = shared.NMPZTimeMax;
   }
   else if (type === "blink") {
-    timeLeft = shared.blinkTimeMax
+    timeLeft = shared.blinkTimeMax;
 
     //blink might not be working
     runBlink();
   }
   else if (type === "blur") {
-    timeLeft = shared.blurTimeMax
+    timeLeft = shared.blurTimeMax;
   }
 
   marker.setLatLng([0, 0]);
@@ -2489,7 +2489,7 @@ function addmap(map, country) {
 }
 
 function fixsizes() {
-  street.size(windowWidth, windowHeight)
+  street.size(windowWidth, windowHeight);
 
   optxwidth = (windowWidth + windowHeight) / optxwidthDivisor;
 
@@ -2703,7 +2703,7 @@ function bannerTextChange() {
       banner.html("Viewing Mode");
     }
     else {
-      banner.html(`Players: ${Object.keys(shared.players).length}`)
+      banner.html(`Players: ${Object.keys(shared.players).length}`);
     }
   }
 }
@@ -3200,7 +3200,7 @@ function confirmed() {
             }
           }
 
-          pinsShown = false
+          pinsShown = false;
           leaveMap();
         }
       }
@@ -3353,7 +3353,7 @@ function afterGuess() {
     points = Math.round(5000 * Math.exp(-10 * totalDistance / mapSize));
 
     if (inParty) {
-      partyPoints += points
+      partyPoints += points;
     }
   
     //set distance text
@@ -3650,8 +3650,8 @@ let currentgrid;
 let currentGridX;
 let currentGridY;
 
-var selectSquare;
-var gridModeSquare;
+let selectSquare;
+let gridModeSquare;
 let gridModeSquares = [];
 let shownPastGuesses = [];
 
@@ -3750,18 +3750,18 @@ function addGrid() {
     //show all guesses that were in that grid
     for (let info of currentgrid.pastGuesses) {
       //display the icon based on the set that was played
-      let showIcon = answerIcon
+      let showIcon = answerIcon;
       if (info.roundType === "blitz") {
-        showIcon = blitzAnswer
+        showIcon = blitzAnswer;
       }
       else if (info.roundType === "NMPZ") {
-        showIcon = NMPZAnswer
+        showIcon = NMPZAnswer;
       }
       else if (info.roundType === "blink") {
-        showIcon = blinkAnswer
+        showIcon = blinkAnswer;
       }
       else if (info.roundType === "blur") {
-        showIcon = blurAnswer
+        showIcon = blurAnswer;
       }
 
 
@@ -4254,24 +4254,30 @@ function create3X3() {
         fillopac = 0.7;
       }
 
+      let placeY = y;
+      let placeX = x;
 
-      if (currentGridY + y >= 0 && currentGridY + y < (180 / GRID_MODE_LENGTH) && currentGridX + x >= 0 && currentGridX + x < (360 / GRID_MODE_LENGTH)) {
-        //create a select square
-        let surroundSquare = L.polygon([
-          [(currentGridY + y) * GRID_MODE_LENGTH - 90, (currentGridX + x) * GRID_MODE_LENGTH - 180],
-          [(currentGridY + y) * GRID_MODE_LENGTH - 90, ((currentGridX + x) + 1) * GRID_MODE_LENGTH - 180],
-          [((currentGridY + y) + 1) * GRID_MODE_LENGTH - 90, ((currentGridX + x) + 1) * GRID_MODE_LENGTH - 180],
-          [((currentGridY + y) + 1) * GRID_MODE_LENGTH - 90, (currentGridX + x) * GRID_MODE_LENGTH - 180]
-        ], {
-          color: "rgb(184, 181, 52)",
-          weight: 1,
-          opacity: 1,
-      
-          fillColor: fillCol,
-          fillOpacity: fillopac
-        }).addTo(map);
 
-        gridModeSquares.push(surroundSquare);
+      if (currentGridY + y >= 0 && currentGridY + y < 180 / GRID_MODE_LENGTH) {
+        if (currentGridX + x >= 0 && currentGridX + x < 360 / GRID_MODE_LENGTH) {
+
+          //create a select square
+          let surroundSquare = L.polygon([
+            [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180],
+            [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, ((currentGridX + placeX) + 1) * GRID_MODE_LENGTH - 180],
+            [((currentGridY + placeY) + 1) * GRID_MODE_LENGTH - 90, ((currentGridX + placeX) + 1) * GRID_MODE_LENGTH - 180],
+            [((currentGridY + placeY) + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180]
+          ], {
+            color: "rgb(184, 181, 52)",
+            weight: 1,
+            opacity: 1,
+        
+            fillColor: fillCol,
+            fillOpacity: fillopac
+          }).addTo(map);
+
+          gridModeSquares.push(surroundSquare);
+        }
       }
     }
   }
