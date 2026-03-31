@@ -190,6 +190,7 @@ let blurAnswer = L.icon({
 let currentAnswerIcon = answerIcon
 
 //game variables
+let refreshactive = true;
 let buttonsHidden = true;
 let viewingNMPZ = false;
 let gridStreak = 0;
@@ -267,7 +268,7 @@ let superDis = 250000;
 let correctDis = 1000000;
 let wrongDis = 6000000;
 let answerLine;
-let answerPadding = 50;
+let answerPadding = 20;
 let mapOriginalHeight = 300;
 let mapOriginalWidth = 400;
 let newHeight = 450;
@@ -332,9 +333,9 @@ let loadData;
 let uploadData;
 let dataType;
 let hintButton;
-let zoomButton;
 let nameType;
 let hideUnderButton;
+let refreshButton;
 
 
 //set variables
@@ -400,6 +401,7 @@ let displayMarkers = [];
 let preChangeClickedLength;
 let waitingLobby = false;
 let lobbyJoined = false;
+let pinsShown = false;
 
 let joinIn = false;
 let ended = false;
@@ -413,6 +415,8 @@ window.addEventListener("beforeunload", function() {
   if (inParty) {
     if (currentParty === "normal") {
       delete shared.normalPlayers[myId];
+
+      delete shared.normalClickedPositions[myId];
     }
     else if (currentParty === "blitz") {
       delete shared.blitzPlayers[myId];
@@ -485,7 +489,7 @@ function setup() {
     if (!gridMode) {
 
       //when screen is clicked then move the marker to the clicked location and set the clicked coords
-      if (endScreen === false && !lockedIn) {
+      if (endScreen === false && !lockedIn && !(inParty && timeLeft <= 0)) {
         marker.setLatLng([lat, lng]);
         
         clickedPoint = {
@@ -493,7 +497,7 @@ function setup() {
           lng: lng,
         };
       }
-      if (inParty) {
+      if (inParty && timeLeft >= 1) {
         if (currentParty === "normal") {
           shared.normalClickedPositions[myId] = {
             lat: clickedPoint.lat,
@@ -617,6 +621,7 @@ function setup() {
   confirmButton.size(60, 50);
   confirmButton.style("position", "absolute");
   confirmButton.style("z-index", "14");
+  confirmButton.style("background-color", "rgb(255, 242, 62)");
 
   confirmButton.mousePressed(confirmed);
 
@@ -630,21 +635,20 @@ function setup() {
 
   //button to toggle hint mode
   hintButton = createButton("Hint Mode");
-  hintButton.size(60, 50);
+  hintButton.size(shieldSize, 20);
   hintButton.style("position", "absolute");
-  hintButton.style("z-index", "12");
+  hintButton.style("z-index", "-1");
   hintButton.style("background-color", "rgb(255, 79, 79)");
 
   hintButton.mousePressed(toggleHint);
 
-  //button to toggle zooming out after guesses
-  zoomButton = createButton("Zoom Out");
-  zoomButton.size(60, 50);
-  zoomButton.style("position", "absolute");
-  zoomButton.style("z-index", "12");
-  zoomButton.style("background-color", "rgb(255, 79, 79)");
+  //button to refresh the page creating the issulsion you are returning
+  refreshButton = createButton("Refresh");
+  refreshButton.size(60, 50);
+  refreshButton.style("position", "absolute");
+  refreshButton.style("z-index", "12");
 
-  zoomButton.mousePressed(toggleZoom);
+  refreshButton.mousePressed(refreshStreet);
 
   //button to start a set
   startSetButton = createButton("Start Set");
@@ -948,6 +952,19 @@ function draw() {
   addPointParty();
 }
 
+function refreshStreet() {
+  if (refreshactive) {
+    refreshactive = false;
+    setTimeout(() => {
+      refreshactive = true;
+    }, 2000);
+    street.attribute(
+      "src",
+      `https://www.google.com/maps?q=&layer=c&cbll=${newlat},${newlng}&cbp=11,0,0,0,0&output=svembed`
+    );
+  }
+}
+
 //make sure their name has a good length
 function nameCheck() {
   if (nameType.value().length <= 2 || name.value().length >= 15) {
@@ -966,6 +983,7 @@ function hideUnderShield() {
     showGridButton.style("z-index", "-1")
     DataShowButton.style("z-index", "-1")
     gridModeButton.style("z-index", "-1")
+    hintButton.style("z-index", "-1")
   }
   else {
     hideUnderButton.html("Hide")
@@ -973,6 +991,7 @@ function hideUnderShield() {
     showGridButton.style("z-index", "1")
     DataShowButton.style("z-index", "1")
     gridModeButton.style("z-index", "1")
+    hintButton.style("z-index", "1")
   }
 }
 
@@ -1072,22 +1091,6 @@ function setButtonText() {
   }
   else {
     startSetButton.html("Start Set");
-  }
-}
-
-function toggleZoom() {
-  zoomOutAfterGuess = !zoomOutAfterGuess;
-
-  //make the zoom padding change so after each guess it will be more zoomed out
-  if (zoomOutAfterGuess) {
-    //change to green
-    zoomButton.style("background-color", "rgb(94, 255, 0)");
-    answerPadding = answerPadding * zoomOutPadding;
-  }
-  else {
-    //make red
-    zoomButton.style("background-color", "rgb(255, 79, 79)");
-    answerPadding = answerPadding / zoomOutPadding;
   }
 }
 
@@ -1451,32 +1454,32 @@ function displayOthers() {
     //goes through each saved location and places them on the map
 
     //for normal mode
-    if (setTypeDropDown.value() === "normal" && shared.normalRound === "over" && preChangeClickedLength !== Object.keys(shared.normalClickedPositions).length) {
-      preChangeClickedLength = Object.keys(shared.normalClickedPositions).length
+    if (setTypeDropDown.value() === "normal" && shared.normalRound === "over" && !pinsShown) {
+      pinsShown = true
       showAllMarks(shared.normalClickedPositions, shared.normalMap)
     }
 
     //for blitz mode
-    else if (setTypeDropDown.value() === "blitz" && shared.blitzRound === "over" && preChangeClickedLength !== Object.keys(shared.blitzClickedPositions).length) {
-      preChangeClickedLength = Object.keys(shared.blitzClickedPositions).length;
+    else if (setTypeDropDown.value() === "blitz" && shared.blitzRound === "over" && !pinsShown) {
+      pinsShown = true
       showAllMarks(shared.blitzClickedPositions, shared.blitzMap)
     }
 
     //for NMPZ mode
-    else if (setTypeDropDown.value() === "NMPZ" && shared.NMPZRound === "over" && preChangeClickedLength !== Object.keys(shared.NMPZClickedPositions).length) {
-      preChangeClickedLength = Object.keys(shared.NMPZClickedPositions).length;
+    else if (setTypeDropDown.value() === "NMPZ" && shared.NMPZRound === "over" && !pinsShown) {
+      pinsShown = true
       showAllMarks(shared.NMPZClickedPositions, shared.NMPZMap)
     }
 
     //for blink mode
-    else if (setTypeDropDown.value() === "blink" && shared.blinkRound === "over" && preChangeClickedLength !== Object.keys(shared.blinkClickedPositions).length) {
-      preChangeClickedLength = Object.keys(shared.blinkClickedPositions).length;
+    else if (setTypeDropDown.value() === "blink" && shared.blinkRound === "over" && !pinsShown) {
+      pinsShown = true
       showAllMarks(shared.blinkClickedPositions, shared.blinkMap)
     }
 
     //for blur mode
-    else if (setTypeDropDown.value() === "blur" && shared.blurRound === "over" && preChangeClickedLength !== Object.keys(shared.blurClickedPositions).length) {
-      preChangeClickedLength = Object.keys(shared.blurClickedPositions).length;
+    else if (setTypeDropDown.value() === "blur" && shared.blurRound === "over" && !pinsShown) {
+      pinsShown = true
       showAllMarks(shared.blurClickedPositions, shared.blurMap)
     }
   }
@@ -1603,10 +1606,12 @@ function checkPartyEnded() {
 //repetitive code
 function resetLocals() {
   //local resets
+  pinsShown = false;
   partyPoints = 0;
   currentAnswerIcon = answerIcon
   currentParty = "none";
-  ended = false;
+  hintMode = false
+  partyHintButton.style("background-color", "rgb(255, 79, 79)");  ended = false;
   joinIn = false;
   inParty = false;
   waitingLobby = false;
@@ -2264,7 +2269,6 @@ function lockStartJoin() {
     joinButton.attribute("disabled", "");
     setTypeDropDown.attribute("disabled", "");
     hintButton.attribute("disabled", "");
-    zoomButton.attribute("disabled", "");
     gridModeButton.attribute("disabled", "");
 
     if (gridMode) {
@@ -2284,7 +2288,6 @@ function lockStartJoin() {
     startSetButton.removeAttribute("disabled");
     setTypeDropDown.removeAttribute("disabled");
     hintButton.removeAttribute("disabled");
-    zoomButton.removeAttribute("disabled");
     gridModeButton.removeAttribute("disabled");
   }
 }
@@ -2514,8 +2517,8 @@ function fixsizes() {
 
   confirmButton.position(windowWidth - 67, windowHeight - 250);
   hideMapButton.position(windowWidth - 67, windowHeight - 310);
-  hintButton.position(windowWidth - 67, windowHeight - 130);
-  zoomButton.position(windowWidth - 67, windowHeight - 70);
+  refreshButton.position(windowWidth - 67, windowHeight - 110);
+
 
 
   startSetButton.position(10, 10);
@@ -2533,12 +2536,13 @@ function fixsizes() {
   showGridButton.position(10, bannerHeight + shieldSize + 60);
   DataShowButton.position(10, bannerHeight + shieldSize + 85);
   gridModeButton.position(10, bannerHeight + shieldSize + 110);
+  hintButton.position(10, bannerHeight + shieldSize + 135);
 
   if (buttonsHidden) {
     hideUnderButton.position(10, bannerHeight + shieldSize + 35);
   }
   else {
-    hideUnderButton.position(10, bannerHeight + shieldSize + 135);
+    hideUnderButton.position(10, bannerHeight + shieldSize + 160);
   }
 
   //change sizes of the rank info in relation to the screensizes
@@ -2555,12 +2559,24 @@ function fixsizes() {
   showGridScreen.style("padding-top", windowWidth / 60 + "px");
   showGridDropDown.position(175, 30);
   heatMapDropDown.position(255, 30);
-  heatMapType.position(335, 30);
-  Labels.position(175, 10);
 
-  uploadData.position(255, 30);
-  loadData.position(175, 30);
-  dataType.position(335, 30);
+
+  if (dataShow || showGrid) {
+    heatMapType.position(335, 30);
+    Labels.position(175, 10);
+    dataType.position(335, 30);
+
+    uploadData.position(255, 30);
+    loadData.position(175, 30);
+  }
+  else {
+    heatMapType.position(0, 30);
+    Labels.position(0, 10);
+    dataType.position(0, 30);
+
+    uploadData.position(0, 30);
+    loadData.position(0, 30);
+  }
 
   let gridMapH = windowWidth / 3.2;
   let gridmapW = windowWidth / 2.25;
@@ -3184,6 +3200,7 @@ function confirmed() {
             }
           }
 
+          pinsShown = false
           leaveMap();
         }
       }
