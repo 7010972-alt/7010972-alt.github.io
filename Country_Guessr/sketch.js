@@ -190,6 +190,8 @@ let blurAnswer = L.icon({
 let currentAnswerIcon = answerIcon;
 
 //game variables
+let prevWidth;
+let prevHeight;
 let refreshactive = true;
 let buttonsHidden = true;
 let viewingNMPZ = false;
@@ -952,6 +954,29 @@ function draw() {
   lockStartParty();
   addPointParty();
   ensureIDCount();
+  changeCoverTextSize();
+  fixMapSizes();
+}
+
+//when the window sizes change then make the map adjust
+function fixMapSizes() {
+  if (prevWidth !== windowWidth || prevHeight !== windowHeight) {
+    map.invalidateSize();
+    // griddedMap.invalidateSize();
+  }
+  prevWidth = windowWidth;
+  prevHeight = windowHeight;
+  
+}
+
+//change the size of the text so that the counter in blink mode is easier to see
+function changeCoverTextSize() {
+  if (blink) {
+    cover.style("font-size", "50px");
+  }
+  else {
+    cover.style("font-size", "35px");
+  }
 }
 
 //makes sure that the player is accounted for when they are in the part
@@ -1633,6 +1658,7 @@ function checkPartyEnded() {
 //repetitive code
 function resetLocals() {
   //local resets
+
   pinsShown = false;
   partyPoints = 0;
   currentAnswerIcon = answerIcon;
@@ -1806,6 +1832,8 @@ function lockStartParty() {
 //will send them to the waiting lobby of the chosen party
 function joinWait() {
   if (!inParty) {
+
+    joinButton.html("Leave")
     closeHint();
 
     //close the map
@@ -1880,6 +1908,14 @@ function joinWait() {
       shared.blurPlayers[myId] = true;
       currentParty = "blur";
     }
+  }
+
+  //make them leave the current party
+  else {
+    joinButton.html("Join Party")
+    resetLocals();
+    removePlayerFromLists();
+    mapChange();
   }
 }
 
@@ -2295,7 +2331,6 @@ function partyChange(place, type) {
 //I wanted the player to not be able to join parties or sets or change the dropdown value when they are in either one
 function lockStartJoin() {
   if (inParty || setActive || endScreen || viewing || gridMode) {
-    joinButton.attribute("disabled", "");
     setTypeDropDown.attribute("disabled", "");
     hintButton.attribute("disabled", "");
     gridModeButton.attribute("disabled", "");
@@ -2310,6 +2345,14 @@ function lockStartJoin() {
     }
     else if (setActive && !endScreen) {
       startSetButton.removeAttribute("disabled");
+    }
+
+    //keep the reset option open while a set is active
+    if (!inParty || endScreen) {
+      joinButton.attribute("disabled", "");
+    }
+    else if (inParty && !endScreen) {
+      joinButton.removeAttribute("disabled");
     }
   }
   else {
