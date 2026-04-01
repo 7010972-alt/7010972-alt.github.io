@@ -190,6 +190,8 @@ let blurAnswer = L.icon({
 let currentAnswerIcon = answerIcon;
 
 //game variables
+let zoomCoords = {}
+
 let prevWidth;
 let prevHeight;
 let refreshactive = true;
@@ -361,6 +363,13 @@ let time = 0;
 let cover;
 let covering = false;
 
+//black cover
+let NMPZCover;
+let NMPZCoverB;
+let NMPZCoverL;
+let NMPZCoverR;
+
+
 //blur cover
 let blurCover;
 let blurCovering = false;
@@ -450,8 +459,8 @@ function setup() {
 
   rankIcon = createImg(currentShield, "rank display");
   rankIcon.size(shieldSize, shieldSize);
-  rankIcon.style("z-index", "1");
-  rankIcon.style("opacity", "1");
+  rankIcon.style("z-index", "2");
+  rankIcon.style("opacity", "2");
 
   allPinsDisplay = createImg(allPins, "all the pins");
   allPinsDisplay.style("z-index", "21");
@@ -727,7 +736,7 @@ function setup() {
 
   //type in the name that you want
   nameType = createInput();
-  nameType.style("z-index", "1");
+  nameType.style("z-index", "2");
   nameType.value(randomNames[Math.floor(Math.random() * randomNames.length)]);
   nameType.style("font-size", "12px");
   nameType.style("text-align", "center");
@@ -807,7 +816,7 @@ function setup() {
   hideUnderButton = createButton("Show");
   hideUnderButton.size(shieldSize, 20);
   hideUnderButton.style("position", "absolute");
-  hideUnderButton.style("z-index", "1");
+  hideUnderButton.style("z-index", "2");
 
   hideUnderButton.mousePressed(hideUnderShield);
 
@@ -850,6 +859,23 @@ function setup() {
   blurCover.style("-webkit-backdrop-filter", `blur(${blurAmount}px)`);
   blurCover.style("z-index", "1");
   blurCover.style("pointer-events", "none");
+
+  //create NMPZ Covers
+  NMPZCover = createDiv();
+  NMPZCover.style("background", "rgba(255, 255, 255, 0)");
+  NMPZCover.style("z-index", "1");
+
+  NMPZCoverB = createDiv();
+  NMPZCoverB.style("background", "rgba(255, 255, 255, 0)");
+  NMPZCoverB.style("z-index", "1");
+
+  NMPZCoverL = createDiv();
+  NMPZCoverL.style("background", "rgba(255, 255, 255, 0)");
+  NMPZCoverL.style("z-index", "1");
+
+  NMPZCoverR = createDiv();
+  NMPZCoverR.style("background", "rgba(255, 255, 255, 0)");
+  NMPZCoverR.style("z-index", "1");
 
   //create rank info
   showRankScreen = createDiv();
@@ -925,6 +951,12 @@ function setup() {
   }
 
   changeMapSize();
+}
+
+//let the player zoom out during NMPZ through one button
+function mouseClicked() {
+  console.log(windowWidth - mouseX, windowHeight - mouseY);
+
 }
 
 function draw() {
@@ -1037,11 +1069,11 @@ function hideUnderShield() {
   }
   else {
     hideUnderButton.html("Hide");
-    showRankButton.style("z-index", "1");
-    showGridButton.style("z-index", "1");
-    DataShowButton.style("z-index", "1");
-    gridModeButton.style("z-index", "1");
-    hintButton.style("z-index", "1");
+    showRankButton.style("z-index", "2");
+    showGridButton.style("z-index", "2");
+    DataShowButton.style("z-index", "2");
+    gridModeButton.style("z-index", "2");
+    hintButton.style("z-index", "2");
   }
 }
 
@@ -2561,6 +2593,13 @@ function addmap(map, country) {
 }
 
 function fixsizes() {
+  zoomCoords = {
+    top: windowHeight - 61,
+    bottom: 27,
+    left: windowWidth - 52,
+    right: 17
+  };
+
   street.size(windowWidth, windowHeight);
 
   optxwidth = (windowWidth + windowHeight) / optxwidthDivisor;
@@ -2574,11 +2613,26 @@ function fixsizes() {
   blurCover.size(windowWidth, windowHeight);
   blurCover.position(0,0);
 
+  NMPZCover.size(windowWidth, zoomCoords.top);
+  NMPZCover.position(0,0);
+
+  NMPZCoverB.size(windowWidth, zoomCoords.bottom);
+  NMPZCoverB.position(0, windowHeight - zoomCoords.bottom);
+
+  NMPZCoverL.size(windowWidth - 52, windowHeight);
+  NMPZCoverL.position(0, 0);
+
+  NMPZCoverR.size(zoomCoords.right, windowHeight);
+  NMPZCoverR.position(windowWidth - zoomCoords.right, 0);
+
+
+
   //create a mask hole infront of the compass during blur mode
   let holeX = windowWidth - 34;
   let holeY = windowHeight - 161;
   let holeRadius = 24;
 
+  //cut a hole in blur mode so that they can see the compass
   blurCover.style("mask-image", `radial-gradient(circle ${holeRadius}px at ${holeX}px ${holeY}px, transparent 0, transparent ${holeRadius}px, black ${holeRadius + 1}px)`);
   blurCover.style("-webkit-mask-image", `radial-gradient(circle ${holeRadius}px at ${holeX}px ${holeY}px, transparent 0, transparent ${holeRadius}px, black ${holeRadius + 1}px)`);
   blurCover.style("mask-repeat", "no-repeat");
@@ -2909,7 +2963,10 @@ function nextmap() {
 
     //change the condition based on the type of guess that they had while viewing
     if (viewingNMPZ) {
-      street.style("pointer-events", "none");
+      NMPZCover.style("z-index", "1");
+      NMPZCoverB.style("z-index", "1");
+      NMPZCoverL.style("z-index", "1");
+      NMPZCoverR.style("z-index", "1");
     }
     switching = false;
   }
@@ -2931,7 +2988,10 @@ function confirmed() {
     viewing = false;
 
     //reset all the conditions that were set
-    street.style("pointer-events", "auto");
+    NMPZCover.style("z-index", "-1");
+    NMPZCoverB.style("z-index", "-1");
+    NMPZCoverL.style("z-index", "-1");
+    NMPZCoverR.style("z-index", "-1");
     covering = false;
     blurCover.style("z-index", "-1");
     blink = false;
@@ -3596,10 +3656,16 @@ function adjustAfterGuess() {
 //prevents the street view from being clicked
 function NMPZ() {
   if ((setActive && (setTypeDropDown.value() === "NMPZ" || setTypeDropDown.value() === "blink")) || (inParty && !waitingLobby && (currentParty === "NMPZ" || currentParty === "blink"))) {
-    street.style("pointer-events", "none");
+    NMPZCover.style("z-index", "1");
+    NMPZCoverB.style("z-index", "1");
+    NMPZCoverL.style("z-index", "1");
+    NMPZCoverR.style("z-index", "1");
   }
   else if (!viewing) {
-    street.style("pointer-events", "auto");
+    NMPZCover.style("z-index", "-1");
+    NMPZCoverB.style("z-index", "-1");
+    NMPZCoverL.style("z-index", "-1");
+    NMPZCoverR.style("z-index", "-1");
   }
 }
 
