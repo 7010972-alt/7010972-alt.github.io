@@ -14,4 +14,4 @@
 
 ## Assignments
 - [square grower](interactive-scene)
-- ["Ranked Guessr, arrays and grid"](Country_Guessr)
+- ["Ranked Guessr, arrays and grid"](Ranked_Guessr)
