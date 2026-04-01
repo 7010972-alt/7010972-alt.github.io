@@ -15,7 +15,7 @@
 let shared;
 
 //give each player their unique ID
-let myId = crypto.randomUUID();
+myId = crypto.randomUUID();
 sessionStorage.setItem("partyPlayerId", myId);
 
 console.log(myId);
@@ -408,28 +408,29 @@ let ended = false;
 
 let hintcircle;
 
-//when the player leaves
-window.addEventListener("beforeunload", function() {
+//wipes the player from everything
+function removePlayerFromLists() {
   delete shared.players[myId];
 
-  if (inParty) {
-    if (currentParty === "normal") {
-      delete shared.normalPlayers[myId];
+  delete shared.normalPlayers[myId];
+  delete shared.blitzPlayers[myId];
+  delete shared.NMPZPlayers[myId];
+  delete shared.blinkPlayers[myId];
+  delete shared.blurPlayers[myId];
 
-      delete shared.normalClickedPositions[myId];
-    }
-    else if (currentParty === "blitz") {
-      delete shared.blitzPlayers[myId];
-    }
-    else if (currentParty === "NMPZ") {
-      delete shared.NMPZPlayers[myId];
-    }
-    else if (currentParty === "blink") {
-      delete shared.blinkPlayers[myId];
-    }
-    else if (currentParty === "blur") {
-      delete shared.blurPlayers[myId];
-    }
+  delete shared.normalClickedPositions[myId];
+  delete shared.blitzClickedPositions[myId];
+  delete shared.NMPZClickedPositions[myId];
+  delete shared.blinkClickedPositions[myId];
+  delete shared.blurClickedPositions[myId];
+}
+
+//when the player leaves
+window.addEventListener("beforeunload", removePlayerFromLists);
+
+document.addEventListener("visibilitychange", function() {
+  if (document.visibilityState === "visible") {
+    location.reload();
   }
 });
 
@@ -447,7 +448,7 @@ function setup() {
 
   rankIcon = createImg(currentShield, "rank display");
   rankIcon.size(shieldSize, shieldSize);
-  rankIcon.style("z-index", "21");
+  rankIcon.style("z-index", "1");
   rankIcon.style("opacity", "1");
 
   allPinsDisplay = createImg(allPins, "all the pins");
@@ -724,7 +725,7 @@ function setup() {
 
   //type in the name that you want
   nameType = createInput();
-  nameType.style("z-index", "21");
+  nameType.style("z-index", "1");
   nameType.value(randomNames[Math.floor(Math.random() * randomNames.length)]);
   nameType.style("font-size", "12px");
   nameType.style("text-align", "center");
@@ -804,7 +805,7 @@ function setup() {
   hideUnderButton = createButton("Show");
   hideUnderButton.size(shieldSize, 20);
   hideUnderButton.style("position", "absolute");
-  hideUnderButton.style("z-index", "21");
+  hideUnderButton.style("z-index", "1");
 
   hideUnderButton.mousePressed(hideUnderShield);
 
@@ -950,6 +951,30 @@ function draw() {
   setButtonText();
   lockStartParty();
   addPointParty();
+  ensureIDCount();
+}
+
+//makes sure that the player is accounted for when they are in the part
+function ensureIDCount() {
+  shared.players[myId] = true;
+
+  if (inParty && waitingLobby) {
+    if (currentParty === "normal") {
+      shared.normalPlayers[myId] = true;
+    }
+    else if (currentParty === "blitz") {
+      shared.blitzPlayers[myId] = true;
+    }
+    else if (currentParty === "NMPZ") {
+      shared.NMPZPlayers[myId] = true;
+    }
+    else if (currentParty === "blink") {
+      shared.blinkPlayers[myId] = true;
+    }
+    else if (currentParty === "blur") {
+      shared.blurPlayers[myId] = true;
+    }
+  }
 }
 
 function refreshStreet() {
@@ -1541,17 +1566,19 @@ function showAllMarks(marks, mapcoords) {
     displayMarkers.push(muiltMarker);
     displayMarkers.push(muiltAnswerLine);
 
+    let HintCol = "red"
     let hintText = "Off";
     if (info.hintMode) {
       hintText = "On";
+      HintCol = "green"
     }
 
     //this part displays how well that player did
     muiltMarker.bindPopup(`
       <b>${info.name}</b><br>
       Total Points: ${info.points + addPoints}<br>
-      Distance: ${round(distance / 1000).toLocaleString()}km<br>
-      Hint Mode: ${hintText}
+      <div style="color: ${lineCol};">Distance: ${round(distance / 1000).toLocaleString()}km</div>
+      <div style="color: ${HintCol};">Hint Mode: ${hintText}</div>
       `, {
 
       offset: [0, -32],
@@ -1614,6 +1641,8 @@ function resetLocals() {
   partyHintButton.style("background-color", "rgb(255, 79, 79)");  ended = false;
   joinIn = false;
   inParty = false;
+  currentParty = "none";
+  setActive = false;
   waitingLobby = false;
   lobbyJoined = false;
   lockedIn = false;
@@ -2530,19 +2559,21 @@ function fixsizes() {
 
   nameType.size(72, 20);
 
+  let underShieldX = 9
+
   //buttons under the shield
-  nameType.position(10, bannerHeight + shieldSize + 5);
-  showRankButton.position(10, bannerHeight + shieldSize + 35);
-  showGridButton.position(10, bannerHeight + shieldSize + 60);
-  DataShowButton.position(10, bannerHeight + shieldSize + 85);
-  gridModeButton.position(10, bannerHeight + shieldSize + 110);
-  hintButton.position(10, bannerHeight + shieldSize + 135);
+  nameType.position(underShieldX, bannerHeight + shieldSize + 5);
+  showRankButton.position(underShieldX, bannerHeight + shieldSize + 35);
+  showGridButton.position(underShieldX, bannerHeight + shieldSize + 60);
+  DataShowButton.position(underShieldX, bannerHeight + shieldSize + 85);
+  gridModeButton.position(underShieldX, bannerHeight + shieldSize + 110);
+  hintButton.position(underShieldX, bannerHeight + shieldSize + 135);
 
   if (buttonsHidden) {
-    hideUnderButton.position(10, bannerHeight + shieldSize + 35);
+    hideUnderButton.position(underShieldX, bannerHeight + shieldSize + 35);
   }
   else {
-    hideUnderButton.position(10, bannerHeight + shieldSize + 160);
+    hideUnderButton.position(underShieldX, bannerHeight + shieldSize + 160);
   }
 
   //change sizes of the rank info in relation to the screensizes
@@ -2703,7 +2734,7 @@ function bannerTextChange() {
       banner.html("Viewing Mode");
     }
     else {
-      banner.html(`Players: ${Object.keys(shared.players).length}`);
+      banner.html(`Players Online: ${Object.keys(shared.players).length}`);
     }
   }
 }
@@ -4256,7 +4287,6 @@ function create3X3() {
 
       let placeY = y;
       let placeX = x;
-
 
       if (currentGridY + y >= 0 && currentGridY + y < 180 / GRID_MODE_LENGTH) {
         if (currentGridX + x >= 0 && currentGridX + x < 360 / GRID_MODE_LENGTH) {

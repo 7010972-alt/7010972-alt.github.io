@@ -1,4 +1,4 @@
-//this contains all countries with street view coming to a total of 27,775 locations
+//this contains all countries with street view coming to a total of around 40,000 locations
 //I made the scripts global so they could be read from sketch.js and made sure to put it before sketch.js in the index
 
 //North America
