@@ -473,7 +473,7 @@ function setup() {
   //leaflet map
   map = L.map("map").setView([0, 0], 1);
 
-  //all English
+  //all English Tile Layer
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     subdomains: 'abcd',
     maxZoom: 19,
@@ -949,12 +949,6 @@ function setup() {
   }
 
   changeMapSize();
-}
-
-//let the player zoom out during NMPZ through one button
-function mouseClicked() {
-  console.log(windowWidth - mouseX, windowHeight - mouseY);
-
 }
 
 function draw() {
@@ -3689,7 +3683,7 @@ function adjustAfterGuess() {
 
 //prevents the street view from being clicked
 function NMPZ() {
-  if ((setActive && (setTypeDropDown.value() === "NMPZ" || setTypeDropDown.value() === "blink")) || (inParty && !waitingLobby && (currentParty === "NMPZ" || currentParty === "blink"))) {
+  if (setActive && (setTypeDropDown.value() === "NMPZ" || setTypeDropDown.value() === "blink") || inParty && !waitingLobby && (currentParty === "NMPZ" || currentParty === "blink")) {
     NMPZCover.style("z-index", "1");
     NMPZCoverB.style("z-index", "1");
     NMPZCoverL.style("z-index", "1");
@@ -3706,7 +3700,7 @@ function NMPZ() {
 
 //blur if in blur party or set
 function activateBlur() {
-  if ((setActive && setTypeDropDown.value() === "blur") || (inParty && !waitingLobby && currentParty === "blur")) {
+  if (setActive && setTypeDropDown.value() === "blur" || inParty && !waitingLobby && currentParty === "blur") {
     blurCover.style("z-index", "1");
   }
   else if (!viewing) {
@@ -3828,6 +3822,8 @@ let selectSquare;
 let gridModeSquare;
 let gridModeSquares = [];
 let shownPastGuesses = [];
+
+let gridModeShape = "3X3";
 
 //heat map stats
 let greenSquares = [];
@@ -4370,8 +4366,25 @@ function gridModeSquareColChange() {
     }
   }
 
-  //if the guess is in the surrounding squares
-  else if (currentGridX - 1 <= answerX && currentGridX + 1 >= answerX && currentGridY - 1 <= answerY && currentGridY + 1 >= answerY) {
+  //if the guess is in the surrounding squares for 3 by 3 mode
+  else if (currentGridX - 1 <= answerX && currentGridX + 1 >= answerX && currentGridY - 1 <= answerY && currentGridY + 1 >= answerY && gridModeShape === "3X3") {
+    for (let item of gridModeSquares) {
+      item.setStyle({
+        color: "orange",
+        fillColor: "orange"
+      });
+    }
+
+    gridStreak += 1;
+
+    if (gridStreak > gridMaxStreak) {
+      gridMaxStreak = gridStreak;
+    }
+  }
+
+
+  //if the guess is in the surrounding squares for cross mode
+  else if (currentGridX === answerX && currentGridY - 2 <= answerY && currentGridY + 2 >= answerY || currentGridY === answerY && currentGridX - 2 <= answerX && currentGridX + 2 >= answerX && gridModeShape === "cross") {
     for (let item of gridModeSquares) {
       item.setStyle({
         color: "orange",
@@ -4419,27 +4432,96 @@ function resetSelect() {
 function create3X3() {
   //create surrounding squares
   //basically make a 3 by 3 pattern
-  for (let x = -1; x <= 1; x++) {
-    for (let y = -1; y <= 1; y++) {
+  if (gridModeShape === "3X3") {
+    for (let x = -1; x <= 1; x++) {
+      for (let y = -1; y <= 1; y++) {
+        let fillCol = "rgb(249, 255, 158)";
+        let fillopac = 0.4;
+        if (x === 0 && y === 0) {
+          fillCol = "yellow";
+          fillopac = 0.7;
+        }
+  
+        let placeY = y;
+        let placeX = x;
+  
+        if (currentGridY + y >= 0 && currentGridY + y < 180 / GRID_MODE_LENGTH) {
+          if (currentGridX + x >= 0 && currentGridX + x < 360 / GRID_MODE_LENGTH) {
+  
+            //create a select square
+            let surroundSquare = L.polygon([
+              [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180],
+              [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, (currentGridX + placeX + 1) * GRID_MODE_LENGTH - 180],
+              [(currentGridY + placeY + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX + 1) * GRID_MODE_LENGTH - 180],
+              [(currentGridY + placeY + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180]
+            ], {
+              color: "rgb(184, 181, 52)",
+              weight: 1,
+              opacity: 1,
+          
+              fillColor: fillCol,
+              fillOpacity: fillopac
+            }).addTo(map);
+  
+            gridModeSquares.push(surroundSquare);
+          }
+        }
+      }
+    }
+  }
+
+  //basically make a cross Pattern
+  if (gridModeShape === "cross") {
+    for (let y = -2; y <= 2; y++) {
       let fillCol = "rgb(249, 255, 158)";
       let fillopac = 0.4;
-      if (x === 0 && y === 0) {
+      if (y === 0) {
         fillCol = "yellow";
         fillopac = 0.7;
       }
 
       let placeY = y;
-      let placeX = x;
+      let placeX = 0;
 
       if (currentGridY + y >= 0 && currentGridY + y < 180 / GRID_MODE_LENGTH) {
+        //create a select square
+        let surroundSquare = L.polygon([
+          [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180],
+          [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, (currentGridX + placeX + 1) * GRID_MODE_LENGTH - 180],
+          [(currentGridY + placeY + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX + 1) * GRID_MODE_LENGTH - 180],
+          [(currentGridY + placeY + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180]
+        ], {
+          color: "rgb(184, 181, 52)",
+          weight: 1,
+          opacity: 1,
+      
+          fillColor: fillCol,
+          fillOpacity: fillopac
+        }).addTo(map);
+
+        gridModeSquares.push(surroundSquare);
+      }
+    }
+
+    for (let x = -2; x <= 2; x++) {
+      let fillCol = "rgb(249, 255, 158)";
+      let fillopac = 0.4;
+      if (x === 0) {
+        fillCol = "yellow";
+        fillopac = 0.7;
+      }
+      else {
+        let placeY = 0;
+        let placeX = x;
+
         if (currentGridX + x >= 0 && currentGridX + x < 360 / GRID_MODE_LENGTH) {
 
           //create a select square
           let surroundSquare = L.polygon([
             [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180],
-            [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, ((currentGridX + placeX) + 1) * GRID_MODE_LENGTH - 180],
-            [((currentGridY + placeY) + 1) * GRID_MODE_LENGTH - 90, ((currentGridX + placeX) + 1) * GRID_MODE_LENGTH - 180],
-            [((currentGridY + placeY) + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180]
+            [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, (currentGridX + placeX + 1) * GRID_MODE_LENGTH - 180],
+            [(currentGridY + placeY + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX + 1) * GRID_MODE_LENGTH - 180],
+            [(currentGridY + placeY + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180]
           ], {
             color: "rgb(184, 181, 52)",
             weight: 1,
