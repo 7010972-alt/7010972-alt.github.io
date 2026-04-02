@@ -9,8 +9,6 @@
 //I used leaflet maps which somehow had everything I needed like getting corrdinates from where I clicked, and adding markers and many more
 //the Leaflet website was incredibly easy to follow aswell https://leafletjs.com/examples.html
 
-
-
 //set up p5 party
 let shared;
 
@@ -988,6 +986,19 @@ function draw() {
   ensureIDCount();
   changeCoverTextSize();
   fixMapSizes();
+  changeJoinWaitTest();
+}
+
+function changeJoinWaitTest() {
+  if (setActive) {
+    joinButton.html("End Set")
+  }
+  else if (!inParty) {
+    joinButton.html("Join Party")
+  }
+  else {
+    joinButton.html("Leave")
+  }
 }
 
 //when the window sizes change then make the map adjust
@@ -1497,7 +1508,7 @@ function gridTextChange() {
 //changes the color of the banner based on the conditions
 //wil be red when time is running low and matches color of the answer line
 function bannerColChange() {
-  if (timeLeft > 0 && timeLeft <= timeAfterFirstGuess && !endScreen) {
+  if (timeLeft >= 0 && timeLeft <= timeAfterFirstGuess && !endScreen && (setActive || inParty)) {
     banner.style("background", "rgb(206, 29, 29)");
   }
   else if (endScreen) {
@@ -1863,9 +1874,19 @@ function lockStartParty() {
 //this runs when players first press join party
 //will send them to the waiting lobby of the chosen party
 function joinWait() {
-  if (!inParty) {
 
-    joinButton.html("Leave")
+  if (setActive) {
+    setActive = false;
+    curretnRoundNumber = 1;
+    totalSetPoints = 0;
+    setLocations = [];
+    setClickedPoints = [];
+    setLineColors = [];
+    mapChange();
+  }
+
+  else if (!inParty) {
+
     closeHint();
 
     //close the map
@@ -1944,7 +1965,6 @@ function joinWait() {
 
   //make them leave the current party
   else {
-    joinButton.html("Join Party")
     resetLocals();
     removePlayerFromLists();
     mapChange();
@@ -2374,17 +2394,21 @@ function lockStartJoin() {
     //keep the reset option open while a set is active
     if (!setActive || endScreen) {
       startSetButton.attribute("disabled", "");
+      joinButton.attribute("disabled", "");
     }
     else if (setActive && !endScreen) {
       startSetButton.removeAttribute("disabled");
+      joinButton.removeAttribute("disabled");
     }
 
-    //keep the reset option open while a set is active
-    if (!inParty || endScreen) {
-      joinButton.attribute("disabled", "");
-    }
-    else if (inParty && !endScreen) {
-      joinButton.removeAttribute("disabled");
+    if (!setActive) {
+      //keep the reset option open while a set is active
+      if (!inParty || endScreen) {
+        joinButton.attribute("disabled", "");
+      }
+      else if (inParty && !endScreen) {
+        joinButton.removeAttribute("disabled");
+      }
     }
   }
   else {
