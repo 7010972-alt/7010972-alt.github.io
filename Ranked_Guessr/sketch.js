@@ -987,6 +987,16 @@ function draw() {
   changeCoverTextSize();
   fixMapSizes();
   changeJoinWaitTest();
+  toggleConfirm();
+}
+
+function toggleConfirm() {
+  if (lockedIn && !endScreen && inParty) {
+    confirmButton.attribute("disabled", "");
+  }
+  else {
+    confirmButton.removeAttribute("disabled");
+  }
 }
 
 function changeJoinWaitTest() {
