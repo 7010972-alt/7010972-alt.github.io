@@ -499,9 +499,11 @@ window.addEventListener("beforeunload", removePlayerFromLists);
 
 document.addEventListener("visibilitychange", function() {
   if (document.visibilityState === "visible") {
+    removePlayerFromLists();
     location.reload();
   }
 });
+
 
 function setup() {
   noCanvas();
