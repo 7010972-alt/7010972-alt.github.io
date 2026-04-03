@@ -18,7 +18,36 @@ sessionStorage.setItem("partyPlayerId", myId);
 
 console.log(myId);
 
+//sounds
+let SFXVolume = 1.5
+
+let numberRacking;
+let terribleGuess
+let goodGuess;
+
+//musics
+let musicVolume = 0.4
+
+let chillMusic1;
+let chillMusic2;
+let chillMusic3;
+let chillMusic4;
+let chillMusic5;
+let chillMusic6;
+
 function preload() {
+  //load sound
+  numberRacking = loadSound("number_racking.mp3")
+  terribleGuess = loadSound("terrible_guess.mp3")
+  goodGuess = loadSound("good_guess.mp3")
+
+  chillMusic1 = loadSound("chill_music1.mp3")
+  chillMusic2 = loadSound("chill_music2.mp3")
+  chillMusic3 = loadSound("chill_music3.mp3")
+  chillMusic4 = loadSound("chill_music4.mp3")
+  chillMusic5 = loadSound("chill_music5.mp3")
+  chillMusic6 = loadSound("chill_music6.mp3")
+
   partyConnect(
     "wss://demoserver.p5party.org",
     "country_guessr"
@@ -187,9 +216,40 @@ let blurAnswer = L.icon({
 
 let currentAnswerIcon = answerIcon;
 
+//images
+let fourK;
+let fourKOpac = 0;
+let fourKMuilt = 1;
+
+let fourHalfK;
+let fourHalfKOpac = 0;
+let fourHalfKMuilt = 1;
+
+let plus5;
+let plus5Opac = 0;
+let plus5Muilt = 1;
+
+let plus10;
+let plus10Opac = 0;
+let plus10Muilt = 1;
+
+//transition var
+let delay = 50;
+let rep = 0;
+let increment = 0.025;
+let sizeInc = 0.001;
+let maxSizeDelay = 5;
+let changeDelay = 25;
+
 //game variables
 let zoomCoords = {}
 
+let onLastSetGuess = false;
+let measurement;
+let displayAmount;
+const STARTING_GROWTH_TIME = 1;
+let displayPointGrowth = 5;
+let displayPoints = 0;
 let prevWidth;
 let prevHeight;
 let refreshactive = true;
@@ -265,12 +325,12 @@ let zoomOutPadding = 7.5;
 let hintDiv = 0.333;
 let hintRadius = 15;
 
-let ultraDis = 50000; 
-let superDis = 250000;
+let ultraDis = 61049; 
+let superDis = 333052;
 let correctDis = 1000000;
 let wrongDis = 6000000;
 let answerLine;
-let answerPadding = 20;
+let answerPadding = 50;
 let mapOriginalHeight = 300;
 let mapOriginalWidth = 400;
 let newHeight = 450;
@@ -338,7 +398,7 @@ let hintButton;
 let nameType;
 let hideUnderButton;
 let refreshButton;
-
+let gridShapeDropdown
 
 //set variables
 let blitzTime = 10;
@@ -445,6 +505,27 @@ document.addEventListener("visibilitychange", function() {
 
 function setup() {
   noCanvas();
+
+  chillMusic1.onended(newSong);
+  chillMusic2.onended(newSong);
+  chillMusic3.onended(newSong);
+  chillMusic4.onended(newSong);
+  chillMusic5.onended(newSong);
+  chillMusic6.onended(newSong);
+
+  //set volumes
+  chillMusic1.setVolume(musicVolume)
+  chillMusic2.setVolume(musicVolume)
+  chillMusic3.setVolume(musicVolume)
+  chillMusic4.setVolume(musicVolume)
+  chillMusic5.setVolume(musicVolume)
+  chillMusic6.setVolume(musicVolume)
+
+  numberRacking.setVolume(SFXVolume)
+  goodGuess.setVolume(SFXVolume)
+  terribleGuess.setVolume(SFXVolume)
+
+  newSong();
 
   //add to the players list
   shared.players[myId] = true;
@@ -648,7 +729,7 @@ function setup() {
   hintButton.size(shieldSize, 20);
   hintButton.style("position", "absolute");
   hintButton.style("z-index", "-1");
-  hintButton.style("background-color", "rgb(255, 79, 79)");
+  hintButton.style("background-color", "red");
 
   hintButton.mousePressed(toggleHint);
 
@@ -689,7 +770,7 @@ function setup() {
   partyHintButton.size(100, 30);
   partyHintButton.style("position", "absolute");
   partyHintButton.style("z-index", "-1");
-  partyHintButton.style("background-color", "rgb(255, 79, 79)");
+  partyHintButton.style("background-color", "red");
 
   partyHintButton.mousePressed(toggleHint);
 
@@ -710,6 +791,17 @@ function setup() {
   showGridDropDown.style("z-index", "-1");
   showGridDropDown.option("Total", "total");
   showGridDropDown.option("Grid", "grid");
+
+  //dropdown menu to select what shape your grid mode select will be
+  gridShapeDropdown = createSelect();
+  gridShapeDropdown.size(80, 30);
+  gridShapeDropdown.style("z-index", "-1");
+  gridShapeDropdown.option("3X3", "3X3");
+  gridShapeDropdown.option("Cross", "cross");
+  gridShapeDropdown.option("Focus", "focus");
+
+
+  gridShapeDropdown.changed(gridShapeChanged);
 
   //dropdown menu to select what type of heat map you want to see
   heatMapDropDown = createSelect();
@@ -903,6 +995,28 @@ function setup() {
   showGridScreen.style("border-radius", "12px");
   showGridScreen.style("border", "4px solid black");
 
+  //images
+  fourK = createImg("4K.png", "4K");
+  fourK.style("z-index", "21")
+  fourK.style("transform", "translate(-50%, -50%)");
+  fourK.style("pointer-events", "none");
+
+  fourHalfK = createImg("4.8K.png", "4.8K");
+  fourHalfK.style("z-index", "21")
+  fourHalfK.style("transform", "translate(-50%, -50%)");
+  fourHalfK.style("pointer-events", "none");
+
+  plus5 = createImg("+5.png", "+5");
+  plus5.style("z-index", "21")
+  plus5.style("transform", "translate(-50%, -50%)");
+  plus5.style("pointer-events", "none");
+
+  plus10 = createImg("+10.png", "+10");
+  plus10.style("z-index", "21")
+  plus10.style("transform", "translate(-50%, -50%)");
+  plus10.style("pointer-events", "none");
+
+
   //load info
 
   //load best sets
@@ -982,6 +1096,185 @@ function draw() {
   fixMapSizes();
   changeJoinWaitTest();
   toggleConfirm();
+  showGridDrop();
+}
+
+function soundUpdate() {
+  chillMusic1.setVolume(musicVolume)
+  chillMusic2.setVolume(musicVolume)
+  chillMusic3.setVolume(musicVolume)
+  chillMusic4.setVolume(musicVolume)
+  chillMusic5.setVolume(musicVolume)
+  chillMusic6.setVolume(musicVolume)
+
+  numberRacking.setVolume(SFXVolume)
+  goodGuess.setVolume(SFXVolume)
+  terribleGuess.setVolume(SFXVolume)
+}
+
+//chooses a random song when one ends
+function newSong() {
+  let randomNum = Math.floor(random(1, 7));
+
+  if (randomNum === 1) {
+    chillMusic1.play();
+  }
+  else if (randomNum === 2) {
+    chillMusic2.play();
+  }
+  else if (randomNum === 3) {
+    chillMusic3.play();
+  }
+  else if (randomNum === 4) {
+    chillMusic4.play();
+  }
+  else if (randomNum === 5) {
+    chillMusic5.play();
+  }
+  else if (randomNum === 6) {
+    chillMusic6.play();
+  }
+}
+
+function gridShapeChanged() {
+  gridModeShape = gridShapeDropdown.value()
+  for (let item of gridModeSquares) {
+    item.remove();
+  }
+  resetSelect();
+}
+
+//show and hide the grid drop down button
+function showGridDrop() {
+  if (gridMode) {
+    gridShapeDropdown.style("z-index", "21")
+  }
+  else {
+    gridShapeDropdown.style("z-index", "-1")
+  }
+}
+
+//these functions are used to show the anumation for getting a good guess
+function show4K() {
+  rep = 0;
+  //runs every 25 miliseconds and changes size values and opacity
+  setTimeout(() => {
+    fourKMuilt = 1;
+  
+    let changeOpac = setInterval(() => {
+      fourKMuilt += sizeInc
+
+      rep += 1
+      if (rep < 1 / increment + maxSizeDelay) {
+        fourKOpac += increment
+      }
+      else {
+        fourKOpac -= increment
+      }
+    }, changeDelay)
+  
+    setTimeout(() => {
+      fourKOpac = 0;
+      clearInterval(changeOpac)
+    }, 4000);
+  }, delay);
+}
+
+function show48K() {
+  rep = 0;
+
+  setTimeout(() => {
+    fourHalfKMuilt = 1;
+  
+    let changeOpac = setInterval(() => {
+      fourHalfKMuilt += sizeInc
+
+      rep += 1
+      if (rep < 1 / increment + maxSizeDelay) {
+        fourHalfKOpac += increment
+      }
+      else {
+        fourHalfKOpac -= increment
+      }
+    }, changeDelay)
+  
+    setTimeout(() => {
+      fourHalfKOpac = 0;
+      clearInterval(changeOpac)
+    }, 4000);
+  }, delay);
+}
+
+function showPlus5() {
+  rep = 0;
+
+  setTimeout(() => {
+    plus5Muilt = 1;
+  
+    let changeOpac = setInterval(() => {
+      plus5Muilt += sizeInc
+
+      rep += 1
+      if (rep < 1 / increment + maxSizeDelay) {
+        plus5Opac += increment
+      }
+      else {
+        plus5Opac -= increment
+      }
+    }, changeDelay)
+  
+    setTimeout(() => {
+      plus5Opac = 0;
+      clearInterval(changeOpac)
+    }, 4000);
+  }, delay);
+}
+
+function showPlus10() {
+  rep = 0;
+
+  setTimeout(() => {
+    plus10Muilt = 1;
+  
+    let changeOpac = setInterval(() => {
+      plus10Muilt += sizeInc
+
+      rep += 1
+      if (rep < 1 / increment + maxSizeDelay) {
+        plus10Opac += increment
+      }
+      else {
+        plus10Opac -= increment
+      }
+    }, changeDelay)
+  
+    setTimeout(() => {
+      plus10Opac = 0;
+      clearInterval(changeOpac)
+    }, 4000);
+  }, delay);
+}
+
+function grow() {
+  let pointgrowth = points / 18
+
+  if (displayPoints < points) {
+
+    displayPoints += round(pointgrowth - ((displayPoints / points) * pointgrowth - (pointgrowth * 0.1)))
+
+    if (displayPoints > points) {
+      displayPoints = points;
+    }
+
+    displayPointGrowth = STARTING_GROWTH_TIME + (displayPoints / points) * STARTING_GROWTH_TIME * 25
+
+    setTimeout(grow, displayPointGrowth);
+  }
+}
+
+function incrementDisplayPoints() {
+  displayPoints = 0;
+  grow();
 }
 
 function toggleConfirm() {
@@ -1197,10 +1490,10 @@ function toggleHint() {
   if (hintMode) {
     //change to green
     if (!inParty) {
-      hintButton.style("background-color", "rgb(94, 255, 0)");
+      hintButton.style("background-color", "green");
     }
     else {
-      partyHintButton.style("background-color", "rgb(94, 255, 0)");
+      partyHintButton.style("background-color", "green");
     }
 
     //create the hint circle
@@ -1216,10 +1509,10 @@ function toggleHint() {
   else {
     //make red
     if (!inParty) {
-      hintButton.style("background-color", "rgb(255, 79, 79)");
+      hintButton.style("background-color", "red");
     }
     else {
-      partyHintButton.style("background-color", "rgb(255, 79, 79)");
+      partyHintButton.style("background-color", "red");
     }
     
     hintcircle.remove();
@@ -1711,7 +2004,8 @@ function resetLocals() {
   currentAnswerIcon = answerIcon;
   currentParty = "none";
   hintMode = false;
-  partyHintButton.style("background-color", "rgb(255, 79, 79)");  ended = false;
+  partyHintButton.style("background-color", "red");
+  ended = false;
   joinIn = false;
   inParty = false;
   currentParty = "none";
@@ -2653,7 +2947,27 @@ function fixsizes() {
   NMPZCoverR.size(zoomCoords.right, windowHeight);
   NMPZCoverR.position(windowWidth - zoomCoords.right, 0);
 
+  let imageRef = windowHeight
+  if (windowHeight >= windowWidth) {
+    imageRef = windowWidth
+  }
+  imageRef = imageRef - imageRef * 0.2
 
+  fourK.style("opacity", `${fourKOpac}`)
+  fourK.size(imageRef * fourKMuilt, imageRef * fourKMuilt);
+  fourK.position(windowWidth / 2, windowHeight / 1.9);
+
+  fourHalfK.style("opacity", `${fourHalfKOpac}`)
+  fourHalfK.size(imageRef * fourHalfKMuilt, imageRef * fourHalfKMuilt);
+  fourHalfK.position(windowWidth / 2, windowHeight / 1.9);
+
+  plus5.style("opacity", `${plus5Opac}`)
+  plus5.size(imageRef * plus5Muilt, imageRef * plus5Muilt);
+  plus5.position(windowWidth / 2, windowHeight / 1.9);
+
+  plus10.style("opacity", `${plus10Opac}`)
+  plus10.size(imageRef * plus10Muilt, imageRef * plus10Muilt);
+  plus10.position(windowWidth / 2, windowHeight / 1.9);
 
   //create a mask hole infront of the compass during blur mode
   let holeX = windowWidth - 34;
@@ -2714,6 +3028,7 @@ function fixsizes() {
   showGridScreen.style("padding-left", windowWidth / 40 + "px");
   showGridScreen.style("padding-top", windowWidth / 60 + "px");
   showGridDropDown.position(175, 30);
+  gridShapeDropdown.position(175, 30);
   heatMapDropDown.position(255, 30);
 
 
@@ -2821,7 +3136,10 @@ function showRank() {
 
 //changes what the banner at the top says
 function bannerTextChange() {
-  if (!endScreen) {
+  if (gridMode) {
+    banner.html("Streak: " + gridStreak + " | Max: " + gridMaxStreak);
+  }
+  else if (!endScreen) {
     if (setActive) {
       banner.html("Round: " + curretnRoundNumber + "/" + maxRounds + " | Time Left: " + timeLeft);
     }
@@ -2861,6 +3179,12 @@ function bannerTextChange() {
     else {
       banner.html(`Players Online: ${Object.keys(shared.players).length}`);
     }
+  }
+  else if (onLastSetGuess) {
+    banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + displayPoints + " | Round Overall: " + totalSetPoints);
+  }
+  else {
+    banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + displayPoints);
   }
 }
 
@@ -3392,6 +3716,11 @@ function leaveMap() {
     allowConf = true;
   }, 1500);
 
+  if (onLastSetGuess) {
+    onLastSetGuess = false;
+    totalSetPoints = 0;
+  }
+
   endScreen = false;
 
   for (let item of displayMarkers) {
@@ -3433,6 +3762,12 @@ function leaveMap() {
 //runs after the player has guessed
 function afterGuess() {
 
+  //fill screen with map
+  mapID.style("bottom", "0px");
+  mapID.style("right", "0px");
+  mapID.size(windowWidth, windowHeight - bannerHeight);
+  map.invalidateSize();
+
   currentAnswerIcon = answerIcon;
 
   if (inParty) {
@@ -3445,7 +3780,7 @@ function afterGuess() {
   allowGuess = false;
   setTimeout(() => {
     allowGuess = true;
-  }, 1000);
+  }, 2000);
 
   covering = false;
   calcLocation = randomlocation;
@@ -3500,7 +3835,6 @@ function afterGuess() {
     //add grid stats
     addGridStats(clickedPoint, calcLocation, totalDistance);
 
-  
     //do the heat calculations
     findHeatValues();
   
@@ -3514,20 +3848,38 @@ function afterGuess() {
     //got this equation from geoguessr
     points = Math.round(5000 * Math.exp(-10 * totalDistance / mapSize));
 
+    if (points >= 4000) {
+      goodGuess.play()
+    }
+    if (points >= 1000) {
+      numberRacking.play();
+    }
+    else {
+      terribleGuess.play();
+    }
+
+    //show the animation after a good guess
+    if (points >= 4800) {
+      show48K();
+    }
+    else if (points >= 4000) {
+      show4K();
+    }
+
+
     if (inParty) {
       partyPoints += points;
     }
+
+    incrementDisplayPoints();
   
     //set distance text
-    let measurement = "m";
-    let displayAmount = totalDistance;
+    measurement = "m";
+    displayAmount = totalDistance;
     if (totalDistance > 1000) {
       measurement = "km";
       displayAmount = displayAmount / 1000;
     }
-  
-    //text after guess
-    banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points);
   
     //if this is during a set
     if (setActive) {
@@ -3549,6 +3901,7 @@ function afterGuess() {
 
       //add points
       totalSetPoints += points;
+
       if (curretnRoundNumber < maxRounds) {
         curretnRoundNumber += 1;
         setLocations.push([calcLocation.lat, calcLocation.lng]);
@@ -3575,8 +3928,11 @@ function afterGuess() {
   
         setLineColors.push(lineCol);
       }
+
       //end set and reset all variables
       else {
+        onLastSetGuess = true;
+
         //show the previous guesses, the idea is that the final guess will be shown normally so all 5 guesses will be shown
         for (i = 0; i < maxRounds - 1; i++) {
           let setAnswerMarker = L.marker([setLocations[i][0], setLocations[i][1]], {icon: currentAnswerIcon}).addTo(map);
@@ -3617,10 +3973,8 @@ function afterGuess() {
           }
         }
   
-        banner.html("Distance: " + round(displayAmount).toLocaleString() + measurement + " | Points: " + points + " | Round Overall: " + totalSetPoints);
         setActive = false;
         curretnRoundNumber = 1;
-        totalSetPoints = 0;
         setLocations = [];
         setClickedPoints = [];
         setLineColors = [];
@@ -3656,12 +4010,6 @@ function afterGuess() {
   }
 
   endScreen = true;
-
-  //fill screen with map
-  mapID.style("bottom", "0px");
-  mapID.style("right", "0px");
-  mapID.size(windowWidth, windowHeight - bannerHeight);
-  map.invalidateSize();
 
   answermarker = L.marker([calcLocation.lat, calcLocation.lng], {icon: currentAnswerIcon}).addTo(map);
 
@@ -4346,6 +4694,7 @@ function enterGridMode() {
 
 //change the color of the square after a guess based on how they did
 function gridModeSquareColChange() {
+  map.setView([randomlocation.lat, randomlocation.lng], 4);
 
   let answerY = Math.floor((randomlocation.lat + 90) / GRID_MODE_LENGTH);
   let answerX = Math.floor((randomlocation.lng + 180) / GRID_MODE_LENGTH);
@@ -4359,7 +4708,16 @@ function gridModeSquareColChange() {
       });
     }
 
-    gridStreak += 5;
+    //double points if focus mode is enables
+    if (gridModeShape === "focus") {
+      gridStreak += 10
+      showPlus10();
+      
+    }
+    else {
+      gridStreak += 5;
+      showPlus5();
+    }
 
     if (gridStreak > gridMaxStreak) {
       gridMaxStreak = gridStreak;
@@ -4384,7 +4742,8 @@ function gridModeSquareColChange() {
 
 
   //if the guess is in the surrounding squares for cross mode
-  else if (currentGridX === answerX && currentGridY - 2 <= answerY && currentGridY + 2 >= answerY || currentGridY === answerY && currentGridX - 2 <= answerX && currentGridX + 2 >= answerX && gridModeShape === "cross") {
+  else if ((currentGridX === answerX && currentGridY - 2 <= answerY && currentGridY + 2 >= answerY || 
+    currentGridY === answerY && currentGridX - 2 <= answerX && currentGridX + 2 >= answerX) && gridModeShape === "cross") {
     for (let item of gridModeSquares) {
       item.setStyle({
         color: "orange",
@@ -4414,9 +4773,6 @@ function gridModeSquareColChange() {
 
     gridStreak = 0;
   }
-
-  //update banner text
-  banner.html("Streak: " + gridStreak + " | Max: " + gridMaxStreak);
 }
 
 //this resets the select square in grid mode
@@ -4431,7 +4787,7 @@ function resetSelect() {
 
 function create3X3() {
   //create surrounding squares
-  //basically make a 3 by 3 pattern
+  //make a 3 by 3 pattern
   if (gridModeShape === "3X3") {
     for (let x = -1; x <= 1; x++) {
       for (let y = -1; y <= 1; y++) {
@@ -4470,7 +4826,7 @@ function create3X3() {
     }
   }
 
-  //basically make a cross Pattern
+  //make a cross Pattern
   if (gridModeShape === "cross") {
     for (let y = -2; y <= 2; y++) {
       let fillCol = "rgb(249, 255, 158)";
@@ -4535,5 +4891,32 @@ function create3X3() {
         }
       }
     }
+  }
+
+  //only create the one square for focus mode
+  else if (gridModeShape === "focus") {
+
+    let placeX = 0
+    let placeY = 0
+
+    let fillCol = "yellow";
+    let fillopac = 0.7;
+
+    //create a select square
+    let surroundSquare = L.polygon([
+      [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180],
+      [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, (currentGridX + placeX + 1) * GRID_MODE_LENGTH - 180],
+      [(currentGridY + placeY + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX + 1) * GRID_MODE_LENGTH - 180],
+      [(currentGridY + placeY + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180]
+    ], {
+      color: "rgb(184, 181, 52)",
+      weight: 1,
+      opacity: 1,
+  
+      fillColor: fillCol,
+      fillOpacity: fillopac
+    }).addTo(map);
+
+    gridModeSquares.push(surroundSquare);
   }
 }
