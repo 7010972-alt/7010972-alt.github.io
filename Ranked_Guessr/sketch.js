@@ -1125,6 +1125,8 @@ function setup() {
   }
 
   changeMapSize();
+
+  resetMapSize();
 }
 
 function draw() {
@@ -1161,6 +1163,10 @@ function draw() {
   showGridDrop();
 }
 
+function windowResized() {
+  resetMapSize();
+}
+
 //makes the map go back to its size after the endscreen
 function resetMapSize() {
   if (!endScreen) {
@@ -1171,12 +1177,20 @@ function resetMapSize() {
       mapID.style("bottom", "20px");
       mapID.style("right", "75px");
       mapID.style("width", "400px");
+      confirmButton.position(windowWidth - 67, windowHeight - 250);
+      hideMapButton.position(windowWidth - 67, windowHeight - 310);
+      refreshButton.position(windowWidth - 67, windowHeight - 110);
+      confirmButton.size(60, 50)
     }
     //reset map for phone
     else {
       mapID.style("bottom", "50px");
       mapID.style("right", "0px");
       mapID.style("width", `${phoneWidth}px`);
+      confirmButton.position(0, windowHeight - 50);
+      hideMapButton.position(windowWidth - 60, windowHeight - 50);
+      refreshButton.position(windowWidth - 120, windowHeight - 50);
+      confirmButton.size(windowWidth - 120, 50)
     }
   }
 }
@@ -3125,23 +3139,6 @@ function fixsizes() {
 
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor;
   banner.style("font-size", `${textsize}px`);
-
-  //positions for PC
-  if (windowWidth + windowHeight > 2000 || windowWidth > windowHeight) {
-    confirmButton.position(windowWidth - 67, windowHeight - 250);
-    hideMapButton.position(windowWidth - 67, windowHeight - 310);
-    refreshButton.position(windowWidth - 67, windowHeight - 110);
-    confirmButton.size(60, 50)
-  }
-  //positions for phone
-  else {
-    confirmButton.position(0, windowHeight - 50);
-    hideMapButton.position(windowWidth - 60, windowHeight - 50);
-    refreshButton.position(windowWidth - 120, windowHeight - 50);
-    confirmButton.size(windowWidth - 120, 50)
-  }
-
-  resetMapSize();
 
 
   startSetButton.position(10, 10);
