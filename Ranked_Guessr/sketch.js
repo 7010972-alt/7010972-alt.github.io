@@ -19,6 +19,7 @@ sessionStorage.setItem("partyPlayerId", myId);
 console.log(myId);
 
 //sounds
+const PITCH_RANGE = 0.1
 let SFXVolume = 1.5
 
 let numberRacking;
@@ -253,6 +254,8 @@ let maxSizeDelay = 5;
 let changeDelay = 25;
 
 //game variables
+let phoneWidth
+
 let zoomCoords = {}
 
 let timeShort = false;
@@ -562,7 +565,7 @@ function setup() {
     let clickedButton = e.target.closest("button");
 
     if (clickedButton && clickedButton !== confirmButton.elt) {
-      clickSound.play();
+      randomPitch();
     }
   });
 
@@ -609,7 +612,7 @@ function setup() {
   function onMapClick(e) {
 
     if (!lockedIn) {
-      clickSound.play()
+      randomPitch();
     }
 
     let wrapped = map.wrapLatLng(e.latlng);
@@ -748,7 +751,7 @@ function setup() {
   street.size(windowWidth, windowHeight);
 
   //button to confirm
-  confirmButton = createButton("Confirm (Space)");
+  confirmButton = createButton("Confirm Guess");
   confirmButton.size(60, 50);
   confirmButton.style("position", "absolute");
   confirmButton.style("z-index", "14");
@@ -774,7 +777,7 @@ function setup() {
   hintButton.mousePressed(toggleHint);
 
   //button to refresh the page creating the issulsion you are returning
-  refreshButton = createButton("Refresh");
+  refreshButton = createButton("Refresh Map");
   refreshButton.size(60, 50);
   refreshButton.style("position", "absolute");
   refreshButton.style("z-index", "12");
@@ -951,7 +954,7 @@ function setup() {
   hideUnderButton.mousePressed(hideUnderShield);
 
   hideUnderButton.mousePressed(() => {
-    clickSound.play();
+    randomPitch();
     hideUnderShield();
   });
 
@@ -1156,6 +1159,33 @@ function draw() {
   changeJoinWaitTest();
   toggleConfirm();
   showGridDrop();
+}
+
+//makes the map go back to its size after the endscreen
+function resetMapSize() {
+  if (!endScreen) {
+    phoneWidth = windowWidth
+    
+    //reset map for pc
+    if (windowWidth + windowHeight > 2000 || windowWidth > windowHeight) {
+      mapID.style("bottom", "20px");
+      mapID.style("right", "75px");
+      mapID.style("width", "400px");
+    }
+    //reset map for phone
+    else {
+      mapID.style("bottom", "50px");
+      mapID.style("right", "0px");
+      mapID.style("width", `${phoneWidth}px`);
+    }
+  }
+}
+
+//sets a random pitch to the sound effect then plays it
+function randomPitch() {
+  let randomPitch = Math.random() * (2 * PITCH_RANGE) + (1 - PITCH_RANGE);
+  clickSound.rate(randomPitch);
+  clickSound.play();
 }
 
 function stopAllMusic() {
@@ -1438,7 +1468,7 @@ function refreshStreet() {
 
 //make sure their name has a good length
 function nameCheck() {
-  if (nameType.value().length <= 2 || name.value().length >= 15) {
+  if (nameType.value().length <= 1 || nameType.value().length >= 15) {
     nameType.value(randomNames[Math.floor(Math.random() * randomNames.length)]);
   }
   saveProgress();
@@ -2114,9 +2144,9 @@ function resetLocals() {
   }
   displayMarkers = [];
 
-  //reset map
-  mapID.style("bottom", "20px");
-  mapID.style("right", "75px");
+  resetMapSize();
+
+
   mapID.size(mapOriginalWidth, mapOriginalHeight);
   map.invalidateSize();
   map.setView([0, 0], 1);
@@ -2262,8 +2292,12 @@ function lockStartParty() {
 
 //this runs when players first press join party
 //will send them to the waiting lobby of the chosen party
+
+//also leaves the party if currently in party
+//leaves set if currently in set
 function joinWait() {
 
+  //leave the set
   if (setActive) {
     setActive = false;
     curretnRoundNumber = 1;
@@ -2271,6 +2305,17 @@ function joinWait() {
     setLocations = [];
     setClickedPoints = [];
     setLineColors = [];
+    covering = false;
+    redCover.style("opacity", "0")
+
+    //configure sounds when the player leaves a set
+    if (timeShort) {
+      timeShort = false;
+      newSong();
+    }
+    intenseMusic.stop();
+    timeShort = false;
+
     mapChange();
   }
 
@@ -2354,6 +2399,13 @@ function joinWait() {
 
   //make them leave the current party
   else {
+    //configure sounds when the player leaves a party
+    if (timeShort) {
+      newSong();
+    }
+    intenseMusic.stop();
+    timeShort = false;
+
     resetLocals();
     removePlayerFromLists();
     mapChange();
@@ -3074,10 +3126,22 @@ function fixsizes() {
   textsize = (windowWidth + windowHeight) / textSizeScreenDividor;
   banner.style("font-size", `${textsize}px`);
 
-  confirmButton.position(windowWidth - 67, windowHeight - 250);
-  hideMapButton.position(windowWidth - 67, windowHeight - 310);
-  refreshButton.position(windowWidth - 67, windowHeight - 110);
+  //positions for PC
+  if (windowWidth + windowHeight > 2000 || windowWidth > windowHeight) {
+    confirmButton.position(windowWidth - 67, windowHeight - 250);
+    hideMapButton.position(windowWidth - 67, windowHeight - 310);
+    refreshButton.position(windowWidth - 67, windowHeight - 110);
+    confirmButton.size(60, 50)
+  }
+  //positions for phone
+  else {
+    confirmButton.position(0, windowHeight - 50);
+    hideMapButton.position(windowWidth - 60, windowHeight - 50);
+    refreshButton.position(windowWidth - 120, windowHeight - 50);
+    confirmButton.size(windowWidth - 120, 50)
+  }
 
+  resetMapSize();
 
 
   startSetButton.position(10, 10);
@@ -3387,6 +3451,7 @@ function hideMap() {
   else {
     mapID.show();
     mapShowing = true;
+    map.invalidateSize();
   }
 }
 
@@ -3842,8 +3907,7 @@ function leaveMap() {
 
   //change map size back to original
   enlarged = false;
-  mapID.style("bottom", "20px");
-  mapID.style("right", "75px");
+  resetMapSize();
   mapID.size(mapOriginalWidth, mapOriginalHeight);
   map.invalidateSize();
   map.setView([0, 0], 1);
@@ -4184,10 +4248,6 @@ function changeMapSize() {
   mapID.mouseOut(() => {
     if (windowWidth + windowHeight > 2000 && enlarged && !endScreen) {
       mapID.size(mapOriginalWidth, mapOriginalHeight);
-      // mapID.position(
-      //   windowWidth - mapRight - mapOriginalWidth,
-      //   windowHeight - mapBottom - mapOriginalHeight
-      // );
       map.invalidateSize();
       enlarged = false;
     }
