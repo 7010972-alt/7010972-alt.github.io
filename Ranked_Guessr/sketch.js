@@ -254,6 +254,7 @@ let maxSizeDelay = 5;
 let changeDelay = 25;
 
 //game variables
+let onPhone = false;
 let phoneWidth
 
 let zoomCoords = {}
@@ -1174,6 +1175,7 @@ function resetMapSize() {
     
     //reset map for pc
     if (windowWidth + windowHeight > 2000 || windowWidth > windowHeight) {
+      onPhone = false;
       mapID.style("bottom", "20px");
       mapID.style("right", "75px");
       mapID.style("width", "400px");
@@ -1184,6 +1186,7 @@ function resetMapSize() {
     }
     //reset map for phone
     else {
+      onPhone = true;
       mapID.style("bottom", "50px");
       mapID.style("right", "0px");
       mapID.style("width", `${phoneWidth}px`);
