@@ -254,6 +254,8 @@ let maxSizeDelay = 5;
 let changeDelay = 25;
 
 //game variables
+let timeShorten = 0
+
 let onPhone = false;
 let phoneWidth
 
@@ -696,7 +698,7 @@ function setup() {
   //gridded map
   griddedMap = L.map("griddedmap").setView([0, 0], 1);
 
-  //pasted from leaflet
+  //from leaflet
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     minZoom: 1,
@@ -1162,6 +1164,82 @@ function draw() {
   changeJoinWaitTest();
   toggleConfirm();
   showGridDrop();
+  resetGuessStatus();
+  allHaveGuessed();
+}
+
+//shortens the time when all players of the parpty has guessed
+function allHaveGuessed() {
+  if (inParty && !endScreen && timeLeft >= timeShorten) {
+    if (currentParty === "normal") {
+
+      //checks if all the players have guessed
+      if (Object.values(shared.normalPlayers).every(value => value === false)) {
+        time = millis();
+        timeLeft = timeShorten;
+      }
+    }
+
+    else if (currentParty === "blitz") {
+
+      //checks if all the players have guessed
+      if (Object.values(shared.blitzPlayers).every(value => value === false)) {
+        time = millis();
+        timeLeft = timeShorten;
+      }
+    }
+
+    else if (currentParty === "NMPZ") {
+
+      //checks if all the players have guessed
+      if (Object.values(shared.NMPZPlayers).every(value => value === false)) {
+        time = millis();
+        timeLeft = timeShorten;
+      }
+    }
+
+    else if (currentParty === "blink") {
+
+      //checks if all the players have guessed
+      if (Object.values(shared.blinkPlayers).every(value => value === false)) {
+        time = millis();
+        timeLeft = timeShorten;
+      }
+    }
+
+    else if (currentParty === "blur") {
+
+      //checks if all the players have guessed
+      if (Object.values(shared.blurPlayers).every(value => value === false)) {
+        time = millis();
+        timeLeft = timeShorten;
+      }
+    }
+  }
+}
+
+//reset guess status for parties
+function resetGuessStatus() {
+  //reset the players status to true when the next party round starts
+  if (inParty && endScreen) {
+    setTimeout(() => {
+      if (currentParty === "normal" && !shared.normalPlayers[myId]) {
+        shared.normalPlayers[myId] = true;
+      }
+      else if (currentParty === "blitz" && !shared.blitzPlayers[myId]) {
+        shared.blitzPlayers[myId] = true;
+      }
+      else if (currentParty === "NMPZ" && !shared.NMPZPlayers[myId]) {
+        shared.NMPZPlayers[myId] = true;
+      }
+      else if (currentParty === "blink" && !shared.blinkPlayers[myId]) {
+        shared.blinkPlayers[myId] = true;
+      }
+      else if (currentParty === "blur" && !shared.blurPlayers[myId]) {
+        shared.blurPlayers[myId] = true;
+      }
+    }, 100);
+  }
 }
 
 function windowResized() {
@@ -1447,7 +1525,7 @@ function changeCoverTextSize() {
   }
 }
 
-//makes sure that the player is accounted for when they are in the part
+//makes sure that the player is accounted for when they are in the party
 function ensureIDCount() {
   shared.players[myId] = true;
 
@@ -2336,6 +2414,7 @@ function joinWait() {
     mapChange();
   }
 
+  //join a party waiting room
   else if (!inParty) {
 
     closeHint();
@@ -2456,12 +2535,6 @@ function joiningCheck() {
 
 //checks if the conditions are met and places the player into a party
 function joinParty() {
-
-  // <br>
-  // <div style="color: ${lightGreen};">Pan, Move, Zoom</div>
-  // <div style="color: ${lightRed};">Blurred view</div>
-  // <div style="color: ${lightRed};">half Second View</div>
-  // <div style="color: ${lightGreen};">Time: 60s</div>
 
   //if it is green then it means that it is active or easy
   //red means not active or difficult
@@ -3542,6 +3615,9 @@ function confirmed() {
                   hintMode: hintMode,
                   name: nameType.value()
                 };
+
+                //after the player has guessed in a party then set their id to false
+                shared.normalPlayers[myId] = false;
               }
 
               //if someone has guessed then trigger the time limit
@@ -3581,6 +3657,8 @@ function confirmed() {
                   hintMode: hintMode,
                   name: nameType.value()
                 };
+
+                shared.blitzPlayers[myId] = false;
               }
 
               //if someone has guessed then trigger the time limit
@@ -3619,6 +3697,8 @@ function confirmed() {
                   hintMode: hintMode,
                   name: nameType.value()
                 };
+
+                shared.NMPZPlayers[myId] = false;
               }
 
               //if someone has guessed then trigger the time limit
@@ -3657,6 +3737,8 @@ function confirmed() {
                   hintMode: hintMode,
                   name: nameType.value()
                 };
+
+                shared.blinkPlayers[myId] = false;
               }
 
               //if someone has guessed then trigger the time limit
@@ -3695,6 +3777,8 @@ function confirmed() {
                   hintMode: hintMode,
                   name: nameType.value()
                 };
+
+                shared.blurPlayers[myId] = false;
               }
 
               //if someone has guessed then trigger the time limit
