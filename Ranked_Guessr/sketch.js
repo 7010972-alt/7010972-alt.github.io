@@ -254,6 +254,8 @@ let maxSizeDelay = 5;
 let changeDelay = 25;
 
 //game variables
+let mapClose = false;
+
 let timeShorten = 0
 
 let onPhone = false;
@@ -393,7 +395,7 @@ let optxwidthDivisor = 25;
 
 let switching = true;
 
-//buttons
+//UI Buttons
 let confirmButton;
 let hideMapButton;
 let startSetButton;
@@ -417,6 +419,8 @@ let nameType;
 let hideUnderButton;
 let refreshButton;
 let gridShapeDropdown
+let XButton;
+let autoMapCloseButton;
 
 //set variables
 let blitzTime = 10;
@@ -477,6 +481,11 @@ let dataShow = false;
 let dataTransScreen;
 
 let transferCode = "";
+
+//settings
+let settingsScreen;
+let showSettingsButton;
+let showingSettings = false;
 
 //p5 party local variables
 let partyPoints = 0;
@@ -762,6 +771,16 @@ function setup() {
 
   confirmButton.mousePressed(confirmed);
 
+  //button to X out of the current open tab
+  XButton = createButton("X");
+  XButton.size(40, 40);
+  XButton.style("position", "absolute");
+  XButton.style("z-index", "25");
+  XButton.style("background-color", "rgb(255, 62, 62)");
+  XButton.style("font-size", "20px");
+
+  XButton.mousePressed(closeAll);
+
   //button to hide map
   hideMapButton = createButton("Toggle Map");
   hideMapButton.size(60, 50);
@@ -769,6 +788,15 @@ function setup() {
   hideMapButton.style("z-index", "12");
 
   hideMapButton.mousePressed(hideMap);
+
+  //auto map close button
+  autoMapCloseButton = createButton("Auto Map Close");
+  autoMapCloseButton.size(100, 50);
+  autoMapCloseButton.style("position", "absolute");
+  autoMapCloseButton.style("z-index", "-1");
+  autoMapCloseButton.style("background-color", "red");
+
+  autoMapCloseButton.mousePressed(toggleMapClose);
 
   //button to toggle hint mode
   hintButton = createButton("Hint Mode");
@@ -939,6 +967,14 @@ function setup() {
 
   DataShowButton.mousePressed(ShowDataScreen);
 
+  //button to open the settings screen
+  showSettingsButton = createButton("Settings");
+  showSettingsButton.size(shieldSize, 20);
+  showSettingsButton.style("position", "absolute");
+  showSettingsButton.style("z-index", "-1");
+
+  showSettingsButton.mousePressed(showSettings);
+
   //button to enter grid guessing mode
   gridModeButton = createButton("Grid Mode");
   gridModeButton.size(shieldSize, 20);
@@ -991,7 +1027,7 @@ function setup() {
     "radial-gradient(circle, rgba(255,0,0,0) 45%, rgba(255, 0, 0, 0.2) 80%, rgba(255, 0, 0, 0.26) 100%)"
   );
 
-  //create grid info
+  //create the data transfer screem
   dataTransScreen = createDiv();
   dataTransScreen.style("background", "rgb(154, 255, 120)");
   dataTransScreen.style("z-index", "-1");
@@ -1006,6 +1042,22 @@ function setup() {
   dataTransScreen.style("color", "black");
   dataTransScreen.style("border-radius", "12px");
   dataTransScreen.style("border", "4px solid black");
+
+  //create settings background
+  settingsScreen = createDiv();
+  settingsScreen.style("background", "rgb(154, 255, 120)");
+  settingsScreen.style("z-index", "-1");
+  settingsScreen.style("opacity", "0");
+
+  settingsScreen.style("display", "flex");
+  settingsScreen.style("justify-content", "center");
+  settingsScreen.style("align-items", "flex-start");
+  settingsScreen.style("font-weight", "bold");
+
+  settingsScreen.style("text-align", "center");
+  settingsScreen.style("color", "black");
+  settingsScreen.style("border-radius", "12px");
+  settingsScreen.style("border", "4px solid black");
 
   //create blur effect
   blurCover = createDiv();
@@ -1166,6 +1218,65 @@ function draw() {
   showGridDrop();
   resetGuessStatus();
   allHaveGuessed();
+}
+
+function toggleMapClose() {
+  mapClose = !mapClose;
+  if (mapClose) {
+    autoMapCloseButton.style("background-color", "green");
+  }
+  else {
+    autoMapCloseButton.style("background-color", "red");
+  }
+}
+
+function showSettings() {
+  if (!showingSettings) {
+    settingsScreen.style("z-index", "20");
+    settingsScreen.style("opacity", "1");
+
+    autoMapCloseButton.style("z-index", "25");
+
+    showingSettings = true;
+  }
+  else {
+    closeSettings();
+  }
+}
+
+function closeSettings() {
+  //close the settings screen
+  settingsScreen.style("z-index", "-1");
+  settingsScreen.style("opacity", "0");
+
+  autoMapCloseButton.style("z-index", "-1");
+  
+  showingSettings = false;
+}
+
+function closeData() {
+  //close data screen
+  dataTransScreen.style("z-index", "-1");
+  dataTransScreen.style("opacity", "0");
+  
+  uploadData.style("z-index", "-1");
+  uploadData.style("opacity", "0");
+  
+  loadData.style("z-index", "-1");
+  loadData.style("opacity", "0");
+  
+  dataType.style("z-index", "-1");
+  dataType.style("opacity", "0");
+  
+  dataShow = false;
+}
+
+//closes out of the current open screen
+function closeAll() {
+  closeRank();
+  closegrid();
+  closeData();
+  closeSettings();
 }
 
 //shortens the time when all players of the parpty has guessed
@@ -1579,6 +1690,7 @@ function hideUnderShield() {
     showGridButton.style("z-index", "-1");
     DataShowButton.style("z-index", "-1");
     gridModeButton.style("z-index", "-1");
+    showSettingsButton.style("z-index", "-1");
     hintButton.style("z-index", "-1");
   }
   else {
@@ -1587,6 +1699,7 @@ function hideUnderShield() {
     showGridButton.style("z-index", "2");
     DataShowButton.style("z-index", "2");
     gridModeButton.style("z-index", "2");
+    showSettingsButton.style("z-index", "2");
     hintButton.style("z-index", "2");
   }
 }
@@ -1934,19 +2047,7 @@ function ShowDataScreen() {
     dataShow = true;
   }
   else {
-    dataTransScreen.style("z-index", "-1");
-    dataTransScreen.style("opacity", "0");
-
-    uploadData.style("z-index", "-1");
-    uploadData.style("opacity", "0");
-
-    loadData.style("z-index", "-1");
-    loadData.style("opacity", "0");
-
-    dataType.style("z-index", "-1");
-    dataType.style("opacity", "0");
-
-    dataShow = false;
+    closeData();
   }
 }
 
@@ -3147,6 +3248,8 @@ function addmap(map, country) {
   }
 }
 
+let xButOffset = 15;
+
 function fixsizes() {
   zoomCoords = {
     top: windowHeight - 61,
@@ -3154,6 +3257,21 @@ function fixsizes() {
     left: windowWidth - 52,
     right: 17
   };
+
+  autoMapCloseButton.position(windowWidth / 2, windowHeight / 2)
+
+  //move the close button based on what is openned
+  if (showingRankInfo) {
+    XButton.style("z-index", "25")
+    XButton.position(windowWidth / 4 - xButOffset, windowHeight / 2 - windowWidth / 8 - xButOffset);
+  }
+  else if (dataShow || showGrid || showingSettings) {
+    XButton.style("z-index", "25")
+    XButton.position(windowWidth / 6.5 - xButOffset, windowHeight / 2.25 - windowWidth / 8 - xButOffset);
+  }
+  else {
+    XButton.style("z-index", "-1")
+  }
 
   street.size(windowWidth, windowHeight);
 
@@ -3235,12 +3353,13 @@ function fixsizes() {
   DataShowButton.position(underShieldX, bannerHeight + shieldSize + 85);
   gridModeButton.position(underShieldX, bannerHeight + shieldSize + 110);
   hintButton.position(underShieldX, bannerHeight + shieldSize + 135);
+  showSettingsButton.position(underShieldX, bannerHeight + shieldSize + 160);
 
   if (buttonsHidden) {
     hideUnderButton.position(underShieldX, bannerHeight + shieldSize + 35);
   }
   else {
-    hideUnderButton.position(underShieldX, bannerHeight + shieldSize + 160);
+    hideUnderButton.position(underShieldX, bannerHeight + shieldSize + 185);
   }
 
   //change sizes of the rank info in relation to the screensizes
@@ -3291,6 +3410,12 @@ function fixsizes() {
   dataTransScreen.style("padding-left", windowWidth / 40 + "px");
   dataTransScreen.style("padding-top", windowWidth / 60 + "px");
 
+  settingsScreen.size(windowWidth / 1.5, windowWidth / 3.25);
+  settingsScreen.position(windowWidth / 6.5, windowHeight / 2.25 - windowWidth / 8);
+  settingsScreen.style("font-size", windowWidth / 69 + "px");
+  settingsScreen.style("padding-left", windowWidth / 40 + "px");
+  settingsScreen.style("padding-top", windowWidth / 60 + "px");
+
   griddedMap.invalidateSize();
 
   let showRankPosY = windowHeight / 2 - windowWidth / 8;
@@ -3323,18 +3448,22 @@ function displayGrid() {
     showGrid = true;
   }
   else {
-    resetGridView();
-    showGridScreen.style("z-index", "-1");
-    showGridScreen.style("opacity", "0");
-    gridMapID.hide();
-    showGridDropDown.style("z-index", "-1");
-    showGridDropDown.style("opacity", "0");
-    heatMapDropDown.style("z-index", "-1");
-    heatMapDropDown.style("opacity", "0");
-    heatMapType.style("z-index", "-1");
-    heatMapType.style("opacity", "0");
-    showGrid = false;
+    closegrid();
   }
+}
+
+function closegrid() {
+  resetGridView();
+  showGridScreen.style("z-index", "-1");
+  showGridScreen.style("opacity", "0");
+  gridMapID.hide();
+  showGridDropDown.style("z-index", "-1");
+  showGridDropDown.style("opacity", "0");
+  heatMapDropDown.style("z-index", "-1");
+  heatMapDropDown.style("opacity", "0");
+  heatMapType.style("z-index", "-1");
+  heatMapType.style("opacity", "0");
+  showGrid = false;
 }
 
 //shows the info for rank up
@@ -3351,17 +3480,21 @@ function showRank() {
     showingRankInfo = true;
   }
   else {
-    showRankScreen.style("z-index", "-1");
-    showRankScreen.style("opacity", "0");
-
-    allPinsDisplay.style("z-index", "-1");
-    allPinsDisplay.style("opacity", "0");
-
-    allShieldsDisplay.style("z-index", "-1");
-    allShieldsDisplay.style("opacity", "0");
-
-    showingRankInfo = false;
+    closeRank();
   }
+}
+
+function closeRank() {
+  showRankScreen.style("z-index", "-1");
+  showRankScreen.style("opacity", "0");
+
+  allPinsDisplay.style("z-index", "-1");
+  allPinsDisplay.style("opacity", "0");
+
+  allShieldsDisplay.style("z-index", "-1");
+  allShieldsDisplay.style("opacity", "0");
+
+  showingRankInfo = false;
 }
 
 //changes what the banner at the top says
@@ -4006,6 +4139,10 @@ function leaveMap() {
 
   if (gridMode) {
     resetSelect();
+  }
+
+  if (mapClose) {
+    hideMap();
   }
 }
 
