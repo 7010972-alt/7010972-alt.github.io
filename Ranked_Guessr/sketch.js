@@ -19,17 +19,17 @@ sessionStorage.setItem("partyPlayerId", myId);
 console.log(myId);
 
 //sounds
-const PITCH_RANGE = 0.1
-let SFXVolume = 1.5
+const PITCH_RANGE = 0.1;
+let SFXVolume = 1.5;
 
 let numberRacking;
-let terribleGuess
+let terribleGuess;
 let goodGuess;
 let clickSound;
 let timeWarning;
 
 //musics
-let musicVolume = 0.4
+let musicVolume = 0.4;
 
 let chillMusic1;
 let chillMusic2;
@@ -42,20 +42,20 @@ let intenseMusic;
 
 function preload() {
   //load sound
-  numberRacking = loadSound("number_racking.mp3")
-  terribleGuess = loadSound("terrible_guess.mp3")
-  goodGuess = loadSound("good_guess.mp3")
-  clickSound = loadSound("click_sound.mp3")
-  timeWarning = loadSound("has_guessed.mp3")
+  numberRacking = loadSound("number_racking.mp3");
+  terribleGuess = loadSound("terrible_guess.mp3");
+  goodGuess = loadSound("good_guess.mp3");
+  clickSound = loadSound("click_sound.mp3");
+  timeWarning = loadSound("has_guessed.mp3");
 
-  chillMusic1 = loadSound("chill_music1.mp3")
-  chillMusic2 = loadSound("chill_music2.mp3")
-  chillMusic3 = loadSound("chill_music3.mp3")
-  chillMusic4 = loadSound("chill_music4.mp3")
-  chillMusic5 = loadSound("chill_music5.mp3")
-  chillMusic6 = loadSound("chill_music6.mp3")
+  chillMusic1 = loadSound("chill_music1.mp3");
+  chillMusic2 = loadSound("chill_music2.mp3");
+  chillMusic3 = loadSound("chill_music3.mp3");
+  chillMusic4 = loadSound("chill_music4.mp3");
+  chillMusic5 = loadSound("chill_music5.mp3");
+  chillMusic6 = loadSound("chill_music6.mp3");
 
-  intenseMusic = loadSound("intense_music.mp3")
+  intenseMusic = loadSound("intense_music.mp3");
 
   partyConnect(
     "wss://demoserver.p5party.org",
@@ -226,7 +226,7 @@ let blurAnswer = L.icon({
 let currentAnswerIcon = answerIcon;
 
 //images
-let imageOriginSize = 0.8
+let imageOriginSize = 0.8;
 
 let fourK;
 let fourKOpac = 0;
@@ -254,14 +254,18 @@ let maxSizeDelay = 5;
 let changeDelay = 25;
 
 //game variables
+let displayAns;
+
+let afterViewing = false;
+
 let mapClose = false;
 
-let timeShorten = 0
+let timeShorten = 0;
 
 let onPhone = false;
-let phoneWidth
+let phoneWidth;
 
-let zoomCoords = {}
+let zoomCoords = {};
 
 let timeShort = false;
 let onLastSetGuess = false;
@@ -418,7 +422,7 @@ let hintButton;
 let nameType;
 let hideUnderButton;
 let refreshButton;
-let gridShapeDropdown
+let gridShapeDropdown;
 let XButton;
 let autoMapCloseButton;
 
@@ -529,7 +533,12 @@ window.addEventListener("beforeunload", removePlayerFromLists);
 
 document.addEventListener("visibilitychange", function() {
   if (document.visibilityState === "visible") {
-    location.reload();
+    if (!afterViewing) {
+      location.reload();
+    }
+    else {
+      afterViewing = false;
+    }
   }
   else {
     removePlayerFromLists();
@@ -555,20 +564,20 @@ function setup() {
 
 
   //set volumes
-  chillMusic1.setVolume(musicVolume)
-  chillMusic2.setVolume(musicVolume)
-  chillMusic3.setVolume(musicVolume)
-  chillMusic4.setVolume(musicVolume)
-  chillMusic5.setVolume(musicVolume)
-  chillMusic6.setVolume(musicVolume)
+  chillMusic1.setVolume(musicVolume);
+  chillMusic2.setVolume(musicVolume);
+  chillMusic3.setVolume(musicVolume);
+  chillMusic4.setVolume(musicVolume);
+  chillMusic5.setVolume(musicVolume);
+  chillMusic6.setVolume(musicVolume);
 
-  intenseMusic.setVolume(musicVolume * 0.6)
+  intenseMusic.setVolume(musicVolume * 0.6);
 
-  numberRacking.setVolume(SFXVolume)
-  goodGuess.setVolume(SFXVolume)
-  terribleGuess.setVolume(SFXVolume)
-  clickSound.setVolume(SFXVolume)
-  timeWarning.setVolume(SFXVolume * 0.7)
+  numberRacking.setVolume(SFXVolume);
+  goodGuess.setVolume(SFXVolume);
+  terribleGuess.setVolume(SFXVolume);
+  clickSound.setVolume(SFXVolume);
+  timeWarning.setVolume(SFXVolume * 0.7);
 
   newSong();
 
@@ -871,9 +880,10 @@ function setup() {
   gridShapeDropdown.size(80, 30);
   gridShapeDropdown.style("z-index", "-1");
   gridShapeDropdown.option("3X3", "3X3");
-  gridShapeDropdown.option("Cross", "cross");
+  gridShapeDropdown.option("Spread", "spread");
   gridShapeDropdown.option("Focus", "focus");
-
+  gridShapeDropdown.option("Cross", "cross");
+  
 
   gridShapeDropdown.changed(gridShapeChanged);
 
@@ -1019,7 +1029,7 @@ function setup() {
   redCover.size(windowWidth, windowHeight - bannerHeight);
   redCover.style("pointer-events", "none");
   redCover.style("z-index", "1");
-  redCover.style("opacity", "0")
+  redCover.style("opacity", "0");
   redCover.style("transition", "opacity 0.3s");
   
   redCover.style(
@@ -1114,22 +1124,22 @@ function setup() {
 
   //images
   fourK = createImg("4K.png", "4K");
-  fourK.style("z-index", "21")
+  fourK.style("z-index", "21");
   fourK.style("transform", "translate(-50%, -50%)");
   fourK.style("pointer-events", "none");
 
   fourHalfK = createImg("4.8K.png", "4.8K");
-  fourHalfK.style("z-index", "21")
+  fourHalfK.style("z-index", "21");
   fourHalfK.style("transform", "translate(-50%, -50%)");
   fourHalfK.style("pointer-events", "none");
 
   plus5 = createImg("+5.png", "+5");
-  plus5.style("z-index", "21")
+  plus5.style("z-index", "21");
   plus5.style("transform", "translate(-50%, -50%)");
   plus5.style("pointer-events", "none");
 
   plus10 = createImg("+10.png", "+10");
-  plus10.style("z-index", "21")
+  plus10.style("z-index", "21");
   plus10.style("transform", "translate(-50%, -50%)");
   plus10.style("pointer-events", "none");
 
@@ -1218,6 +1228,11 @@ function draw() {
   showGridDrop();
   resetGuessStatus();
   allHaveGuessed();
+}
+
+//for testing purposes
+function crAns() {
+  displayAns = L.marker([randomlocation.lat, randomlocation.lng]).addTo(map);
 }
 
 function toggleMapClose() {
@@ -1360,7 +1375,7 @@ function windowResized() {
 //makes the map go back to its size after the endscreen
 function resetMapSize() {
   if (!endScreen) {
-    phoneWidth = windowWidth
+    phoneWidth = windowWidth;
     
     //reset map for pc
     if (windowWidth + windowHeight > 2000 || windowWidth > windowHeight) {
@@ -1371,7 +1386,7 @@ function resetMapSize() {
       confirmButton.position(windowWidth - 67, windowHeight - 250);
       hideMapButton.position(windowWidth - 67, windowHeight - 310);
       refreshButton.position(windowWidth - 67, windowHeight - 110);
-      confirmButton.size(60, 50)
+      confirmButton.size(60, 50);
     }
     //reset map for phone
     else {
@@ -1382,7 +1397,7 @@ function resetMapSize() {
       confirmButton.position(0, windowHeight - 50);
       hideMapButton.position(windowWidth - 60, windowHeight - 50);
       refreshButton.position(windowWidth - 120, windowHeight - 50);
-      confirmButton.size(windowWidth - 120, 50)
+      confirmButton.size(windowWidth - 120, 50);
     }
   }
 }
@@ -1411,16 +1426,16 @@ function intenseMusicReplay() {
 }
 
 function soundUpdate() {
-  chillMusic1.setVolume(musicVolume)
-  chillMusic2.setVolume(musicVolume)
-  chillMusic3.setVolume(musicVolume)
-  chillMusic4.setVolume(musicVolume)
-  chillMusic5.setVolume(musicVolume)
-  chillMusic6.setVolume(musicVolume)
+  chillMusic1.setVolume(musicVolume);
+  chillMusic2.setVolume(musicVolume);
+  chillMusic3.setVolume(musicVolume);
+  chillMusic4.setVolume(musicVolume);
+  chillMusic5.setVolume(musicVolume);
+  chillMusic6.setVolume(musicVolume);
 
-  numberRacking.setVolume(SFXVolume)
-  goodGuess.setVolume(SFXVolume)
-  terribleGuess.setVolume(SFXVolume)
+  numberRacking.setVolume(SFXVolume);
+  goodGuess.setVolume(SFXVolume);
+  terribleGuess.setVolume(SFXVolume);
 }
 
 //chooses a random song when one ends
@@ -1450,7 +1465,7 @@ function newSong() {
 }
 
 function gridShapeChanged() {
-  gridModeShape = gridShapeDropdown.value()
+  gridModeShape = gridShapeDropdown.value();
   for (let item of gridModeSquares) {
     item.remove();
   }
@@ -1460,10 +1475,10 @@ function gridShapeChanged() {
 //show and hide the grid drop down button
 function showGridDrop() {
   if (gridMode) {
-    gridShapeDropdown.style("z-index", "21")
+    gridShapeDropdown.style("z-index", "21");
   }
   else {
-    gridShapeDropdown.style("z-index", "-1")
+    gridShapeDropdown.style("z-index", "-1");
   }
 }
 
@@ -1475,21 +1490,21 @@ function show4K() {
     fourKMuilt = imageOriginSize;
   
     let changeOpac = setInterval(() => {
-      fourKMuilt += sizeInc
+      fourKMuilt += sizeInc;
 
-      rep += 1
+      rep += 1;
       if (rep < 1 / increment + maxSizeDelay) {
-        fourKOpac += increment
+        fourKOpac += increment;
       }
       else {
-        fourKOpac -= increment
+        fourKOpac -= increment;
       }
-    }, changeDelay)
+    }, changeDelay);
   
     setTimeout(() => {
       fourKOpac = 0;
       fourKMuilt = imageOriginSize;
-      clearInterval(changeOpac)
+      clearInterval(changeOpac);
     }, timeoutRun);
   }, delay);
 }
@@ -1501,21 +1516,21 @@ function show48K() {
     fourHalfKMuilt = imageOriginSize;
   
     let changeOpac = setInterval(() => {
-      fourHalfKMuilt += sizeInc
+      fourHalfKMuilt += sizeInc;
 
-      rep += 1
+      rep += 1;
       if (rep < 1 / increment + maxSizeDelay) {
-        fourHalfKOpac += increment
+        fourHalfKOpac += increment;
       }
       else {
-        fourHalfKOpac -= increment
+        fourHalfKOpac -= increment;
       }
-    }, changeDelay)
+    }, changeDelay);
   
     setTimeout(() => {
       fourHalfKOpac = 0;
       fourHalfKMuilt = imageOriginSize;
-      clearInterval(changeOpac)
+      clearInterval(changeOpac);
     }, timeoutRun);
   }, delay);
 }
@@ -1527,21 +1542,21 @@ function showPlus5() {
     plus5Muilt = imageOriginSize;
   
     let changeOpac = setInterval(() => {
-      plus5Muilt += sizeInc
+      plus5Muilt += sizeInc;
 
-      rep += 1
+      rep += 1;
       if (rep < 1 / increment + maxSizeDelay) {
-        plus5Opac += increment
+        plus5Opac += increment;
       }
       else {
-        plus5Opac -= increment
+        plus5Opac -= increment;
       }
-    }, changeDelay)
+    }, changeDelay);
   
     setTimeout(() => {
       plus5Opac = 0;
       plus5Muilt = imageOriginSize;
-      clearInterval(changeOpac)
+      clearInterval(changeOpac);
     }, timeoutRun);
   }, delay);
 }
@@ -1553,37 +1568,37 @@ function showPlus10() {
     plus10Muilt = imageOriginSize;
   
     let changeOpac = setInterval(() => {
-      plus10Muilt += sizeInc
+      plus10Muilt += sizeInc;
 
-      rep += 1
+      rep += 1;
       if (rep < 1 / increment + maxSizeDelay) {
-        plus10Opac += increment
+        plus10Opac += increment;
       }
       else {
-        plus10Opac -= increment
+        plus10Opac -= increment;
       }
-    }, changeDelay)
+    }, changeDelay);
   
     setTimeout(() => {
       plus10Opac = 0;
       plus10Muilt = imageOriginSize;
-      clearInterval(changeOpac)
+      clearInterval(changeOpac);
     }, timeoutRun);
   }, delay);
 }
 
 function grow() {
-  let pointgrowth = points / 18
+  let pointgrowth = points / 18;
 
   if (displayPoints < points) {
 
-    displayPoints += round(pointgrowth - ((displayPoints / points) * pointgrowth - (pointgrowth * 0.1)))
+    displayPoints += round(pointgrowth - (displayPoints / points * pointgrowth - pointgrowth * 0.1));
 
     if (displayPoints > points) {
       displayPoints = points;
     }
 
-    displayPointGrowth = STARTING_GROWTH_TIME + (displayPoints / points) * STARTING_GROWTH_TIME * 25
+    displayPointGrowth = STARTING_GROWTH_TIME + displayPoints / points * STARTING_GROWTH_TIME * 25;
 
     setTimeout(grow, displayPointGrowth);
   }
@@ -1605,13 +1620,13 @@ function toggleConfirm() {
 
 function changeJoinWaitTest() {
   if (setActive) {
-    joinButton.html("End Set")
+    joinButton.html("End Set");
   }
   else if (!inParty) {
-    joinButton.html("Join Party")
+    joinButton.html("Join Party");
   }
   else {
-    joinButton.html("Leave")
+    joinButton.html("Leave");
   }
 }
 
@@ -2241,11 +2256,11 @@ function showAllMarks(marks, mapcoords) {
     displayMarkers.push(muiltMarker);
     displayMarkers.push(muiltAnswerLine);
 
-    let HintCol = "red"
+    let HintCol = "red";
     let hintText = "Off";
     if (info.hintMode) {
       hintText = "On";
-      HintCol = "green"
+      HintCol = "green";
     }
 
     //this part displays how well that player did
@@ -2322,6 +2337,7 @@ function resetLocals() {
   currentParty = "none";
   hintMode = false;
   partyHintButton.style("background-color", "red");
+  cover.html("");
   ended = false;
   joinIn = false;
   inParty = false;
@@ -2502,7 +2518,7 @@ function joinWait() {
     setClickedPoints = [];
     setLineColors = [];
     covering = false;
-    redCover.style("opacity", "0")
+    redCover.style("opacity", "0");
 
     //configure sounds when the player leaves a set
     if (timeShort) {
@@ -3258,19 +3274,19 @@ function fixsizes() {
     right: 17
   };
 
-  autoMapCloseButton.position(windowWidth / 2, windowHeight / 2)
+  autoMapCloseButton.position(windowWidth / 2, windowHeight / 2);
 
   //move the close button based on what is openned
   if (showingRankInfo) {
-    XButton.style("z-index", "25")
+    XButton.style("z-index", "25");
     XButton.position(windowWidth / 4 - xButOffset, windowHeight / 2 - windowWidth / 8 - xButOffset);
   }
   else if (dataShow || showGrid || showingSettings) {
-    XButton.style("z-index", "25")
+    XButton.style("z-index", "25");
     XButton.position(windowWidth / 6.5 - xButOffset, windowHeight / 2.25 - windowWidth / 8 - xButOffset);
   }
   else {
-    XButton.style("z-index", "-1")
+    XButton.style("z-index", "-1");
   }
 
   street.size(windowWidth, windowHeight);
@@ -3298,25 +3314,25 @@ function fixsizes() {
   NMPZCoverR.size(zoomCoords.right, windowHeight);
   NMPZCoverR.position(windowWidth - zoomCoords.right, 0);
 
-  let imageRef = windowHeight
+  let imageRef = windowHeight;
   if (windowHeight >= windowWidth) {
-    imageRef = windowWidth
+    imageRef = windowWidth;
   }
-  imageRef = imageRef - imageRef * 0.2
+  imageRef = imageRef - imageRef * 0.2;
 
-  fourK.style("opacity", `${fourKOpac}`)
+  fourK.style("opacity", `${fourKOpac}`);
   fourK.size(imageRef * fourKMuilt, imageRef * fourKMuilt);
   fourK.position(windowWidth / 2, windowHeight / 1.9);
 
-  fourHalfK.style("opacity", `${fourHalfKOpac}`)
+  fourHalfK.style("opacity", `${fourHalfKOpac}`);
   fourHalfK.size(imageRef * fourHalfKMuilt, imageRef * fourHalfKMuilt);
   fourHalfK.position(windowWidth / 2, windowHeight / 1.9);
 
-  plus5.style("opacity", `${plus5Opac}`)
+  plus5.style("opacity", `${plus5Opac}`);
   plus5.size(imageRef * plus5Muilt, imageRef * plus5Muilt);
   plus5.position(windowWidth / 2, windowHeight / 1.9);
 
-  plus10.style("opacity", `${plus10Opac}`)
+  plus10.style("opacity", `${plus10Opac}`);
   plus10.size(imageRef * plus10Muilt, imageRef * plus10Muilt);
   plus10.position(windowWidth / 2, windowHeight / 1.9);
 
@@ -3344,7 +3360,7 @@ function fixsizes() {
 
   nameType.size(72, 20);
 
-  let underShieldX = 9
+  let underShieldX = 9;
 
   //buttons under the shield
   nameType.position(underShieldX, bannerHeight + shieldSize + 5);
@@ -3378,7 +3394,7 @@ function fixsizes() {
   gridShapeDropdown.position(175, 30);
   heatMapDropDown.position(255, 30);
 
-  redCover.size(windowWidth, windowHeight - bannerHeight)
+  redCover.size(windowWidth, windowHeight - bannerHeight);
 
 
   if (dataShow || showGrid) {
@@ -3564,7 +3580,7 @@ function timeDrain() {
         intenseMusic.play();
 
         //show the red cover
-        redCover.style("opacity", "1")
+        redCover.style("opacity", "1");
       }
       timeLeft -= 1;
     }
@@ -3646,6 +3662,9 @@ function keyPressed() {
   if (key === " ") {
     confirmed();
   }
+  // if (key === "h") {
+  //   crAns();
+  // }
 }
 
 
@@ -4151,8 +4170,12 @@ function leaveMap() {
 function afterGuess() {
   endScreen = true;
 
+  if (displayAns !== undefined) {
+    displayAns.remove();
+  }
+
   //hide red cover
-  redCover.style("opacity", "0")
+  redCover.style("opacity", "0");
 
   //configure sounds when the guess has ended
   if (timeShort) {
@@ -4251,7 +4274,7 @@ function afterGuess() {
     points = Math.round(5000 * Math.exp(-10 * totalDistance / mapSize));
 
     if (points >= 4000) {
-      goodGuess.play()
+      goodGuess.play();
     }
     if (points >= 1000) {
       numberRacking.play();
@@ -4412,6 +4435,14 @@ function afterGuess() {
   }
 
   answermarker = L.marker([calcLocation.lat, calcLocation.lng], {icon: currentAnswerIcon}).addTo(map);
+
+  //show user the answer in street view on another window
+  answermarker.on("click", function () {
+    if (!inParty) {
+      afterViewing = true;
+      window.open(`https://www.google.com/maps?q=&layer=c&cbll=${calcLocation.lat},${calcLocation.lng}&cbp=11,0,0,0,0&output=svembed`, '_blank');
+    }
+  });
 
   if (gridMode) {
     gridModeSquareColChange();
@@ -5096,7 +5127,7 @@ function gridModeSquareColChange() {
   let answerX = Math.floor((randomlocation.lng + 180) / GRID_MODE_LENGTH);
 
   //if the guess is in the middle square
-  if (currentGridX === answerX && currentGridY === answerY) {
+  if (currentGridX === answerX && currentGridY === answerY && gridModeShape !== "spread") {
     for (let item of gridModeSquares) {
       item.setStyle({
         color: "green",
@@ -5106,20 +5137,44 @@ function gridModeSquareColChange() {
 
     //double points if focus mode is enables
     if (gridModeShape === "focus") {
-      gridStreak += 10
-      goodGuess.play()
+      gridStreak += 10;
+      goodGuess.play();
       showPlus10();
       
     }
     else {
       gridStreak += 5;
-      goodGuess.play()
+      goodGuess.play();
       showPlus5();
     }
 
     if (gridStreak > gridMaxStreak) {
       gridMaxStreak = gridStreak;
     }
+  }
+
+  //if the guess is in the surrounding squares in the spread shape
+  else if (
+    currentGridX - 1 <= answerX && currentGridX + 1 >= answerX && currentGridY - 1 <= answerY && currentGridY + 1 >= answerY 
+    || (currentGridX === answerX && currentGridY === answerY + 2
+    || currentGridX === answerX && currentGridY === answerY - 2
+    || currentGridX === answerX - 2 && currentGridY === answerY
+    || currentGridX === answerX + 2 && currentGridY === answerY)
+    && gridModeShape === "spread") {
+
+    for (let item of gridModeSquares) {
+      item.setStyle({
+        color: "orange",
+        fillColor: "orange"
+      });
+    }
+
+    gridStreak += 1;
+
+    if (gridStreak > gridMaxStreak) {
+      gridMaxStreak = gridStreak;
+    }
+    goodGuess();
   }
 
   //if the guess is in the surrounding squares for 3 by 3 mode
@@ -5189,38 +5244,48 @@ function resetSelect() {
 function create3X3() {
   //create surrounding squares
   //make a 3 by 3 pattern
-  if (gridModeShape === "3X3") {
-    for (let x = -1; x <= 1; x++) {
-      for (let y = -1; y <= 1; y++) {
-        let fillCol = "rgb(249, 255, 158)";
-        let fillopac = 0.4;
-        if (x === 0 && y === 0) {
-          fillCol = "yellow";
-          fillopac = 0.7;
-        }
-  
-        let placeY = y;
-        let placeX = x;
-  
-        if (currentGridY + y >= 0 && currentGridY + y < 180 / GRID_MODE_LENGTH) {
-          if (currentGridX + x >= 0 && currentGridX + x < 360 / GRID_MODE_LENGTH) {
-  
-            //create a select square
-            let surroundSquare = L.polygon([
-              [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180],
-              [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, (currentGridX + placeX + 1) * GRID_MODE_LENGTH - 180],
-              [(currentGridY + placeY + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX + 1) * GRID_MODE_LENGTH - 180],
-              [(currentGridY + placeY + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180]
-            ], {
-              color: "rgb(184, 181, 52)",
-              weight: 1,
-              opacity: 1,
-          
-              fillColor: fillCol,
-              fillOpacity: fillopac
-            }).addTo(map);
-  
-            gridModeSquares.push(surroundSquare);
+  if (gridModeShape === "3X3" || gridModeShape === "spread") {
+    let spreadInc = 1;
+
+    if (gridModeShape === "spread") {
+      spreadInc = 2;
+    }
+
+    for (let x = -spreadInc; x <= spreadInc; x++) {
+      for (let y = -spreadInc; y <= spreadInc; y++) {
+
+        //remove the squares that should not be in the diamond shape
+        if (!(y === -2 && x !== 0) && !(y === 2 && x !== 0) && !(y !== 0 && x === -2) && !(y !== 0 && x === 2)) {
+          let fillCol = "rgb(249, 255, 158)";
+          let fillopac = 0.4;
+          if (x === 0 && y === 0 && gridModeShape !== "spread") {
+            fillCol = "yellow";
+            fillopac = 0.7;
+          }
+    
+          let placeY = y;
+          let placeX = x;
+    
+          if (currentGridY + y >= 0 && currentGridY + y < 180 / GRID_MODE_LENGTH) {
+            if (currentGridX + x >= 0 && currentGridX + x < 360 / GRID_MODE_LENGTH) {
+    
+              //create a select square
+              let surroundSquare = L.polygon([
+                [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180],
+                [(currentGridY + placeY) * GRID_MODE_LENGTH - 90, (currentGridX + placeX + 1) * GRID_MODE_LENGTH - 180],
+                [(currentGridY + placeY + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX + 1) * GRID_MODE_LENGTH - 180],
+                [(currentGridY + placeY + 1) * GRID_MODE_LENGTH - 90, (currentGridX + placeX) * GRID_MODE_LENGTH - 180]
+              ], {
+                color: "rgb(184, 181, 52)",
+                weight: 1,
+                opacity: 1,
+            
+                fillColor: fillCol,
+                fillOpacity: fillopac
+              }).addTo(map);
+    
+              gridModeSquares.push(surroundSquare);
+            }
           }
         }
       }
@@ -5297,8 +5362,8 @@ function create3X3() {
   //only create the one square for focus mode
   else if (gridModeShape === "focus") {
 
-    let placeX = 0
-    let placeY = 0
+    let placeX = 0;
+    let placeY = 0;
 
     let fillCol = "yellow";
     let fillopac = 0.7;
