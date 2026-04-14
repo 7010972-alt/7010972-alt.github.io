@@ -11,6 +11,7 @@
 - ["game of Life"](game-of-life)
 - [Character in Grid](character)
 - [Platformer](11-platformer-files)
+- [Walker OOP Demo](walker)
 
 ## Assignments
 - [square grower](interactive-scene)
