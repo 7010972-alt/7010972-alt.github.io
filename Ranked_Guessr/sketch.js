@@ -24,7 +24,7 @@ let SFXVolume = 1.5;
 
 let numberRacking;
 let terribleGuess;
-let goodGuess;
+let goodGuessSound;
 let clickSound;
 let timeWarning;
 
@@ -44,7 +44,7 @@ function preload() {
   //load sound
   numberRacking = loadSound("number_racking.mp3");
   terribleGuess = loadSound("terrible_guess.mp3");
-  goodGuess = loadSound("good_guess.mp3");
+  goodGuessSound = loadSound("good_guess.mp3");
   clickSound = loadSound("click_sound.mp3");
   timeWarning = loadSound("has_guessed.mp3");
 
@@ -574,7 +574,7 @@ function setup() {
   intenseMusic.setVolume(musicVolume * 0.6);
 
   numberRacking.setVolume(SFXVolume);
-  goodGuess.setVolume(SFXVolume);
+  goodGuessSound.setVolume(SFXVolume);
   terribleGuess.setVolume(SFXVolume);
   clickSound.setVolume(SFXVolume);
   timeWarning.setVolume(SFXVolume * 0.7);
@@ -1434,7 +1434,7 @@ function soundUpdate() {
   chillMusic6.setVolume(musicVolume);
 
   numberRacking.setVolume(SFXVolume);
-  goodGuess.setVolume(SFXVolume);
+  goodGuessSound.setVolume(SFXVolume);
   terribleGuess.setVolume(SFXVolume);
 }
 
@@ -4274,7 +4274,7 @@ function afterGuess() {
     points = Math.round(5000 * Math.exp(-10 * totalDistance / mapSize));
 
     if (points >= 4000) {
-      goodGuess.play();
+      goodGuessSound.play();
     }
     if (points >= 1000) {
       numberRacking.play();
@@ -4606,8 +4606,8 @@ let midSquares = [];
 let redSquares = [];
 let heatSquareOpacity = 0.5;
 
+//create a new grid if the player does not have one already used for holding info
 function addGrid() {
-  //create a new grid if the player does not have one already
   if (localStorage.getItem("savedMap") === null) {
 
     //lng
@@ -4710,7 +4710,7 @@ function addGrid() {
       }
 
 
-      //create all the parts
+      //create all the guesses that have been in the selected grid
       let gridAnswerMark = L.marker([info.answerLat, info.answerLng], {icon: showIcon}).addTo(griddedMap);
       let gridClickedMark = L.marker([info.clickedLat, info.clickedLng], {icon: markerIcon}).addTo(griddedMap);
       let gridAnswerLine = L.polyline([[info.clickedLat, info.clickedLng],[info.answerLat, info.answerLng]], {
@@ -4719,6 +4719,7 @@ function addGrid() {
       }).addTo(griddedMap);
 
       //when clicked show the viewer what that location looked like
+      //basically entering a replay
       gridAnswerMark.on("click", function () {
         viewing = true;
         resetGridView();
@@ -4781,10 +4782,6 @@ function gridModeClick(lat, lng) {
     for (let item of gridModeSquares) {
       item.remove();
     }
-  
-    //get the x and y needed to find the right tile
-    let currentCol = Math.floor((lat + 90) / GRID_MODE_LENGTH);
-    let currentRow = Math.floor((lng + 180) / GRID_MODE_LENGTH);
 
     //set globals
     currentGridY = Math.floor((lat + 90) / GRID_MODE_LENGTH);
@@ -4794,6 +4791,7 @@ function gridModeClick(lat, lng) {
   }
 }
 
+//called after a guess to upload all the stats to the grid
 function addGridStats(clicked, answer, totaldis) {
 
   //find which grid the answer is in
@@ -4861,6 +4859,7 @@ function addGridStats(clicked, answer, totaldis) {
     lineCol = "red";
   }
 
+  //push all data to the grid
   mapGrid[answerCol][answerRow].pastGuesses.push({
     roundType: type,
     clickedLat: clickLat,
@@ -4989,17 +4988,15 @@ function findHeatValues() {
               addOrange(col, row);
             }
           }
-
-
         }
       }
     }
   }
 }
 
+//create a heat map green square
 function addGreen(col, row) {
   //add the heat maps
-  //create a heat map green square
   rightSquare = L.polygon([
     [col * GRID_LENGTH - 90, row * GRID_LENGTH - 180],
     [col * GRID_LENGTH - 90, (row + 1) * GRID_LENGTH - 180],
@@ -5018,9 +5015,9 @@ function addGreen(col, row) {
   greenSquares.push(rightSquare);
 }
 
+//create a heat map orange square
 function addOrange(col, row) {
   //add the heat maps
-  //create a heat map orange square
   midSquare = L.polygon([
     [col * GRID_LENGTH - 90, row * GRID_LENGTH - 180],
     [col * GRID_LENGTH - 90, (row + 1) * GRID_LENGTH - 180],
@@ -5039,9 +5036,9 @@ function addOrange(col, row) {
   midSquares.push(midSquare);
 }
 
+//create a heat map red square
 function addRed(col, row) {
   //add the heat maps
-  //create a heat map red square
   wrongSquare = L.polygon([
     [col * GRID_LENGTH - 90, row * GRID_LENGTH - 180],
     [col * GRID_LENGTH - 90, (row + 1) * GRID_LENGTH - 180],
@@ -5138,13 +5135,12 @@ function gridModeSquareColChange() {
     //double points if focus mode is enables
     if (gridModeShape === "focus") {
       gridStreak += 10;
-      goodGuess.play();
+      goodGuessSound.play();
       showPlus10();
-      
     }
     else {
       gridStreak += 5;
-      goodGuess.play();
+      goodGuessSound.play();
       showPlus5();
     }
 
@@ -5155,11 +5151,11 @@ function gridModeSquareColChange() {
 
   //if the guess is in the surrounding squares in the spread shape
   else if (
-    currentGridX - 1 <= answerX && currentGridX + 1 >= answerX && currentGridY - 1 <= answerY && currentGridY + 1 >= answerY 
+    (currentGridX - 1 <= answerX && currentGridX + 1 >= answerX && currentGridY - 1 <= answerY && currentGridY + 1 >= answerY 
     || (currentGridX === answerX && currentGridY === answerY + 2
     || currentGridX === answerX && currentGridY === answerY - 2
     || currentGridX === answerX - 2 && currentGridY === answerY
-    || currentGridX === answerX + 2 && currentGridY === answerY)
+    || currentGridX === answerX + 2 && currentGridY === answerY))
     && gridModeShape === "spread") {
 
     for (let item of gridModeSquares) {
@@ -5174,7 +5170,7 @@ function gridModeSquareColChange() {
     if (gridStreak > gridMaxStreak) {
       gridMaxStreak = gridStreak;
     }
-    goodGuess();
+    goodGuessSound.play();
   }
 
   //if the guess is in the surrounding squares for 3 by 3 mode
@@ -5186,12 +5182,13 @@ function gridModeSquareColChange() {
       });
     }
 
+
     gridStreak += 1;
 
     if (gridStreak > gridMaxStreak) {
       gridMaxStreak = gridStreak;
     }
-    goodGuess();
+    goodGuessSound.play();
   }
 
 
@@ -5210,7 +5207,7 @@ function gridModeSquareColChange() {
     if (gridStreak > gridMaxStreak) {
       gridMaxStreak = gridStreak;
     }
-    goodGuess();
+    goodGuessSound.play();
   }
 
   //if the guess was missed
