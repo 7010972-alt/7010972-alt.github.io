@@ -12,6 +12,7 @@
 - [Character in Grid](character)
 - [Platformer](11-platformer-files)
 - [Walker OOP Demo](walker)
+- [Fireworks OOP Demo](Fireworks)
 
 ## Assignments
 - [square grower](interactive-scene)

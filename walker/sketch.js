@@ -3,8 +3,8 @@
 class Walker {
   constructor(x, y, color) {
     this.color = color;
-    this.speed = 10;
-    this.size = 10;
+    this.speed = 4;
+    this.size = 2;
     this.x = x;
     this.y = y;
   }
@@ -35,23 +35,43 @@ class Walker {
   }
 }
 
-let firstWalker;
-
-let secondWalker;
+let walkers = [];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   
-  firstWalker = new Walker(width / 2, height / 2, "red");
-  secondWalker = new Walker(width / 4, height / 4, "blue");
-
-
+  background(200);
 }
 
 function draw() {
-  firstWalker.display();
-  firstWalker.move();
+  for (let walker of walkers) {
 
-  secondWalker.display();
-  secondWalker.move();
+    walker.display();
+    walker.move();
+  }
 }
+
+function mousePressed() {
+  let r = random(255);
+  let g = random(255);
+  let b = random(255);
+
+
+  let someWalker = new Walker(mouseX, mouseY, color(r,g,b));
+  walkers.push(someWalker);
+
+}
+
+
+//only 2 walkers
+
+// let firstWalker;
+// let secondWalker;
+
+// function draw() {
+//   firstWalker.display();
+//   firstWalker.move();
+
+//   secondWalker.display();
+//   secondWalker.move();
+// }
