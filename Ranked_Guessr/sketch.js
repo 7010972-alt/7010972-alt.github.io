@@ -4600,11 +4600,17 @@ let shownPastGuesses = [];
 
 let gridModeShape = "3X3";
 
+let HEAT_SQUARE_OPAC = 0.5;
+let SELECT_SQUARE_OPAC = 0.7;
+let CENTERY = 9;
+let CENTERX = 17;
+
 //heat map stats
 let greenSquares = [];
 let midSquares = [];
 let redSquares = [];
-let heatSquareOpacity = 0.5;
+
+
 
 //create a new grid if the player does not have one already used for holding info
 function addGrid() {
@@ -5009,7 +5015,7 @@ function addGreen(col, row) {
     opacity: 1,
 
     fillColor: "green",
-    fillOpacity: heatSquareOpacity
+    fillOpacity: HEAT_SQUARE_OPAC
   }).addTo(griddedMap);
 
   greenSquares.push(rightSquare);
@@ -5030,7 +5036,7 @@ function addOrange(col, row) {
     opacity: 1,
 
     fillColor: "rgb(202, 145, 38)",
-    fillOpacity: heatSquareOpacity
+    fillOpacity: HEAT_SQUARE_OPAC
   }).addTo(griddedMap);
 
   midSquares.push(midSquare);
@@ -5051,7 +5057,7 @@ function addRed(col, row) {
     opacity: 1,
 
     fillColor: "rgb(255, 131, 131)",
-    fillOpacity: heatSquareOpacity
+    fillOpacity: HEAT_SQUARE_OPAC
   }).addTo(griddedMap);
 
   redSquares.push(wrongSquare);
@@ -5232,12 +5238,15 @@ function gridModeSquareColChange() {
 function resetSelect() {
 
   //move the selected square into the center of the map
-  currentGridY = 9;
-  currentGridX = 17;
+  currentGridY = CENTERY;
+  currentGridX = CENTERX;
 
   create3X3();
 }
 
+
+//creates the shapes of the grid guess based on its made
+//makes the middle square a darker yellow for most modes
 function create3X3() {
   //create surrounding squares
   //make a 3 by 3 pattern
@@ -5257,7 +5266,7 @@ function create3X3() {
           let fillopac = 0.4;
           if (x === 0 && y === 0 && gridModeShape !== "spread") {
             fillCol = "yellow";
-            fillopac = 0.7;
+            fillopac = SELECT_SQUARE_OPAC;
           }
     
           let placeY = y;
@@ -5296,7 +5305,7 @@ function create3X3() {
       let fillopac = 0.4;
       if (y === 0) {
         fillCol = "yellow";
-        fillopac = 0.7;
+        fillopac = SELECT_SQUARE_OPAC;
       }
 
       let placeY = y;
@@ -5327,7 +5336,7 @@ function create3X3() {
       let fillopac = 0.4;
       if (x === 0) {
         fillCol = "yellow";
-        fillopac = 0.7;
+        fillopac = SELECT_SQUARE_OPAC;
       }
       else {
         let placeY = 0;
@@ -5363,7 +5372,7 @@ function create3X3() {
     let placeY = 0;
 
     let fillCol = "yellow";
-    let fillopac = 0.7;
+    let fillopac = SELECT_SQUARE_OPAC;
 
     //create a select square
     let surroundSquare = L.polygon([
