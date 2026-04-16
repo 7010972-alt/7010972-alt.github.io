@@ -1,7 +1,7 @@
 // Fireworks OOP demo
 
 class Particle {
-  constructor(x, y) {
+  constructor(x, y, angle) {
     this.x = x;
     this.y = y;
     this.dx = random(-5, 5);
@@ -11,6 +11,8 @@ class Particle {
     this.b = 0;
     this.g = 0;
     this.opactiy = 255;
+    this.angle = angle;
+    this.speed = random(1, 3);
   }
 
   display() {
@@ -20,8 +22,16 @@ class Particle {
   }
 
   update() {
-    this.x += this.dx;
-    this.y += this.dy;
+    // this.x += this.dx;
+    // this.y += this.dy;
+    let reference = this.angle % 90;
+
+    let xGain = cos(reference);
+    let yGain = sin(reference);
+
+    this.x += xGain * this.speed;
+    this.y += yGain * this.speed;
+
     this.opactiy -= 5;
     if (this.opactiy <= 0) {
       fireworks = fireworks.filter(part => part !== this);
@@ -47,7 +57,7 @@ function draw() {
 
 function mousePressed() {
   for (let i = 0; i < NUMBER_OF_PARTICLES; i++) {
-    let part = new Particle(mouseX, mouseY);
+    let part = new Particle(mouseX, mouseY, random(0, 360));
     fireworks.push(part);
   }
 }
