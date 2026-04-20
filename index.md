@@ -13,6 +13,7 @@
 - [Platformer](11-platformer-files)
 - [Walker OOP Demo](walker)
 - [Fireworks OOP Demo](Fireworks)
+- [Connected Nodes](Nodes)
 
 ## Assignments
 - [square grower](interactive-scene)
