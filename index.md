@@ -14,6 +14,7 @@
 - [Walker OOP Demo](walker)
 - [Fireworks OOP Demo](Fireworks)
 - [Connected Nodes](Nodes)
+- [Inheritance OOP](Inhert)
 
 ## Assignments
 - [square grower](interactive-scene)
