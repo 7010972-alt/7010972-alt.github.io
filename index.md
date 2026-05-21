@@ -16,6 +16,7 @@
 - [Connected Nodes](Nodes)
 - [Inheritance OOP](Inhert)
 - [Callide2D](Col)
+- [circle recursion](recurs)
 
 ## Assignments
 - [square grower](interactive-scene)
