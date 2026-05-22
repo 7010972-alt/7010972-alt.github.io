@@ -17,6 +17,7 @@
 - [Inheritance OOP](Inhert)
 - [Callide2D](Col)
 - [circle recursion](recurs)
+- [serpinsku](serp)
 
 ## Assignments
 - [square grower](interactive-scene)
